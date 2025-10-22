@@ -40,7 +40,7 @@ const Index = () => {
     }
   }, {
     id: "consultancy",
-    name: "RORIRI Consultancy",
+    name: "RIYA Consultancy",
     icon: Briefcase,
     description: "Professional Services",
     color: "from-purple-500 to-violet-500",
