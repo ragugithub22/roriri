@@ -4,69 +4,86 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import EntityCard from "@/components/dashboard/EntityCard";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EntityFlowDiagram from "@/components/dashboard/EntityFlowDiagram";
-
 const Index = () => {
-  const entities = [
-    {
-      id: "academy",
-      name: "RORIRI Academy",
-      icon: GraduationCap,
-      description: "Education & Sports Management",
-      color: "from-blue-500 to-cyan-500",
-      stats: { primary: "2,450", secondary: "Students", trend: "+12%" },
-    },
-    {
-      id: "foundation",
-      name: "RORIRI Foundation",
-      icon: Heart,
-      description: "Social Development & Charity",
-      color: "from-pink-500 to-rose-500",
-      stats: { primary: "156", secondary: "Projects", trend: "+8%" },
-    },
-    {
-      id: "farm",
-      name: "RORIRI Farm",
-      icon: Sprout,
-      description: "Agriculture & Livestock",
-      color: "from-green-500 to-emerald-500",
-      stats: { primary: "850", secondary: "Acres", trend: "+15%" },
-    },
-    {
-      id: "consultancy",
-      name: "RORIRI Consultancy",
-      icon: Briefcase,
-      description: "Professional Services",
-      color: "from-purple-500 to-violet-500",
-      stats: { primary: "89", secondary: "Clients", trend: "+22%" },
-    },
-    {
-      id: "trading",
-      name: "RORIRI Trading",
-      icon: ShoppingCart,
-      description: "Retail & Wholesale",
-      color: "from-orange-500 to-amber-500",
-      stats: { primary: "₹45.2M", secondary: "Revenue", trend: "+18%" },
-    },
-    {
-      id: "automation",
-      name: "RORIRI Automation",
-      icon: Factory,
-      description: "Manufacturing & Industry",
-      color: "from-slate-500 to-zinc-500",
-      stats: { primary: "12K", secondary: "Units/Mo", trend: "+9%" },
-    },
-    {
-      id: "it",
-      name: "RORIRI IT Company",
-      icon: Laptop,
-      description: "Technology & Software",
-      color: "from-indigo-500 to-blue-500",
-      stats: { primary: "34", secondary: "Projects", trend: "+25%" },
-    },
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  const entities = [{
+    id: "academy",
+    name: "RORIRI Academy",
+    icon: GraduationCap,
+    description: "Education & Sports Management",
+    color: "from-blue-500 to-cyan-500",
+    stats: {
+      primary: "2,450",
+      secondary: "Students",
+      trend: "+12%"
+    }
+  }, {
+    id: "foundation",
+    name: "RORIRI Foundation",
+    icon: Heart,
+    description: "Social Development & Charity",
+    color: "from-pink-500 to-rose-500",
+    stats: {
+      primary: "156",
+      secondary: "Projects",
+      trend: "+8%"
+    }
+  }, {
+    id: "farm",
+    name: "RORIRI Farm",
+    icon: Sprout,
+    description: "Agriculture & Livestock",
+    color: "from-green-500 to-emerald-500",
+    stats: {
+      primary: "850",
+      secondary: "Acres",
+      trend: "+15%"
+    }
+  }, {
+    id: "consultancy",
+    name: "RORIRI Consultancy",
+    icon: Briefcase,
+    description: "Professional Services",
+    color: "from-purple-500 to-violet-500",
+    stats: {
+      primary: "89",
+      secondary: "Clients",
+      trend: "+22%"
+    }
+  }, {
+    id: "trading",
+    name: "RORIRI Trading",
+    icon: ShoppingCart,
+    description: "Retail & Wholesale",
+    color: "from-orange-500 to-amber-500",
+    stats: {
+      primary: "₹45.2M",
+      secondary: "Revenue",
+      trend: "+18%"
+    }
+  }, {
+    id: "automation",
+    name: "RORIRI Automation",
+    icon: Factory,
+    description: "Manufacturing & Industry",
+    color: "from-slate-500 to-zinc-500",
+    stats: {
+      primary: "12K",
+      secondary: "Units/Mo",
+      trend: "+9%"
+    }
+  }, {
+    id: "it",
+    name: "RORIRI IT Company",
+    icon: Laptop,
+    description: "Technology & Software",
+    color: "from-indigo-500 to-blue-500",
+    stats: {
+      primary: "34",
+      secondary: "Projects",
+      trend: "+25%"
+    }
+  }];
+  return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-hero py-20 px-6 text-white">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
@@ -77,22 +94,26 @@ const Index = () => {
             <h1 className="text-5xl font-bold">RORIRI ERP</h1>
           </div>
           
-          <p className="text-2xl font-medium mb-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          <p className="text-2xl font-medium mb-4 animate-fade-in" style={{
+          animationDelay: "0.1s"
+        }}>
             One Roof, Many Missions
           </p>
           
-          <p className="text-lg opacity-90 max-w-3xl mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <p className="text-lg opacity-90 max-w-3xl mb-8 animate-fade-in" style={{
+          animationDelay: "0.2s"
+        }}>
             A unified digital ecosystem connecting education, agriculture, social development, business, and technology — 
             enabling RORIRI to drive rural empowerment, innovation, and sustainable growth through a single intelligent platform.
           </p>
           
-          <div className="flex gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="flex gap-4 animate-fade-in" style={{
+          animationDelay: "0.3s"
+        }}>
             <Button size="lg" variant="secondary" className="shadow-medium">
               Explore Dashboard <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
-              View Architecture
-            </Button>
+            <Button size="lg" variant="outline" className="border-white/30 hover:bg-white/10 text-stone-200">View Architectures</Button>
           </div>
         </div>
       </section>
@@ -115,15 +136,11 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {entities.map((entity, index) => (
-              <div 
-                key={entity.id}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
+            {entities.map((entity, index) => <div key={entity.id} className="animate-fade-in" style={{
+            animationDelay: `${index * 0.1}s`
+          }}>
                 <EntityCard {...entity} />
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -192,8 +209,6 @@ const Index = () => {
           <p>© 2025 RORIRI ERP. All rights reserved. | Empowering rural transformation through digital innovation.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
