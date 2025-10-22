@@ -51,7 +51,7 @@ const Index = () => {
     }
   }, {
     id: "trading",
-    name: "RORIRI Trading",
+    name: "ROSHAN Traders",
     icon: ShoppingCart,
     description: "Retail & Wholesale",
     color: "from-orange-500 to-amber-500",
