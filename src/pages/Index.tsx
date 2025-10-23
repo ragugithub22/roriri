@@ -29,7 +29,7 @@ const Index = () => {
     }
   }, {
     id: "farm",
-    name: "RORIRI Farm",
+    name: "Rithish Farms",
     icon: Sprout,
     description: "Agriculture & Livestock",
     color: "from-green-500 to-emerald-500",
