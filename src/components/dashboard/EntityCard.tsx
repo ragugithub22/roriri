@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface EntityCardProps {
   id: string;
@@ -17,9 +18,18 @@ interface EntityCardProps {
   };
 }
 
-const EntityCard = ({ name, icon: Icon, description, color, stats }: EntityCardProps) => {
+const EntityCard = ({ id, name, icon: Icon, description, color, stats }: EntityCardProps) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(`/${id}`);
+  };
+  
   return (
-    <Card className="group hover:shadow-medium transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden">
+    <Card 
+      className="group hover:shadow-medium transition-all duration-300 hover:-translate-y-1 cursor-pointer overflow-hidden"
+      onClick={handleClick}
+    >
       <div className={`h-2 bg-gradient-to-r ${color}`}></div>
       
       <CardHeader>
@@ -44,7 +54,15 @@ const EntityCard = ({ name, icon: Icon, description, color, stats }: EntityCardP
           <span className="text-sm text-muted-foreground">{stats.secondary}</span>
         </div>
         
-        <Button variant="ghost" size="sm" className="w-full group-hover:bg-primary/10">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full group-hover:bg-primary/10"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
+        >
           Open Module
           <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
         </Button>

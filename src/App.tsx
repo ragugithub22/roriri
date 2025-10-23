@@ -5,6 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AcademyDashboard from "./pages/AcademyDashboard";
+import FoundationDashboard from "./pages/FoundationDashboard";
+import FarmDashboard from "./pages/FarmDashboard";
+import ConsultancyDashboard from "./pages/ConsultancyDashboard";
+import TradingDashboard from "./pages/TradingDashboard";
+import AutomationDashboard from "./pages/AutomationDashboard";
+import ITDashboard from "./pages/ITDashboard";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +23,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/academy" element={<AcademyDashboard />} />
+          <Route path="/foundation" element={<FoundationDashboard />} />
+          <Route path="/farm" element={<FarmDashboard />} />
+          <Route path="/consultancy" element={<ConsultancyDashboard />} />
+          <Route path="/trading" element={<TradingDashboard />} />
+          <Route path="/automation" element={<AutomationDashboard />} />
+          <Route path="/it" element={<ITDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
