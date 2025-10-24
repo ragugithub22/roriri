@@ -3091,6 +3091,8 @@ export type Database = {
         | "trading"
         | "automation"
         | "it_company"
+        | "tours_travels"
+        | "builders"
       order_status:
         | "draft"
         | "pending"
@@ -3244,6 +3246,8 @@ export const Constants = {
         "trading",
         "automation",
         "it_company",
+        "tours_travels",
+        "builders",
       ],
       order_status: [
         "draft",

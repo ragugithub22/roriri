@@ -1,4 +1,4 @@
-import { Building2, GraduationCap, Heart, Sprout, Briefcase, ShoppingCart, Factory, Laptop, ArrowRight, BarChart3, Users, TrendingUp } from "lucide-react";
+import { Building2, GraduationCap, Heart, Sprout, Briefcase, ShoppingCart, Factory, Laptop, Plane, ArrowRight, BarChart3, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import EntityCard from "@/components/dashboard/EntityCard";
@@ -81,6 +81,28 @@ const Index = () => {
       primary: "34",
       secondary: "Projects",
       trend: "+25%"
+    }
+  }, {
+    id: "tours-travels",
+    name: "Rithish Tours and Travels",
+    icon: Plane,
+    description: "Travel & Tourism Services",
+    color: "from-sky-400 to-blue-600",
+    stats: {
+      primary: "523",
+      secondary: "Bookings",
+      trend: "+16%"
+    }
+  }, {
+    id: "builders",
+    name: "Roshan Builders",
+    icon: Building2,
+    description: "Construction & Real Estate",
+    color: "from-amber-400 to-orange-600",
+    stats: {
+      primary: "28",
+      secondary: "Projects",
+      trend: "+14%"
     }
   }];
   return <div className="min-h-screen bg-background">

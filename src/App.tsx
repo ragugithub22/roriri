@@ -12,6 +12,8 @@ import ConsultancyDashboard from "./pages/ConsultancyDashboard";
 import TradingDashboard from "./pages/TradingDashboard";
 import AutomationDashboard from "./pages/AutomationDashboard";
 import ITDashboard from "./pages/ITDashboard";
+import ToursTravelsDashboard from "./pages/ToursTravelsDashboard";
+import BuildersDashboard from "./pages/BuildersDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/trading" element={<TradingDashboard />} />
           <Route path="/automation" element={<AutomationDashboard />} />
           <Route path="/it" element={<ITDashboard />} />
+          <Route path="/tours-travels" element={<ToursTravelsDashboard />} />
+          <Route path="/builders" element={<BuildersDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
