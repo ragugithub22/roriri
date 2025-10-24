@@ -6,7 +6,7 @@ const StatsOverview = () => {
     {
       icon: Building2,
       label: "Active Entities",
-      value: "9",
+      value: "10",
       sublabel: "Business Units",
       color: "text-primary",
     },

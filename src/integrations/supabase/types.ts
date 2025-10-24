@@ -654,36 +654,56 @@ export type Database = {
       }
       courses: {
         Row: {
+          certification_available: boolean | null
           course_code: string
+          course_level: string | null
           created_at: string | null
           description: string | null
           duration_weeks: number | null
+          entity_id: string | null
           fees: number | null
           id: string
           name: string
+          prerequisites: string[] | null
           status: Database["public"]["Enums"]["status_type"] | null
         }
         Insert: {
+          certification_available?: boolean | null
           course_code: string
+          course_level?: string | null
           created_at?: string | null
           description?: string | null
           duration_weeks?: number | null
+          entity_id?: string | null
           fees?: number | null
           id?: string
           name: string
+          prerequisites?: string[] | null
           status?: Database["public"]["Enums"]["status_type"] | null
         }
         Update: {
+          certification_available?: boolean | null
           course_code?: string
+          course_level?: string | null
           created_at?: string | null
           description?: string | null
           duration_weeks?: number | null
+          entity_id?: string | null
           fees?: number | null
           id?: string
           name?: string
+          prerequisites?: string[] | null
           status?: Database["public"]["Enums"]["status_type"] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crops: {
         Row: {
@@ -1608,6 +1628,59 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "it_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      it_trainers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          employee_id: string | null
+          full_name: string
+          hourly_rate: number | null
+          id: string
+          is_external: boolean | null
+          phone: string | null
+          specialization: string
+          status: Database["public"]["Enums"]["status_type"] | null
+          trainer_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          employee_id?: string | null
+          full_name: string
+          hourly_rate?: number | null
+          id?: string
+          is_external?: boolean | null
+          phone?: string | null
+          specialization: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          trainer_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          employee_id?: string | null
+          full_name?: string
+          hourly_rate?: number | null
+          id?: string
+          is_external?: boolean | null
+          phone?: string | null
+          specialization?: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          trainer_code?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "it_trainers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -3093,6 +3166,7 @@ export type Database = {
         | "it_company"
         | "tours_travels"
         | "builders"
+        | "it_academy"
       order_status:
         | "draft"
         | "pending"
@@ -3248,6 +3322,7 @@ export const Constants = {
         "it_company",
         "tours_travels",
         "builders",
+        "it_academy",
       ],
       order_status: [
         "draft",

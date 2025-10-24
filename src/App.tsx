@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AcademyDashboard from "./pages/AcademyDashboard";
+import ITAcademyDashboard from "./pages/ITAcademyDashboard";
 import FoundationDashboard from "./pages/FoundationDashboard";
 import FarmDashboard from "./pages/FarmDashboard";
 import ConsultancyDashboard from "./pages/ConsultancyDashboard";
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/academy" element={<AcademyDashboard />} />
+          <Route path="/it-academy" element={<ITAcademyDashboard />} />
           <Route path="/foundation" element={<FoundationDashboard />} />
           <Route path="/farm" element={<FarmDashboard />} />
           <Route path="/consultancy" element={<ConsultancyDashboard />} />

@@ -17,6 +17,17 @@ const Index = () => {
       trend: "+12%"
     }
   }, {
+    id: "it-academy",
+    name: "RORIRI IT Academy",
+    icon: Laptop,
+    description: "IT Training & Certification",
+    color: "from-blue-600 to-indigo-600",
+    stats: {
+      primary: "7",
+      secondary: "IT Courses",
+      trend: "+20%"
+    }
+  }, {
     id: "foundation",
     name: "RORIRI Foundation",
     icon: Heart,
@@ -153,7 +164,7 @@ const Index = () => {
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-3">Integrated Business Units</h2>
             <p className="text-muted-foreground text-lg">
-              Seven specialized divisions working in harmony through shared infrastructure
+              Ten specialized divisions working in harmony through shared infrastructure
             </p>
           </div>
 
