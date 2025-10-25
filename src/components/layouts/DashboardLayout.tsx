@@ -12,12 +12,12 @@ interface DashboardLayoutProps {
   entityColor: string;
 }
 
-const DashboardLayout = ({ 
+export default function DashboardLayout({ 
   children, 
   entityName, 
   entityIcon: Icon, 
   entityColor 
-}: DashboardLayoutProps) => {
+}: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -81,6 +81,4 @@ const DashboardLayout = ({
       </main>
     </div>
   );
-};
-
-export default DashboardLayout;
+}
