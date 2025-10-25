@@ -1,10 +1,33 @@
-import { Building2, GraduationCap, Heart, Sprout, Briefcase, ShoppingCart, Factory, Laptop, Plane, ArrowRight, BarChart3, Users, TrendingUp } from "lucide-react";
+import { Building2, GraduationCap, Heart, Sprout, Briefcase, ShoppingCart, Factory, Laptop, Plane, ArrowRight, BarChart3, Users, TrendingUp, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import EntityCard from "@/components/dashboard/EntityCard";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EntityFlowDiagram from "@/components/dashboard/EntityFlowDiagram";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
+      if (error) return false;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   const entities = [{
     id: "academy",
     name: "RORIRI Academy",
@@ -117,6 +140,28 @@ const Index = () => {
     }
   }];
   return <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold">RORIRI ERP</h1>
+          </div>
+          <nav className="flex items-center gap-2">
+            {isAdmin && (
+              <Button variant="ghost" onClick={() => navigate("/admin")}>
+                <Shield className="mr-2 h-4 w-4" />
+                Admin
+              </Button>
+            )}
+            <Button variant="ghost" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </nav>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-hero py-20 px-6 text-white">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>

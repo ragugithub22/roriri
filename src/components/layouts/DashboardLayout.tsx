@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { LucideIcon, ArrowLeft, Home } from "lucide-react";
+import { LucideIcon, ArrowLeft, Home, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -18,6 +19,12 @@ const DashboardLayout = ({
   entityColor 
 }: DashboardLayoutProps) => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,14 +53,24 @@ const DashboardLayout = ({
               </div>
             </div>
 
-            <Button 
-              variant="ghost"
-              onClick={() => navigate("/")}
-              className="text-white hover:bg-white/20"
-            >
-              <Home className="mr-2 h-4 w-4" />
-              All Entities
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="text-white hover:bg-white/20"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                All Entities
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={handleLogout}
+                className="text-white hover:bg-white/20"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
