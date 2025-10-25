@@ -942,6 +942,44 @@ export type Database = {
           },
         ]
       }
+      employee_functions: {
+        Row: {
+          assigned_date: string | null
+          created_at: string | null
+          employee_id: string
+          function: Database["public"]["Enums"]["employee_function"]
+          id: string
+          is_primary: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_date?: string | null
+          created_at?: string | null
+          employee_id: string
+          function: Database["public"]["Enums"]["employee_function"]
+          id?: string
+          is_primary?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_date?: string | null
+          created_at?: string | null
+          employee_id?: string
+          function?: Database["public"]["Enums"]["employee_function"]
+          id?: string
+          is_primary?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_functions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string | null
@@ -3156,6 +3194,27 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "staff" | "viewer"
+      employee_function:
+        | "administrator"
+        | "trainer"
+        | "developer"
+        | "supervisor"
+        | "director"
+        | "labor"
+        | "system_admin"
+        | "devops_engineer"
+        | "accountant"
+        | "hr_specialist"
+        | "business_development"
+        | "finance_specialist"
+        | "marketing_specialist"
+        | "project_manager"
+        | "consultant"
+        | "analyst"
+        | "coordinator"
+        | "specialist"
+        | "engineer"
+        | "technician"
       entity_code:
         | "academy"
         | "foundation"
@@ -3312,6 +3371,28 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "staff", "viewer"],
+      employee_function: [
+        "administrator",
+        "trainer",
+        "developer",
+        "supervisor",
+        "director",
+        "labor",
+        "system_admin",
+        "devops_engineer",
+        "accountant",
+        "hr_specialist",
+        "business_development",
+        "finance_specialist",
+        "marketing_specialist",
+        "project_manager",
+        "consultant",
+        "analyst",
+        "coordinator",
+        "specialist",
+        "engineer",
+        "technician",
+      ],
       entity_code: [
         "academy",
         "foundation",
