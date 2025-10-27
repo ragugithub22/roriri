@@ -19,6 +19,10 @@ import ITDashboard from "./pages/ITDashboard";
 import ToursTravelsDashboard from "./pages/ToursTravelsDashboard";
 import BuildersDashboard from "./pages/BuildersDashboard";
 import AdminPanel from "./pages/AdminPanel";
+import EmployeeList from "./pages/EmployeeList";
+import EmployeeDetail from "./pages/EmployeeDetail";
+import DepartmentList from "./pages/DepartmentList";
+import PositionList from "./pages/PositionList";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +47,10 @@ const App = () => (
             <Route path="/tours-travels" element={<ProtectedRoute><ToursTravelsDashboard /></ProtectedRoute>} />
             <Route path="/builders" element={<ProtectedRoute><BuildersDashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+            <Route path="/employees" element={<ProtectedRoute><EmployeeList /></ProtectedRoute>} />
+            <Route path="/employees/:id" element={<ProtectedRoute><EmployeeDetail /></ProtectedRoute>} />
+            <Route path="/departments" element={<ProtectedRoute><DepartmentList /></ProtectedRoute>} />
+            <Route path="/positions" element={<ProtectedRoute><PositionList /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

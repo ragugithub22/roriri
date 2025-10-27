@@ -148,6 +148,10 @@ const Index = () => {
             <h1 className="text-xl font-bold">RORIRI ERP</h1>
           </div>
           <nav className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate("/employees")}>
+              <Users className="mr-2 h-4 w-4" />
+              Employees
+            </Button>
             {isAdmin && (
               <Button variant="ghost" onClick={() => navigate("/admin")}>
                 <Shield className="mr-2 h-4 w-4" />
