@@ -66,7 +66,7 @@ export default function SubjectsManager() {
       return subjectsData.map((subject: any) => ({
         ...subject,
         course: coursesMap.get(subject.course_id)
-      }));
+      })) as any[];
     },
   });
 

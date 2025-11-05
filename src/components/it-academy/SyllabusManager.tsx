@@ -25,7 +25,7 @@ export default function SyllabusManager() {
         .select("id, subject_name, subject_code")
         .eq("status", "active");
       if (error) throw error;
-      return data;
+      return (data || []) as any[];
     },
   });
 
@@ -45,12 +45,12 @@ export default function SyllabusManager() {
         ? await supabase.from("subjects" as any).select("id, subject_name, subject_code").in("id", subjectIds)
         : { data: [] };
 
-      const subjectsMap = new Map((subjectsData.data || []).map((s: any) => [s.id, s]));
+      const subjectsMap = new Map(((subjectsData.data || []) as any[]).map((s: any) => [s.id, s]));
 
       return syllabusData.map((item: any) => ({
         ...item,
         subject: subjectsMap.get(item.subject_id)
-      }));
+      })) as any[];
     },
   });
 
