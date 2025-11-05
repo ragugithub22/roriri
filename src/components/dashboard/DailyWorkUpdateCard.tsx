@@ -69,7 +69,7 @@ const DailyWorkUpdateCard = () => {
         .from("profiles")
         .select("id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile) return null;
 
@@ -77,7 +77,7 @@ const DailyWorkUpdateCard = () => {
         .from("employees")
         .select("id, entity:entities(name)")
         .eq("profile_id", profile.id)
-        .single();
+        .maybeSingle();
 
       return employee;
     },
@@ -97,8 +97,7 @@ const DailyWorkUpdateCard = () => {
           employee:employees(
             profile:profiles(full_name),
             entity:entities(name)
-          ),
-          reviewer:reviewed_by(full_name)
+          )
         `)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
@@ -422,12 +421,15 @@ const DailyWorkUpdateCard = () => {
                 <Filter className="h-4 w-4" />
                 Filter by Employee
               </label>
-              <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+              <Select 
+                value={filterEmployee || "all"} 
+                onValueChange={(val) => setFilterEmployee(val === "all" ? "" : val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All Employees" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Employees</SelectItem>
+                  <SelectItem value="all">All Employees</SelectItem>
                   {employees?.map((emp: any) => (
                     <SelectItem key={emp.id} value={emp.id}>
                       {emp.profile?.full_name || "Unknown"}
