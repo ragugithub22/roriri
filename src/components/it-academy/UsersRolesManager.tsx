@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Trash2 } from "lucide-react";
+import { UserPlus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -22,7 +22,9 @@ const userSchema = z.object({
 
 export default function UsersRolesManager() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("");
+  const [editingRole, setEditingRole] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: profiles = [] } = useQuery({
@@ -103,6 +105,31 @@ export default function UsersRolesManager() {
       toast.error("Failed to remove role");
     },
   });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ roleId, newRole }: { roleId: string; newRole: string }) => {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole as any })
+        .eq("id", roleId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Role updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["user-roles"] });
+      setIsEditOpen(false);
+      setEditingRole(null);
+    },
+    onError: () => {
+      toast.error("Failed to update role");
+    },
+  });
+
+  const handleEdit = (role: any) => {
+    setEditingRole(role);
+    setSelectedRole(role.role);
+    setIsEditOpen(true);
+  };
 
   return (
     <Card>
@@ -199,6 +226,58 @@ export default function UsersRolesManager() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Edit Role Dialog */}
+          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit User Role</DialogTitle>
+                <DialogDescription>
+                  Update the role for {editingRole?.profile?.full_name || "this user"}.
+                </DialogDescription>
+              </DialogHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (editingRole && selectedRole) {
+                    updateRoleMutation.mutate({ 
+                      roleId: editingRole.id, 
+                      newRole: selectedRole 
+                    });
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <Label>User</Label>
+                  <Input
+                    value={`${editingRole?.profile?.full_name || "Unknown"} (${editingRole?.profile?.email || "-"})`}
+                    disabled
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-role">Role *</Label>
+                  <Select value={selectedRole} onValueChange={setSelectedRole} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                      <SelectItem value="trainer">Trainer</SelectItem>
+                      <SelectItem value="trainee">Trainee</SelectItem>
+                      <SelectItem value="hr">HR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full" disabled={updateRoleMutation.isPending}>
+                  {updateRoleMutation.isPending ? "Updating..." : "Update Role"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
@@ -220,13 +299,22 @@ export default function UsersRolesManager() {
                   <Badge>{role.role}</Badge>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => deleteRoleMutation.mutate(role.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(role)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteRoleMutation.mutate(role.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
