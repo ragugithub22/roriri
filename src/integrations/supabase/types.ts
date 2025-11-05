@@ -911,6 +911,59 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_work_updates: {
+        Row: {
+          created_at: string | null
+          date: string
+          employee_id: string | null
+          hours_spent: number
+          id: string
+          is_reviewed: boolean | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["work_status"]
+          updated_at: string | null
+          user_id: string
+          work_description: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          employee_id?: string | null
+          hours_spent: number
+          id?: string
+          is_reviewed?: boolean | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["work_status"]
+          updated_at?: string | null
+          user_id: string
+          work_description: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          employee_id?: string | null
+          hours_spent?: number
+          id?: string
+          is_reviewed?: boolean | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["work_status"]
+          updated_at?: string | null
+          user_id?: string
+          work_description?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_work_updates_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dashboard_widgets: {
         Row: {
           configuration: Json | null
@@ -3484,6 +3537,7 @@ export type Database = {
       task_priority: "low" | "medium" | "high"
       task_status: "pending" | "in_progress" | "completed"
       transaction_type: "income" | "expense" | "transfer"
+      work_status: "completed" | "in_progress" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3675,6 +3729,7 @@ export const Constants = {
       task_priority: ["low", "medium", "high"],
       task_status: ["pending", "in_progress", "completed"],
       transaction_type: ["income", "expense", "transfer"],
+      work_status: ["completed", "in_progress", "pending"],
     },
   },
 } as const

@@ -5,6 +5,7 @@ import EntityCard from "@/components/dashboard/EntityCard";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EntityFlowDiagram from "@/components/dashboard/EntityFlowDiagram";
 import TaskAssignmentCard from "@/components/dashboard/TaskAssignmentCard";
+import DailyWorkUpdateCard from "@/components/dashboard/DailyWorkUpdateCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -212,6 +213,13 @@ const Index = () => {
       <section className="py-12 px-6 border-b bg-muted/20">
         <div className="container mx-auto max-w-7xl">
           <TaskAssignmentCard />
+        </div>
+      </section>
+
+      {/* Daily Work Update Card */}
+      <section className="py-12 px-6 border-b">
+        <div className="container mx-auto max-w-7xl">
+          <DailyWorkUpdateCard />
         </div>
       </section>
 
