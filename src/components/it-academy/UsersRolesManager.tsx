@@ -54,7 +54,7 @@ export default function UsersRolesManager() {
       const userIds = roles.map(r => r.user_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, email")
+        .select("id, full_name, email, phone")
         .in("id", userIds);
 
       if (profilesError) throw profilesError;
@@ -106,22 +106,45 @@ export default function UsersRolesManager() {
     },
   });
 
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ roleId, newRole }: { roleId: string; newRole: string }) => {
-      const { error } = await supabase
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ roleId, userId, fullName, email, phone, newRole }: { 
+      roleId: string; 
+      userId: string;
+      fullName: string; 
+      email: string; 
+      phone?: string; 
+      newRole: string 
+    }) => {
+      // Update profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          full_name: fullName,
+          email: email,
+          phone: phone || null
+        })
+        .eq("id", userId);
+      
+      if (profileError) throw profileError;
+
+      // Update role
+      const { error: roleError } = await supabase
         .from("user_roles")
         .update({ role: newRole as any })
         .eq("id", roleId);
-      if (error) throw error;
+      
+      if (roleError) throw roleError;
     },
     onSuccess: () => {
-      toast.success("Role updated successfully");
+      toast.success("User updated successfully");
       queryClient.invalidateQueries({ queryKey: ["user-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
       setIsEditOpen(false);
       setEditingRole(null);
+      setSelectedRole("");
     },
-    onError: () => {
-      toast.error("Failed to update role");
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update user");
     },
   });
 
@@ -227,32 +250,77 @@ export default function UsersRolesManager() {
             </DialogContent>
           </Dialog>
 
-          {/* Edit Role Dialog */}
+          {/* Edit User Dialog */}
           <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Edit User Role</DialogTitle>
+                <DialogTitle>Edit User and Role</DialogTitle>
                 <DialogDescription>
-                  Update the role for {editingRole?.profile?.full_name || "this user"}.
+                  Update user details and role assignment.
                 </DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (editingRole && selectedRole) {
-                    updateRoleMutation.mutate({ 
-                      roleId: editingRole.id, 
-                      newRole: selectedRole 
-                    });
+                  const formData = new FormData(e.currentTarget);
+                  const fullName = formData.get("fullName") as string;
+                  const email = formData.get("email") as string;
+                  const phone = formData.get("phone") as string;
+                  const role = selectedRole;
+
+                  // Validate input
+                  try {
+                    userSchema.parse({ fullName, email, phone, role });
+                    if (editingRole) {
+                      updateUserMutation.mutate({ 
+                        roleId: editingRole.id,
+                        userId: editingRole.user_id,
+                        fullName, 
+                        email, 
+                        phone, 
+                        newRole: role 
+                      });
+                    }
+                  } catch (error) {
+                    if (error instanceof z.ZodError) {
+                      toast.error(error.errors[0].message);
+                    }
                   }
                 }}
                 className="space-y-4"
               >
                 <div>
-                  <Label>User</Label>
+                  <Label htmlFor="edit-fullName">Full Name *</Label>
                   <Input
-                    value={`${editingRole?.profile?.full_name || "Unknown"} (${editingRole?.profile?.email || "-"})`}
-                    disabled
+                    id="edit-fullName"
+                    name="fullName"
+                    placeholder="Enter full name"
+                    defaultValue={editingRole?.profile?.full_name || ""}
+                    required
+                    maxLength={100}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-email">Email *</Label>
+                  <Input
+                    id="edit-email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter email address"
+                    defaultValue={editingRole?.profile?.email || ""}
+                    required
+                    maxLength={255}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-phone">Phone Number</Label>
+                  <Input
+                    id="edit-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Enter phone number"
+                    defaultValue={editingRole?.profile?.phone || ""}
+                    maxLength={20}
                   />
                 </div>
                 <div>
@@ -272,8 +340,8 @@ export default function UsersRolesManager() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full" disabled={updateRoleMutation.isPending}>
-                  {updateRoleMutation.isPending ? "Updating..." : "Update Role"}
+                <Button type="submit" className="w-full" disabled={updateUserMutation.isPending}>
+                  {updateUserMutation.isPending ? "Updating..." : "Update User & Role"}
                 </Button>
               </form>
             </DialogContent>
