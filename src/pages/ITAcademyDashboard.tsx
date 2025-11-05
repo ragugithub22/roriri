@@ -1,16 +1,20 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { DataTable } from "@/components/dashboard/DataTable";
-import ChartCard from "@/components/dashboard/ChartCard";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import QuickActions from "@/components/dashboard/QuickActions";
-import { Code2, Users, BookOpen, Award, UserPlus, Plus } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Badge } from "@/components/ui/badge";
+import { Code2, Users, BookOpen, Award, DollarSign, FileText } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UsersRolesManager from "@/components/it-academy/UsersRolesManager";
+import CoursesManager from "@/components/it-academy/CoursesManager";
+import BatchesManager from "@/components/it-academy/BatchesManager";
+import StudentsManager from "@/components/it-academy/StudentsManager";
+import PaymentsManager from "@/components/it-academy/PaymentsManager";
+import CertificatesManager from "@/components/it-academy/CertificatesManager";
 
 const ITAcademyDashboard = () => {
+  const [activeTab, setActiveTab] = useState("dashboard");
+
   // Fetch IT courses
   const { data: courses = [] } = useQuery({
     queryKey: ["it-courses"],
@@ -241,11 +245,22 @@ const ITAcademyDashboard = () => {
 
   return (
     <DashboardLayout
-      entityName="RORIRI IT Academy"
+      entityName="RORIRI IT Academy - Super Admin"
       entityIcon={Code2}
       entityColor="from-blue-500 to-indigo-600"
     >
-      <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="users">Users & Roles</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="batches">Batches</TabsTrigger>
+          <TabsTrigger value="students">Students</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="certificates">Certificates</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
@@ -326,9 +341,32 @@ const ITAcademyDashboard = () => {
           emptyMessage="No trainees found"
         />
 
-        {/* Activity Feed */}
-        <ActivityFeed activities={activityLogs} />
-      </div>
+        </TabsContent>
+
+        <TabsContent value="users">
+          <UsersRolesManager />
+        </TabsContent>
+
+        <TabsContent value="courses">
+          <CoursesManager />
+        </TabsContent>
+
+        <TabsContent value="batches">
+          <BatchesManager />
+        </TabsContent>
+
+        <TabsContent value="students">
+          <StudentsManager />
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <PaymentsManager />
+        </TabsContent>
+
+        <TabsContent value="certificates">
+          <CertificatesManager />
+        </TabsContent>
+      </Tabs>
     </DashboardLayout>
   );
 };
