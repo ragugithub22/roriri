@@ -14,6 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_payments: {
+        Row: {
+          amount: number
+          batch_id: string | null
+          course_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          payment_code: string
+          payment_date: string
+          payment_method: string | null
+          status: Database["public"]["Enums"]["payment_status"] | null
+          student_id: string | null
+        }
+        Insert: {
+          amount: number
+          batch_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_code: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          student_id?: string | null
+        }
+        Update: {
+          amount?: number
+          batch_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_code?: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_payments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_payments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           account_code: string
@@ -338,6 +402,66 @@ export type Database = {
           },
         ]
       }
+      batches: {
+        Row: {
+          batch_code: string
+          batch_name: string
+          course_id: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          max_students: number | null
+          schedule: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["status_type"] | null
+          trainer_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          batch_code: string
+          batch_name: string
+          course_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          max_students?: number | null
+          schedule?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          trainer_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          batch_code?: string
+          batch_name?: string
+          course_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          max_students?: number | null
+          schedule?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          trainer_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batches_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "batches_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "it_trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beneficiaries: {
         Row: {
           address: string | null
@@ -457,6 +581,61 @@ export type Database = {
             columns: ["reported_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      certificates: {
+        Row: {
+          batch_id: string | null
+          certificate_number: string
+          course_id: string | null
+          created_at: string | null
+          id: string
+          issue_date: string
+          status: Database["public"]["Enums"]["status_type"] | null
+          student_id: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          certificate_number: string
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          issue_date: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          student_id?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          certificate_number?: string
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          issue_date?: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
