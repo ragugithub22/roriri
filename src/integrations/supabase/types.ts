@@ -3320,6 +3320,59 @@ export type Database = {
           },
         ]
       }
+      user_tasks: {
+        Row: {
+          assigned_by: string | null
+          assigned_to: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          entity_id: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"] | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          entity_id?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          entity_id?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tasks_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       volunteers: {
         Row: {
           availability: string | null
@@ -3428,6 +3481,8 @@ export type Database = {
         | "completed"
         | "cancelled"
       status_type: "active" | "inactive" | "pending" | "archived"
+      task_priority: "low" | "medium" | "high"
+      task_status: "pending" | "in_progress" | "completed"
       transaction_type: "income" | "expense" | "transfer"
     }
     CompositeTypes: {
@@ -3617,6 +3672,8 @@ export const Constants = {
         "cancelled",
       ],
       status_type: ["active", "inactive", "pending", "archived"],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["pending", "in_progress", "completed"],
       transaction_type: ["income", "expense", "transfer"],
     },
   },
