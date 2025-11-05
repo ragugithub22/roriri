@@ -36,8 +36,8 @@ const menuItems = [
   { title: "Certificates", value: "certificates", icon: GraduationCap },
 ];
 
-function ITAcademySidebar({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (value: string) => void }) {
-  const { state } = useSidebar();
+const ITAcademyDashboard = () => {
+  const [activeTab, setActiveTab] = useState("dashboard");
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -45,62 +45,6 @@ function ITAcademySidebar({ activeTab, setActiveTab }: { activeTab: string; setA
     await signOut();
     navigate("/auth");
   };
-
-  return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-              <Code2 className="h-6 w-6" />
-            </div>
-            {state !== "collapsed" && (
-              <div>
-                <h2 className="font-bold text-sm">RORIRI IT Academy</h2>
-                <p className="text-xs text-muted-foreground">Super Admin</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.value}>
-                  <SidebarMenuButton
-                    onClick={() => setActiveTab(item.value)}
-                    isActive={activeTab === item.value}
-                    tooltip={item.title}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <div className="mt-auto p-4 space-y-2 border-t">
-          <SidebarMenuButton onClick={() => navigate("/")} tooltip="All Entities">
-            <Home className="h-4 w-4" />
-            <span>All Entities</span>
-          </SidebarMenuButton>
-          <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </SidebarMenuButton>
-        </div>
-      </SidebarContent>
-    </Sidebar>
-  );
-}
-
-const ITAcademyDashboard = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const navigate = useNavigate();
 
   // Fetch IT courses
   const { data: courses = [] } = useQuery({
@@ -232,10 +176,54 @@ const ITAcademyDashboard = () => {
   return (
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full">
-        <ITAcademySidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar collapsible="icon">
+          <SidebarContent>
+            <div className="p-4 border-b">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                  <Code2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-sm">RORIRI IT Academy</h2>
+                  <p className="text-xs text-muted-foreground">Super Admin</p>
+                </div>
+              </div>
+            </div>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.value}>
+                      <SidebarMenuButton
+                        onClick={() => setActiveTab(item.value)}
+                        isActive={activeTab === item.value}
+                        tooltip={item.title}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <div className="mt-auto p-4 space-y-2 border-t">
+              <SidebarMenuButton onClick={() => navigate("/")} tooltip="All Entities">
+                <Home className="h-4 w-4" />
+                <span>All Entities</span>
+              </SidebarMenuButton>
+              <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </SidebarMenuButton>
+            </div>
+          </SidebarContent>
+        </Sidebar>
         
         <div className="flex-1 flex flex-col">
-          {/* Header */}
           <header className="h-14 border-b flex items-center gap-4 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
             <SidebarTrigger className="text-white hover:bg-white/20" />
             <Button 
@@ -246,12 +234,9 @@ const ITAcademyDashboard = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold">IT Academy Dashboard</h1>
-            </div>
+            <h1 className="text-lg font-bold">IT Academy Dashboard</h1>
           </header>
 
-          {/* Main Content */}
           <main className="flex-1 p-6 overflow-auto">
             {activeTab === "dashboard" && (
               <div className="space-y-6">
