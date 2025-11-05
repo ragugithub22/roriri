@@ -2,25 +2,30 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Plus, Upload, GraduationCap } from "lucide-react";
+import { ArrowLeft, Plus, Upload, GraduationCap, FileText } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 
 export default function StudentDetail() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isWorkUpdateDialogOpen, setIsWorkUpdateDialogOpen] = useState(false);
+  const [showWorkUpdates, setShowWorkUpdates] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [courseFees, setCourseFees] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -73,6 +78,20 @@ export default function StudentDetail() {
         `)
         .eq("student_id", id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch daily work updates for the student
+  const { data: workUpdates = [] } = useQuery({
+    queryKey: ["student-work-updates", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("daily_work_updates")
+        .select("*")
+        .eq("employee_id", id)
+        .order("date", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -159,6 +178,38 @@ export default function StudentDetail() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     addPaymentMutation.mutate(formData);
+  };
+
+  // Add work update mutation
+  const addWorkUpdateMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase
+        .from("daily_work_updates")
+        .insert({
+          user_id: user.id,
+          employee_id: id,
+          date: formData.get("date") as string,
+          work_description: formData.get("work_description") as string,
+          hours_spent: Number(formData.get("hours_spent")),
+          status: formData.get("status") as any,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Work update added successfully");
+      queryClient.invalidateQueries({ queryKey: ["student-work-updates", id] });
+      setIsWorkUpdateDialogOpen(false);
+    },
+    onError: () => {
+      toast.error("Failed to add work update");
+    },
+  });
+
+  const handleWorkUpdateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    addWorkUpdateMutation.mutate(formData);
   };
 
   if (!student) {
@@ -453,6 +504,135 @@ export default function StudentDetail() {
               </TableBody>
             </Table>
           </CardContent>
+        </Card>
+
+        {/* Daily Work Updates Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Daily Work Updates
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowWorkUpdates(!showWorkUpdates)}
+                >
+                  {showWorkUpdates ? "Close Module" : "Open Module"}
+                </Button>
+                <Dialog open={isWorkUpdateDialogOpen} onOpenChange={setIsWorkUpdateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Work Update
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Work Update</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleWorkUpdateSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="date">Date</Label>
+                        <Input
+                          id="date"
+                          name="date"
+                          type="date"
+                          defaultValue={new Date().toISOString().split('T')[0]}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="work_description">Work Description</Label>
+                        <Textarea
+                          id="work_description"
+                          name="work_description"
+                          rows={4}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="hours_spent">Hours Spent</Label>
+                        <Input
+                          id="hours_spent"
+                          name="hours_spent"
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="status">Status</Label>
+                        <Select name="status" defaultValue="in_progress" required>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="blocked">Blocked</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Save Work Update
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </CardHeader>
+          {showWorkUpdates && (
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Work Description</TableHead>
+                    <TableHead>Hours</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Reviewed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {workUpdates.length > 0 ? (
+                    workUpdates.map((update) => (
+                      <TableRow key={update.id}>
+                        <TableCell>{update.date}</TableCell>
+                        <TableCell className="max-w-md truncate">{update.work_description}</TableCell>
+                        <TableCell>{update.hours_spent}h</TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            update.status === "completed" ? "default" :
+                            update.status === "in_progress" ? "secondary" :
+                            "destructive"
+                          }>
+                            {update.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {update.is_reviewed ? (
+                            <Badge variant="outline">Reviewed</Badge>
+                          ) : (
+                            <Badge variant="secondary">Pending</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No work updates yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          )}
         </Card>
       </div>
     </DashboardLayout>
