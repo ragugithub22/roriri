@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Trash2, CheckCircle, XCircle } from "lucide-react";
@@ -113,6 +113,7 @@ export default function UsersRolesManager() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Assign Role to User</DialogTitle>
+                <DialogDescription>Select a user and role, then submit to assign permissions.</DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
