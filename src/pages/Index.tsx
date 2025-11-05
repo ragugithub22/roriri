@@ -208,8 +208,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Task Assignment Section */}
-      <section className="py-12 px-6 border-b bg-muted/30">
+      {/* Task Assignment Card */}
+      <section className="py-12 px-6 border-b bg-muted/20">
         <div className="container mx-auto max-w-7xl">
           <TaskAssignmentCard />
         </div>

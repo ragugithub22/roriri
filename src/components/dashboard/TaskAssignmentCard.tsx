@@ -9,106 +9,122 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Plus, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  assigned_to: string;
+  assigned_by: string;
+  entity_id: string | null;
+  start_date: string;
+  end_date: string;
+  priority: "low" | "medium" | "high";
+  status: "pending" | "in_progress" | "completed";
+  created_at: string;
+  assigned_to_profile?: { full_name: string; email: string };
+  entity?: { name: string };
+}
+
 export default function TaskAssignmentCard() {
   const [isOpen, setIsOpen] = useState(false);
-  const queryClient = useQueryClient();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const { data: userRole } = useQuery({
-    queryKey: ['user-role', user?.id],
+  const { data: userRoles = [] } = useQuery({
+    queryKey: ["user-roles", user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
-      const { data: adminCheck } = await supabase.rpc('is_admin', { _user_id: user.id });
-      const { data: roles } = await supabase
-        .from('user_roles' as any)
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      return {
-        isAdmin: adminCheck,
-        isManager: (roles as any)?.role === 'manager',
-        canAssign: adminCheck || (roles as any)?.role === 'manager'
-      };
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data;
     },
     enabled: !!user?.id,
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['all-users'],
+  const isAdminOrManager = userRoles.some(
+    (r: any) => r.role === "admin" || r.role === "manager"
+  );
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["all-profiles"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .order('full_name');
+        .from("profiles")
+        .select("id, full_name, email")
+        .order("full_name");
       if (error) throw error;
-      return data || [];
+      return data;
     },
-    enabled: userRole?.canAssign,
+    enabled: isAdminOrManager,
   });
 
   const { data: entities = [] } = useQuery({
-    queryKey: ['entities'],
+    queryKey: ["entities"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('entities')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name');
+        .from("entities")
+        .select("id, name")
+        .eq("status", "active")
+        .order("name");
       if (error) throw error;
-      return data || [];
+      return data;
     },
-    enabled: userRole?.canAssign,
   });
 
-  const { data: tasks = [], refetch } = useQuery({
-    queryKey: ['user-tasks'],
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey: ["user-tasks"],
     queryFn: async () => {
       const { data: tasksData, error } = await supabase
-        .from('user_tasks' as any)
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("user_tasks" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
       
       if (error) throw error;
       if (!tasksData) return [];
 
-      const userIds = [...new Set([
-        ...tasksData.map((t: any) => t.assigned_to),
-        ...tasksData.map((t: any) => t.assigned_by)
-      ].filter(Boolean))];
+      const profileIds = [...new Set(tasksData.map((t: any) => t.assigned_to).filter(Boolean))];
+      const entityIds = [...new Set(tasksData.map((t: any) => t.entity_id).filter(Boolean))];
 
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('id', userIds);
+      const [profilesData, entitiesData] = await Promise.all([
+        profileIds.length > 0
+          ? supabase.from("profiles").select("id, full_name, email").in("id", profileIds)
+          : { data: [] },
+        entityIds.length > 0
+          ? supabase.from("entities").select("id, name").in("id", entityIds)
+          : { data: [] },
+      ]);
 
-      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const profilesMap = new Map((profilesData.data || []).map((p: any) => [p.id, p]));
+      const entitiesMap = new Map((entitiesData.data || []).map((e: any) => [e.id, e]));
 
       return tasksData.map((task: any) => ({
         ...task,
         assigned_to_profile: profilesMap.get(task.assigned_to),
-        assigned_by_profile: profilesMap.get(task.assigned_by)
-      }));
+        entity: entitiesMap.get(task.entity_id),
+      })) as Task[];
     },
   });
 
-  // Real-time updates
+  // Realtime subscription
   useEffect(() => {
     const channel = supabase
-      .channel('user_tasks_changes')
+      .channel("user_tasks_changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'user_tasks'
+          event: "*",
+          schema: "public",
+          table: "user_tasks",
         },
         () => {
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ["user-tasks"] });
         }
       )
       .subscribe();
@@ -116,21 +132,19 @@ export default function TaskAssignmentCard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refetch]);
+  }, [queryClient]);
 
-  const createMutation = useMutation({
+  const createTaskMutation = useMutation({
     mutationFn: async (taskData: any) => {
-      const { error } = await supabase
-        .from('user_tasks' as any)
-        .insert({
-          ...taskData,
-          assigned_by: user?.id
-        });
+      const { error } = await supabase.from("user_tasks" as any).insert({
+        ...taskData,
+        assigned_by: user?.id,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Task assigned successfully");
-      queryClient.invalidateQueries({ queryKey: ['user-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ["user-tasks"] });
       setIsOpen(false);
     },
     onError: () => {
@@ -138,20 +152,20 @@ export default function TaskAssignmentCard() {
     },
   });
 
-  const updateStatusMutation = useMutation({
+  const updateTaskStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
-        .from('user_tasks' as any)
+        .from("user_tasks" as any)
         .update({ status })
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Task status updated");
-      queryClient.invalidateQueries({ queryKey: ['user-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ["user-tasks"] });
     },
     onError: () => {
-      toast.error("Failed to update task");
+      toast.error("Failed to update task status");
     },
   });
 
@@ -166,53 +180,53 @@ export default function TaskAssignmentCard() {
       start_date: formData.get("start_date"),
       end_date: formData.get("end_date"),
       priority: formData.get("priority"),
-      status: 'pending'
+      status: "pending",
     };
-    createMutation.mutate(taskData);
+    createTaskMutation.mutate(taskData);
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case 'in_progress':
-        return <Clock className="h-4 w-4 text-blue-500" />;
+      case "completed":
+        return <CheckCircle className="h-4 w-4" />;
+      case "in_progress":
+        return <Clock className="h-4 w-4" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+        return <AlertCircle className="h-4 w-4" />;
     }
   };
 
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'default';
-      case 'in_progress':
-        return 'secondary';
+      case "completed":
+        return "default";
+      case "in_progress":
+        return "secondary";
       default:
-        return 'destructive';
+        return "outline";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
-        return 'text-red-500';
-      case 'medium':
-        return 'text-orange-500';
+      case "high":
+        return "destructive";
+      case "medium":
+        return "default";
       default:
-        return 'text-blue-500';
+        return "secondary";
     }
   };
 
   return (
-    <Card className="shadow-soft">
+    <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Task Assignments</CardTitle>
+            <CardTitle>Task Assignment</CardTitle>
             <CardDescription>Manage and track team tasks</CardDescription>
           </div>
-          {userRole?.canAssign && (
+          {isAdminOrManager && (
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -227,21 +241,11 @@ export default function TaskAssignmentCard() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Label htmlFor="title">Task Title</Label>
-                    <Input
-                      id="title"
-                      name="title"
-                      placeholder="Enter task title"
-                      required
-                    />
+                    <Input id="title" name="title" required />
                   </div>
                   <div>
                     <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      placeholder="Provide task details..."
-                      rows={3}
-                    />
+                    <Textarea id="description" name="description" rows={3} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -251,9 +255,9 @@ export default function TaskAssignmentCard() {
                           <SelectValue placeholder="Select user" />
                         </SelectTrigger>
                         <SelectContent>
-                          {users.map((user) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.full_name || user.email}
+                          {profiles.map((profile: any) => (
+                            <SelectItem key={profile.id} value={profile.id}>
+                              {profile.full_name} ({profile.email})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -266,7 +270,7 @@ export default function TaskAssignmentCard() {
                           <SelectValue placeholder="Select entity" />
                         </SelectTrigger>
                         <SelectContent>
-                          {entities.map((entity) => (
+                          {entities.map((entity: any) => (
                             <SelectItem key={entity.id} value={entity.id}>
                               {entity.name}
                             </SelectItem>
@@ -275,37 +279,28 @@ export default function TaskAssignmentCard() {
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="start_date">Start Date</Label>
-                      <Input
-                        id="start_date"
-                        name="start_date"
-                        type="date"
-                      />
+                      <Input id="start_date" name="start_date" type="date" required />
                     </div>
                     <div>
                       <Label htmlFor="end_date">Deadline</Label>
-                      <Input
-                        id="end_date"
-                        name="end_date"
-                        type="date"
-                        required
-                      />
+                      <Input id="end_date" name="end_date" type="date" required />
                     </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select name="priority" defaultValue="medium">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div>
+                      <Label htmlFor="priority">Priority</Label>
+                      <Select name="priority" defaultValue="medium">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full">
                     Assign Task
@@ -317,80 +312,89 @@ export default function TaskAssignmentCard() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {tasks.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No tasks assigned yet
-            </p>
-          ) : (
-            tasks.map((task: any) => (
-              <Card key={task.id} className="border-l-4" style={{
-                borderLeftColor: 
-                  task.priority === 'high' ? '#ef4444' : 
-                  task.priority === 'medium' ? '#f97316' : 
-                  '#3b82f6'
-              }}>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{task.title}</h3>
-                        <Badge variant={getStatusVariant(task.status)}>
-                          {getStatusIcon(task.status)}
-                          <span className="ml-1">{task.status.replace('_', ' ')}</span>
-                        </Badge>
-                      </div>
-                      {task.description && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {task.description}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <span className="text-muted-foreground">
-                          Assigned to: <strong>{task.assigned_to_profile?.full_name || 'Unknown'}</strong>
-                        </span>
-                        {task.end_date && (
-                          <span className="text-muted-foreground">
-                            Deadline: <strong>{new Date(task.end_date).toLocaleDateString()}</strong>
-                          </span>
-                        )}
-                        <span className={`font-medium ${getPriorityColor(task.priority)}`}>
-                          Priority: {task.priority}
-                        </span>
-                      </div>
-                    </div>
-                    {task.assigned_to === user?.id && task.status !== 'completed' && (
-                      <div className="ml-4 flex gap-2">
-                        {task.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => updateStatusMutation.mutate({ 
-                              id: task.id, 
-                              status: 'in_progress' 
-                            })}
-                          >
-                            Start
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          onClick={() => updateStatusMutation.mutate({ 
-                            id: task.id, 
-                            status: 'completed' 
-                          })}
-                        >
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Complete
-                        </Button>
-                      </div>
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading tasks...</div>
+        ) : tasks.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No tasks assigned yet
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {tasks.map((task) => (
+              <div
+                key={task.id}
+                className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{task.title}</h3>
+                    {task.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {task.description}
+                      </p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                  <div className="flex gap-2">
+                    <Badge variant={getPriorityColor(task.priority) as any}>
+                      {task.priority}
+                    </Badge>
+                    <Badge variant={getStatusColor(task.status) as any}>
+                      {getStatusIcon(task.status)}
+                      <span className="ml-1 capitalize">
+                        {task.status.replace("_", " ")}
+                      </span>
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-3">
+                  <div>
+                    <span className="font-medium">Assigned to:</span>{" "}
+                    {task.assigned_to_profile?.full_name || "Unknown"}
+                  </div>
+                  {task.entity && (
+                    <div>
+                      <span className="font-medium">Entity:</span> {task.entity.name}
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium">Deadline:</span>{" "}
+                    {new Date(task.end_date).toLocaleDateString()}
+                  </div>
+                </div>
+                {task.assigned_to === user?.id && task.status !== "completed" && (
+                  <div className="flex gap-2 mt-4">
+                    {task.status === "pending" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          updateTaskStatusMutation.mutate({
+                            id: task.id,
+                            status: "in_progress",
+                          })
+                        }
+                      >
+                        Start Task
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        updateTaskStatusMutation.mutate({
+                          id: task.id,
+                          status: "completed",
+                        })
+                      }
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Mark as Completed
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
