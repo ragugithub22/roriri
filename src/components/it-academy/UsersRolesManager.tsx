@@ -354,6 +354,7 @@ export default function UsersRolesManager() {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Phone Number</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -363,6 +364,7 @@ export default function UsersRolesManager() {
               <TableRow key={role.id}>
                 <TableCell>{role.profile?.full_name || "Unknown"}</TableCell>
                 <TableCell>{role.profile?.email || "-"}</TableCell>
+                <TableCell>{role.profile?.phone || "-"}</TableCell>
                 <TableCell>
                   <Badge>{role.role}</Badge>
                 </TableCell>
