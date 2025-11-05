@@ -23,7 +23,7 @@ const ITAcademyDashboard = () => {
         .from("entities")
         .select("id")
         .eq("code", "it_academy")
-        .single();
+        .maybeSingle();
       
       if (!entity) return [];
       
@@ -60,7 +60,7 @@ const ITAcademyDashboard = () => {
         .from("entities")
         .select("id")
         .eq("code", "it_academy")
-        .single();
+        .maybeSingle();
       
       if (!entity) return [];
 
@@ -117,7 +117,7 @@ const ITAcademyDashboard = () => {
         .from("entities")
         .select("id")
         .eq("code", "it_academy")
-        .single();
+        .maybeSingle();
       
       if (!entity) return [];
 
@@ -133,110 +133,9 @@ const ITAcademyDashboard = () => {
     },
   });
 
-  const quickActions = [
-    { label: "Add New Course", icon: Plus, onClick: () => console.log("Add course"), variant: "default" as const },
-    { label: "Register Trainee", icon: UserPlus, onClick: () => console.log("Register trainee") },
-    { label: "Add Trainer", icon: Users, onClick: () => console.log("Add trainer") },
-    { label: "View Certifications", icon: Award, onClick: () => console.log("View certifications") },
-  ];
+  // Simplified dashboard view: removed quick actions and tables for now
 
-  const courseColumns = [
-    { key: "course_code", label: "Code" },
-    { key: "name", label: "Course Name" },
-    { 
-      key: "course_level", 
-      label: "Level",
-      render: (value: string) => (
-        <Badge variant={value === "Beginner" ? "secondary" : value === "Intermediate" ? "default" : "destructive"}>
-          {value}
-        </Badge>
-      )
-    },
-    { key: "duration_weeks", label: "Duration (weeks)" },
-    { key: "fees", label: "Fees (₹)", render: (value: number) => `₹${value?.toLocaleString()}` },
-    { 
-      key: "certification_available", 
-      label: "Certification",
-      render: (value: boolean) => value ? <Badge>Yes</Badge> : <Badge variant="secondary">No</Badge>
-    },
-    { 
-      key: "status", 
-      label: "Status",
-      render: (value: string) => (
-        <Badge variant={value === "active" ? "default" : "secondary"}>
-          {value}
-        </Badge>
-      )
-    },
-  ];
-
-  const trainerColumns = [
-    { key: "trainer_code", label: "Code" },
-    { key: "full_name", label: "Trainer Name" },
-    { key: "specialization", label: "Specialization" },
-    { 
-      key: "is_external", 
-      label: "Type",
-      render: (value: boolean) => (
-        <Badge variant={value ? "outline" : "default"}>
-          {value ? "External" : "Internal"}
-        </Badge>
-      )
-    },
-    { key: "hourly_rate", label: "Rate (₹/hr)", render: (value: number) => value ? `₹${value?.toLocaleString()}` : "-" },
-    { 
-      key: "status", 
-      label: "Status",
-      render: (value: string) => (
-        <Badge variant={value === "active" ? "default" : "secondary"}>
-          {value}
-        </Badge>
-      )
-    },
-  ];
-
-  const traineeColumns = [
-    { 
-      key: "student_code", 
-      label: "Code",
-      render: (_: any, row: any) => row.students?.student_code 
-    },
-    { 
-      key: "full_name", 
-      label: "Trainee Name",
-      render: (_: any, row: any) => row.students?.full_name 
-    },
-    { 
-      key: "course", 
-      label: "Course",
-      render: (_: any, row: any) => row.classes?.courses?.name 
-    },
-    { 
-      key: "class_name", 
-      label: "Class",
-      render: (_: any, row: any) => row.classes?.class_name 
-    },
-    { 
-      key: "enrollment_date", 
-      label: "Enrolled",
-      render: (value: string) => new Date(value).toLocaleDateString() 
-    },
-    { 
-      key: "status", 
-      label: "Status",
-      render: (value: string) => (
-        <Badge variant={value === "active" ? "default" : "secondary"}>
-          {value}
-        </Badge>
-      )
-    },
-  ];
-
-  // Course enrollment data for chart
-  const enrollmentData = courses.map(course => ({
-    name: course.name?.substring(0, 15) + (course.name?.length > 15 ? "..." : ""),
-    students: Math.floor(Math.random() * 50) + 10,
-  }));
+  // Enrollment data removed in simplified view
 
   const totalCourses = courses.length;
   const totalTrainers = trainers.length;
@@ -293,53 +192,7 @@ const ITAcademyDashboard = () => {
           />
         </div>
 
-        {/* Charts and Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <ChartCard
-              title="Course Enrollments"
-              description="Number of trainees per IT course"
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={enrollmentData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="students" fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
-          <QuickActions actions={quickActions} />
-        </div>
-
-        {/* IT Courses Table */}
-        <DataTable
-          title="IT Courses"
-          description="HTML, CSS, JavaScript, MySQL, PHP, SDLC and more"
-          columns={courseColumns}
-          data={courses}
-          emptyMessage="No IT courses found"
-        />
-
-        {/* Trainers Table */}
-        <DataTable
-          title="Trainers"
-          description="Internal and external IT trainers"
-          columns={trainerColumns}
-          data={trainers}
-          emptyMessage="No trainers found"
-        />
-
-        {/* Trainees Table */}
-        <DataTable
-          title="Recent Trainees"
-          description="Students enrolled in IT courses"
-          columns={traineeColumns}
-          data={trainees}
-          emptyMessage="No trainees found"
-        />
+        {/* Additional widgets can be added here in the future */}
 
         </TabsContent>
 

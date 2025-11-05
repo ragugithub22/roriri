@@ -35,7 +35,7 @@ export default function CertificatesManager() {
         .from("entities")
         .select("id")
         .eq("code", "it_academy")
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -56,11 +56,11 @@ export default function CertificatesManager() {
     enabled: !!entity?.id,
   });
 
-  const { data: batches = [] } = useQuery({
+  const { data: batches = [] } = useQuery<any[]>({
     queryKey: ["batches"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("batches")
+        .from("batches" as any)
         .select("id, batch_code, batch_name, status")
         .eq("status", "active");
       if (error) throw error;
@@ -68,7 +68,7 @@ export default function CertificatesManager() {
     },
   });
 
-  const { data: certificates = [] } = useQuery({
+  const { data: certificates = [] } = useQuery<any[]>({
     queryKey: ["certificates"],
     queryFn: async () => {
       const { data: certsData, error } = await supabase
@@ -78,27 +78,27 @@ export default function CertificatesManager() {
       if (error) throw error;
       if (!certsData) return [];
 
-      const studentIds = certsData.map((c: any) => c.student_id).filter(Boolean);
-      const courseIds = certsData.map((c: any) => c.course_id).filter(Boolean);
-      const batchIds = certsData.map((c: any) => c.batch_id).filter(Boolean);
+      const studentIds = (certsData as any[]).map((c: any) => c.student_id).filter(Boolean);
+      const courseIds = (certsData as any[]).map((c: any) => c.course_id).filter(Boolean);
+      const batchIds = (certsData as any[]).map((c: any) => c.batch_id).filter(Boolean);
 
       const [studentsData, coursesData, batchesData] = await Promise.all([
         studentIds.length > 0
           ? supabase.from("students").select("id, full_name, student_code").in("id", studentIds)
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [] as any[] }),
         courseIds.length > 0
           ? supabase.from("courses").select("id, name").in("id", courseIds)
-          : Promise.resolve({ data: [] }),
+          : Promise.resolve({ data: [] as any[] }),
         batchIds.length > 0
           ? supabase.from("batches" as any).select("id, batch_name, status").in("id", batchIds)
-          : Promise.resolve({ data: [] })
+          : Promise.resolve({ data: [] as any[] })
       ]);
 
-      const studentsMap = new Map((studentsData.data || []).map((s: any) => [s.id, s]));
-      const coursesMap = new Map((coursesData.data || []).map((c: any) => [c.id, c]));
-      const batchesMap = new Map((batchesData.data || []).map((b: any) => [b.id, b]));
+      const studentsMap = new Map(((studentsData.data || []) as any[]).map((s: any) => [s.id, s]));
+      const coursesMap = new Map(((coursesData.data || []) as any[]).map((c: any) => [c.id, c]));
+      const batchesMap = new Map(((batchesData.data || []) as any[]).map((b: any) => [b.id, b]));
 
-      return certsData.map((cert: any) => ({
+      return (certsData as any[]).map((cert: any) => ({
         ...cert,
         student: studentsMap.get(cert.student_id),
         course: coursesMap.get(cert.course_id),

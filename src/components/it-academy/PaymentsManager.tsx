@@ -53,17 +53,17 @@ export default function PaymentsManager() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      if (!paymentsData) return [];
+      const paymentsArray = (paymentsData as any[]) || [];
 
-      const studentIds = paymentsData.map(p => p.student_id).filter(Boolean);
+      const studentIds = paymentsArray.map((p: any) => p.student_id).filter(Boolean);
       const { data: studentsData } = await supabase
         .from("students")
         .select("id, full_name, student_code")
         .in("id", studentIds);
 
-      const studentsMap = new Map(studentsData?.map(s => [s.id, s]));
+      const studentsMap = new Map(((studentsData || []) as any[]).map((s: any) => [s.id, s]));
 
-      return paymentsData.map(payment => ({
+      return paymentsArray.map((payment: any) => ({
         ...payment,
         student: studentsMap.get(payment.student_id)
       }));
