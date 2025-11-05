@@ -79,6 +79,7 @@ export default function StudentsManager() {
       phone: formData.get("phone"),
       date_of_birth: formData.get("date_of_birth") || null,
       address: formData.get("address"),
+      enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
     };
     saveMutation.mutate(studentData);
@@ -154,17 +155,27 @@ export default function StudentsManager() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select name="status" defaultValue={editingStudent?.status || "active"}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="enrollment_date">Enrollment Date</Label>
+                    <Input
+                      id="enrollment_date"
+                      name="enrollment_date"
+                      type="date"
+                      defaultValue={editingStudent?.enrollment_date || new Date().toISOString().split('T')[0]}
+                      required
+                    />
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select name="status" defaultValue={editingStudent?.status || "active"}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="address">Address</Label>
