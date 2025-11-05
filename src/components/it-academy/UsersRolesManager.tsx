@@ -9,8 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { UserPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const userSchema = z.object({
+  fullName: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  phone: z.string().trim().max(20, "Phone must be less than 20 characters").optional(),
+  role: z.string().min(1, "Role is required"),
+});
 
 export default function UsersRolesManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,23 +66,24 @@ export default function UsersRolesManager() {
     },
   });
 
-  const assignRoleMutation = useMutation({
-    mutationFn: async ({ userId, role, entityId }: { userId: string; role: string; entityId?: string }) => {
-      const insertData: any = { user_id: userId, role };
-      if (entityId) insertData.entity_id = entityId;
+  const createUserMutation = useMutation({
+    mutationFn: async ({ fullName, email, phone, role }: { fullName: string; email: string; phone?: string; role: string }) => {
+      // Call edge function to create user with admin privileges
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { fullName, email, phone, role }
+      });
       
-      const { error } = await supabase
-        .from("user_roles")
-        .insert(insertData);
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      toast.success("Role assigned successfully");
+      toast.success("User created and role assigned successfully");
       queryClient.invalidateQueries({ queryKey: ["user-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
       setIsOpen(false);
     },
-    onError: () => {
-      toast.error("Failed to assign role");
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create user");
     },
   });
 
@@ -112,35 +121,63 @@ export default function UsersRolesManager() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Assign Role to User</DialogTitle>
-                <DialogDescription>Select a user and role, then submit to assign permissions.</DialogDescription>
+                <DialogTitle>Add User and Assign Role</DialogTitle>
+                <DialogDescription>Enter user details and assign a role.</DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
-                  const userId = formData.get("userId") as string;
-                  assignRoleMutation.mutate({ userId, role: selectedRole, entityId: undefined });
+                  const fullName = formData.get("fullName") as string;
+                  const email = formData.get("email") as string;
+                  const phone = formData.get("phone") as string;
+                  const role = selectedRole;
+
+                  // Validate input
+                  try {
+                    userSchema.parse({ fullName, email, phone, role });
+                    createUserMutation.mutate({ fullName, email, phone, role });
+                  } catch (error) {
+                    if (error instanceof z.ZodError) {
+                      toast.error(error.errors[0].message);
+                    }
+                  }
                 }}
                 className="space-y-4"
               >
                 <div>
-                  <Label htmlFor="userId">User</Label>
-                  <Select name="userId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {profiles.map((profile) => (
-                        <SelectItem key={profile.id} value={profile.id}>
-                          {profile.full_name} ({profile.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="fullName">Full Name *</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    placeholder="Enter full name"
+                    required
+                    maxLength={100}
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="role">Role</Label>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter email address"
+                    required
+                    maxLength={255}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Enter phone number"
+                    maxLength={20}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="role">Role *</Label>
                   <Select value={selectedRole} onValueChange={setSelectedRole} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
@@ -156,8 +193,8 @@ export default function UsersRolesManager() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full">
-                  Assign Role
+                <Button type="submit" className="w-full" disabled={createUserMutation.isPending}>
+                  {createUserMutation.isPending ? "Creating..." : "Create User & Assign Role"}
                 </Button>
               </form>
             </DialogContent>
