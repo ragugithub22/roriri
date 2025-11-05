@@ -3052,6 +3052,50 @@ export type Database = {
         }
         Relationships: []
       }
+      subjects: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          description: string | null
+          hours: number | null
+          id: string
+          status: string
+          subject_code: string
+          subject_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          hours?: number | null
+          id?: string
+          status?: string
+          subject_code: string
+          subject_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          hours?: number | null
+          id?: string
+          status?: string
+          subject_code?: string
+          subject_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -3092,6 +3136,50 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      syllabus: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          learning_objectives: string | null
+          resources: string | null
+          subject_id: string
+          topic: string
+          updated_at: string | null
+          week_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          learning_objectives?: string | null
+          resources?: string | null
+          subject_id: string
+          topic: string
+          updated_at?: string | null
+          week_number: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          learning_objectives?: string | null
+          resources?: string | null
+          subject_id?: string
+          topic?: string
+          updated_at?: string | null
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
