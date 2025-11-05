@@ -1,19 +1,106 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { Code2, Users, BookOpen, Award, DollarSign, FileText } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Code2, Users, BookOpen, Award, LayoutDashboard, GraduationCap, CreditCard, FileText, UserCog, LogOut, Home, ArrowLeft } from "lucide-react";
 import UsersRolesManager from "@/components/it-academy/UsersRolesManager";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import BatchesManager from "@/components/it-academy/BatchesManager";
 import StudentsManager from "@/components/it-academy/StudentsManager";
 import PaymentsManager from "@/components/it-academy/PaymentsManager";
 import CertificatesManager from "@/components/it-academy/CertificatesManager";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+
+const menuItems = [
+  { title: "Dashboard", value: "dashboard", icon: LayoutDashboard },
+  { title: "Users & Roles", value: "users", icon: UserCog },
+  { title: "Courses", value: "courses", icon: BookOpen },
+  { title: "Batches", value: "batches", icon: Code2 },
+  { title: "Students", value: "students", icon: Users },
+  { title: "Payments", value: "payments", icon: CreditCard },
+  { title: "Certificates", value: "certificates", icon: GraduationCap },
+];
+
+function ITAcademySidebar({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (value: string) => void }) {
+  const { state } = useSidebar();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarContent>
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+              <Code2 className="h-6 w-6" />
+            </div>
+            {state !== "collapsed" && (
+              <div>
+                <h2 className="font-bold text-sm">RORIRI IT Academy</h2>
+                <p className="text-xs text-muted-foreground">Super Admin</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.value}>
+                  <SidebarMenuButton
+                    onClick={() => setActiveTab(item.value)}
+                    isActive={activeTab === item.value}
+                    tooltip={item.title}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <div className="mt-auto p-4 space-y-2 border-t">
+          <SidebarMenuButton onClick={() => navigate("/")} tooltip="All Entities">
+            <Home className="h-4 w-4" />
+            <span>All Entities</span>
+          </SidebarMenuButton>
+          <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </SidebarMenuButton>
+        </div>
+      </SidebarContent>
+    </Sidebar>
+  );
+}
 
 const ITAcademyDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const navigate = useNavigate();
 
   // Fetch IT courses
   const { data: courses = [] } = useQuery({
@@ -143,84 +230,74 @@ const ITAcademyDashboard = () => {
   const certificationCourses = courses.filter(c => c.certification_available).length;
 
   return (
-    <DashboardLayout
-      entityName="RORIRI IT Academy - Super Admin"
-      entityIcon={Code2}
-      entityColor="from-blue-500 to-indigo-600"
-    >
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="users">Users & Roles</TabsTrigger>
-          <TabsTrigger value="courses">Courses</TabsTrigger>
-          <TabsTrigger value="batches">Batches</TabsTrigger>
-          <TabsTrigger value="students">Students</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="certificates">Certificates</TabsTrigger>
-        </TabsList>
+    <SidebarProvider defaultOpen>
+      <div className="flex min-h-screen w-full">
+        <ITAcademySidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="h-14 border-b flex items-center gap-4 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+            <SidebarTrigger className="text-white hover:bg-white/20" />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate("/")}
+              className="text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold">IT Academy Dashboard</h1>
+            </div>
+          </header>
 
-        <TabsContent value="dashboard" className="space-y-6">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard
-            title="Total IT Courses"
-            value={totalCourses}
-            subtitle="Active training programs"
-            icon={BookOpen}
-            color="from-blue-500 to-indigo-600"
-          />
-          <KPICard
-            title="Active Trainees"
-            value={totalTrainees}
-            subtitle="Enrolled students"
-            icon={Users}
-            color="from-green-500 to-emerald-600"
-          />
-          <KPICard
-            title="Trainers"
-            value={totalTrainers}
-            subtitle={`${trainers.filter(t => !t.is_external).length} internal, ${trainers.filter(t => t.is_external).length} external`}
-            icon={Users}
-            color="from-purple-500 to-violet-600"
-          />
-          <KPICard
-            title="Certifications"
-            value={certificationCourses}
-            subtitle="Courses with certification"
-            icon={Award}
-            color="from-orange-500 to-amber-600"
-          />
+          {/* Main Content */}
+          <main className="flex-1 p-6 overflow-auto">
+            {activeTab === "dashboard" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <KPICard
+                    title="Total IT Courses"
+                    value={totalCourses}
+                    subtitle="Active training programs"
+                    icon={BookOpen}
+                    color="from-blue-500 to-indigo-600"
+                  />
+                  <KPICard
+                    title="Active Trainees"
+                    value={totalTrainees}
+                    subtitle="Enrolled students"
+                    icon={Users}
+                    color="from-green-500 to-emerald-600"
+                  />
+                  <KPICard
+                    title="Trainers"
+                    value={totalTrainers}
+                    subtitle={`${trainers.filter(t => !t.is_external).length} internal, ${trainers.filter(t => t.is_external).length} external`}
+                    icon={Users}
+                    color="from-purple-500 to-violet-600"
+                  />
+                  <KPICard
+                    title="Certifications"
+                    value={certificationCourses}
+                    subtitle="Courses with certification"
+                    icon={Award}
+                    color="from-orange-500 to-amber-600"
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "users" && <UsersRolesManager />}
+            {activeTab === "courses" && <CoursesManager />}
+            {activeTab === "batches" && <BatchesManager />}
+            {activeTab === "students" && <StudentsManager />}
+            {activeTab === "payments" && <PaymentsManager />}
+            {activeTab === "certificates" && <CertificatesManager />}
+          </main>
         </div>
-
-        {/* Additional widgets can be added here in the future */}
-
-        </TabsContent>
-
-        <TabsContent value="users">
-          <UsersRolesManager />
-        </TabsContent>
-
-        <TabsContent value="courses">
-          <CoursesManager />
-        </TabsContent>
-
-        <TabsContent value="batches">
-          <BatchesManager />
-        </TabsContent>
-
-        <TabsContent value="students">
-          <StudentsManager />
-        </TabsContent>
-
-        <TabsContent value="payments">
-          <PaymentsManager />
-        </TabsContent>
-
-        <TabsContent value="certificates">
-          <CertificatesManager />
-        </TabsContent>
-      </Tabs>
-    </DashboardLayout>
+      </div>
+    </SidebarProvider>
   );
 };
 
