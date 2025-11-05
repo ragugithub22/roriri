@@ -1,245 +1,212 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { DataTable } from "./DataTable";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, CheckCircle, Clock, AlertCircle, Filter } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, Filter } from "lucide-react";
 import { format } from "date-fns";
 
-interface WorkUpdate {
-  id: string;
-  date: string;
-  work_description: string;
-  hours_spent: number;
-  status: 'completed' | 'in_progress' | 'pending';
-  is_reviewed: boolean;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
-  user_id: string;
-  employee_id: string | null;
-  profiles?: { full_name: string; email: string };
-  employees?: { 
-    entity_id: string; 
-    entities?: { name: string } 
-  };
-}
+const formSchema = z.object({
+  work_description: z.string().min(10, "Please provide at least 10 characters"),
+  hours_spent: z.string().min(1, "Hours spent is required"),
+  status: z.enum(["completed", "in_progress", "pending"]),
+});
 
 const DailyWorkUpdateCard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [workDescription, setWorkDescription] = useState("");
-  const [hoursSpent, setHoursSpent] = useState("");
-  const [status, setStatus] = useState<'completed' | 'in_progress' | 'pending'>('in_progress');
-  const [filterDate, setFilterDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [filterEmployee, setFilterEmployee] = useState<string>('all');
-  const [filterEntity, setFilterEntity] = useState<string>('all');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [filterDate, setFilterDate] = useState<string>("");
+  const [filterEmployee, setFilterEmployee] = useState<string>("");
 
-  // Get current user
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      work_description: "",
+      hours_spent: "",
+      status: "in_progress",
+    },
+  });
+
+  // Check if user is admin/manager
+  useEffect(() => {
+    const checkRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["admin", "manager"]);
+
+      setIsAdmin((roles && roles.length > 0) || false);
+    };
+
+    checkRole();
+  }, []);
+
+  // Fetch current user's employee record
+  const { data: currentEmployee } = useQuery({
+    queryKey: ["current-employee"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    }
-  });
+      if (!user) throw new Error("Not authenticated");
 
-  // Get current user's profile and employee data
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfile', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('*, employees(id, entity_id, entities(name))')
-        .eq('id', currentUser.id)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
         .single();
-      return data;
-    },
-    enabled: !!currentUser?.id
-  });
 
-  // Check if user is admin or manager
-  const { data: userRole } = useQuery({
-    queryKey: ['userRole', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return null;
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', currentUser.id)
-        .in('role', ['admin', 'manager'])
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!currentUser?.id
-  });
+      if (!profile) return null;
 
-  const isAdminOrManager = userRole?.role === 'admin' || userRole?.role === 'manager';
+      const { data: employee } = await supabase
+        .from("employees")
+        .select("id, entity:entities(name)")
+        .eq("profile_id", profile.id)
+        .single();
+
+      return employee;
+    },
+  });
 
   // Fetch work updates
-  const { data: workUpdates = [], isLoading } = useQuery({
-    queryKey: ['workUpdates', filterDate, filterEmployee, filterEntity],
+  const { data: updates, isLoading } = useQuery({
+    queryKey: ["daily-work-updates", filterDate, filterEmployee],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       let query = supabase
-        .from('daily_work_updates')
+        .from("daily_work_updates")
         .select(`
           *,
-          profiles!daily_work_updates_user_id_fkey(full_name, email),
-          employees(entity_id, entities(name))
+          employee:employees(
+            profile:profiles(full_name),
+            entity:entities(name)
+          ),
+          reviewer:reviewed_by(full_name)
         `)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (filterDate) {
-        query = query.eq('date', filterDate);
+        query = query.eq("date", filterDate);
       }
 
-      if (filterEmployee !== 'all') {
-        query = query.eq('user_id', filterEmployee);
-      }
-
-      if (filterEntity !== 'all') {
-        query = query.eq('employees.entity_id', filterEntity);
+      if (filterEmployee) {
+        query = query.eq("employee_id", filterEmployee);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as any as WorkUpdate[];
-    },
-    enabled: !!currentUser
-  });
-
-  // Fetch all employees for filter (admin/manager only)
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['allUsers'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .order('full_name');
-      return data || [];
-    },
-    enabled: isAdminOrManager
-  });
-
-  // Fetch all entities for filter (admin/manager only)
-  const { data: allEntities = [] } = useQuery({
-    queryKey: ['allEntities'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('entities')
-        .select('id, name')
-        .order('name');
-      return data || [];
-    },
-    enabled: isAdminOrManager
-  });
-
-  // Create work update mutation
-  const createMutation = useMutation({
-    mutationFn: async (newUpdate: {
-      work_description: string;
-      hours_spent: number;
-      status: 'completed' | 'in_progress' | 'pending';
-      date: string;
-      user_id: string;
-      employee_id?: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('daily_work_updates')
-        .insert([newUpdate])
-        .select();
-      if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workUpdates'] });
-      toast({
-        title: "Success",
-        description: "Work update submitted successfully!",
-      });
-      setIsDialogOpen(false);
-      resetForm();
+  });
+
+  // Fetch all employees for filter (admin only)
+  const { data: employees } = useQuery({
+    queryKey: ["employees-list"],
+    queryFn: async () => {
+      if (!isAdmin) return [];
+
+      const { data } = await supabase
+        .from("employees")
+        .select("id, profile:profiles(full_name)")
+        .order("profile(full_name)");
+
+      return data || [];
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to submit work update: ${error.message}`,
-        variant: "destructive",
+    enabled: isAdmin,
+  });
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase.from("daily_work_updates").insert({
+        user_id: user.id,
+        employee_id: currentEmployee?.id || null,
+        work_description: values.work_description,
+        hours_spent: parseFloat(values.hours_spent),
+        status: values.status,
+        date: new Date().toISOString().split('T')[0],
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-work-updates"] });
+      toast({ title: "Work update submitted successfully!" });
+      setIsDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Error submitting update", 
+        description: error.message,
+        variant: "destructive" 
       });
     },
   });
 
-  // Mark as reviewed mutation
+  // Review mutation (admin only)
   const reviewMutation = useMutation({
     mutationFn: async (updateId: string) => {
-      const { data, error } = await supabase
-        .from('daily_work_updates')
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("daily_work_updates")
         .update({
           is_reviewed: true,
-          reviewed_by: currentUser?.id,
-          reviewed_at: new Date().toISOString()
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
         })
-        .eq('id', updateId)
-        .select();
+        .eq("id", updateId);
+
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workUpdates'] });
-      toast({
-        title: "Success",
-        description: "Work update marked as reviewed!",
-      });
+      queryClient.invalidateQueries({ queryKey: ["daily-work-updates"] });
+      toast({ title: "Update marked as reviewed" });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to review update: ${error.message}`,
-        variant: "destructive",
+    onError: (error: Error) => {
+      toast({ 
+        title: "Error reviewing update", 
+        description: error.message,
+        variant: "destructive" 
       });
     },
   });
 
-  const resetForm = () => {
-    setWorkDescription("");
-    setHoursSpent("");
-    setStatus('in_progress');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    const employeeId = (userProfile as any)?.employees?.[0]?.id;
-
-    createMutation.mutate({
-      work_description: workDescription,
-      hours_spent: parseFloat(hoursSpent),
-      status,
-      date: format(new Date(), 'yyyy-MM-dd'),
-      user_id: currentUser.id,
-      employee_id: employeeId
-    });
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    createMutation.mutate(values);
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'in_progress':
-        return <Clock className="h-4 w-4 text-blue-600" />;
-      case 'pending':
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "in_progress":
+        return <Clock className="h-4 w-4 text-blue-500" />;
+      case "pending":
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
       default:
         return null;
     }
@@ -247,16 +214,83 @@ const DailyWorkUpdateCard = () => {
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case 'completed':
-        return 'default';
-      case 'in_progress':
-        return 'secondary';
-      case 'pending':
-        return 'outline';
+      case "completed":
+        return "default";
+      case "in_progress":
+        return "secondary";
+      case "pending":
+        return "outline";
       default:
-        return 'outline';
+        return "outline";
     }
   };
+
+  const columns = [
+    {
+      key: "date",
+      label: "Date",
+      render: (value: string) => format(new Date(value), "MMM dd, yyyy"),
+    },
+    {
+      key: "employee",
+      label: "Employee",
+      render: (_: any, row: any) => row.employee?.profile?.full_name || "Unknown",
+    },
+    {
+      key: "entity",
+      label: "Entity",
+      render: (_: any, row: any) => row.employee?.entity?.name || "N/A",
+    },
+    {
+      key: "work_description",
+      label: "Work Description",
+      render: (value: string) => (
+        <div className="max-w-md truncate" title={value}>
+          {value}
+        </div>
+      ),
+    },
+    {
+      key: "hours_spent",
+      label: "Hours",
+      render: (value: number) => `${value}h`,
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (value: string) => (
+        <div className="flex items-center gap-2">
+          {getStatusIcon(value)}
+          <Badge variant={getStatusVariant(value)}>
+            {value.replace("_", " ")}
+          </Badge>
+        </div>
+      ),
+    },
+    ...(isAdmin
+      ? [
+          {
+            key: "is_reviewed",
+            label: "Review Status",
+            render: (value: boolean, row: any) =>
+              value ? (
+                <Badge variant="default">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Reviewed
+                </Badge>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => reviewMutation.mutate(row.id)}
+                >
+                  Mark as Reviewed
+                </Button>
+              ),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <Card>
@@ -264,140 +298,139 @@ const DailyWorkUpdateCard = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
+              <Calendar className="h-5 w-5" />
               Daily Work Updates
             </CardTitle>
-            <CardDescription>Submit and track daily work progress</CardDescription>
+            <CardDescription>
+              {isAdmin
+                ? "View and manage all employee work updates"
+                : "Submit your daily work progress"}
+            </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Add Today's Work</Button>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Today's Work
+              </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <form onSubmit={handleSubmit}>
-                <DialogHeader>
-                  <DialogTitle>Submit Daily Work Update</DialogTitle>
-                  <DialogDescription>
-                    Record your work progress for today
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={format(new Date(), 'yyyy-MM-dd')}
-                      disabled
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Submit Daily Work Update</DialogTitle>
+                <DialogDescription>
+                  Record what you accomplished today
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="work_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Work Description / Tasks Done</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe what you worked on today..."
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="hours_spent"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Hours Spent</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.5"
+                              min="0"
+                              max="24"
+                              placeholder="8.5"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="pending">Pending</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="employee">Employee Name</Label>
-                    <Input
-                      id="employee"
-                      value={userProfile?.full_name || 'Loading...'}
-                      disabled
-                    />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createMutation.isPending}>
+                      {createMutation.isPending ? "Submitting..." : "Submit Update"}
+                    </Button>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="entity">Entity</Label>
-                    <Input
-                      id="entity"
-                      value={(userProfile as any)?.employees?.[0]?.entities?.name || 'N/A'}
-                      disabled
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Work Description / Tasks Done</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe what you worked on today..."
-                      value={workDescription}
-                      onChange={(e) => setWorkDescription(e.target.value)}
-                      required
-                      rows={4}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="hours">Hours Spent</Label>
-                    <Input
-                      id="hours"
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      max="24"
-                      placeholder="8.0"
-                      value={hoursSpent}
-                      onChange={(e) => setHoursSpent(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={status} onValueChange={(value: any) => setStatus(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={createMutation.isPending}>
-                    {createMutation.isPending ? 'Submitting...' : 'Submit Update'}
-                  </Button>
-                </DialogFooter>
-              </form>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
       </CardHeader>
       <CardContent>
-        {isAdminOrManager && (
-          <div className="mb-4 grid gap-4 md:grid-cols-3">
-            <div className="grid gap-2">
-              <Label htmlFor="filterDate" className="flex items-center gap-2">
+        {isAdmin && (
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 Filter by Date
-              </Label>
+              </label>
               <Input
-                id="filterDate"
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
+                className="w-full"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="filterEmployee">Filter by Employee</Label>
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filter by Employee
+              </label>
               <Select value={filterEmployee} onValueChange={setFilterEmployee}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Employees" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {allUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="filterEntity">Filter by Entity</Label>
-              <Select value={filterEntity} onValueChange={setFilterEntity}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Entities" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Entities</SelectItem>
-                  {allEntities.map((entity) => (
-                    <SelectItem key={entity.id} value={entity.id}>
-                      {entity.name}
+                  <SelectItem value="">All Employees</SelectItem>
+                  {employees?.map((emp: any) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.profile?.full_name || "Unknown"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -405,68 +438,16 @@ const DailyWorkUpdateCard = () => {
             </div>
           </div>
         )}
-
+        
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading updates...</div>
-        ) : workUpdates.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No work updates found for the selected filters
-          </div>
         ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  {isAdminOrManager && <TableHead>Employee</TableHead>}
-                  {isAdminOrManager && <TableHead>Entity</TableHead>}
-                  <TableHead>Work Description</TableHead>
-                  <TableHead>Hours</TableHead>
-                  <TableHead>Status</TableHead>
-                  {isAdminOrManager && <TableHead>Review</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workUpdates.map((update) => (
-                  <TableRow key={update.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(update.date), 'MMM dd, yyyy')}
-                    </TableCell>
-                    {isAdminOrManager && (
-                      <TableCell>{update.profiles?.full_name || update.profiles?.email}</TableCell>
-                    )}
-                    {isAdminOrManager && (
-                      <TableCell>{update.employees?.entities?.name || 'N/A'}</TableCell>
-                    )}
-                    <TableCell className="max-w-md truncate">{update.work_description}</TableCell>
-                    <TableCell>{update.hours_spent}h</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(update.status)} className="flex items-center gap-1 w-fit">
-                        {getStatusIcon(update.status)}
-                        {update.status.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    {isAdminOrManager && (
-                      <TableCell>
-                        {update.is_reviewed ? (
-                          <Badge variant="default">Reviewed</Badge>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => reviewMutation.mutate(update.id)}
-                            disabled={reviewMutation.isPending}
-                          >
-                            Mark Reviewed
-                          </Button>
-                        )}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DataTable
+            title=""
+            columns={columns}
+            data={updates || []}
+            emptyMessage="No work updates found"
+          />
         )}
       </CardContent>
     </Card>
