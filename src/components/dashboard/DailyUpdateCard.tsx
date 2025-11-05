@@ -6,13 +6,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, ClipboardList, ExternalLink } from "lucide-react";
+import { Calendar, ClipboardList, Plus } from "lucide-react";
 
 const formSchema = z.object({
   work_description: z.string().min(10, "Please provide at least 10 characters"),
@@ -24,6 +26,7 @@ const DailyUpdateCard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showUpdatesTable, setShowUpdatesTable] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,6 +82,25 @@ const DailyUpdateCard = () => {
     },
   });
 
+  // Fetch all work updates for table view
+  const { data: allUpdates = [] } = useQuery({
+    queryKey: ["all-work-updates"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("daily_work_updates")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
@@ -98,6 +120,7 @@ const DailyUpdateCard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["today-updates"] });
+      queryClient.invalidateQueries({ queryKey: ["all-work-updates"] });
       toast({ title: "Daily update submitted successfully!" });
       setIsDialogOpen(false);
       form.reset();
@@ -119,7 +142,7 @@ const DailyUpdateCard = () => {
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setIsDialogOpen(true)}>
+      <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -153,19 +176,81 @@ const DailyUpdateCard = () => {
               </div>
             </div>
 
-            <Button 
-              className="w-full" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDialogOpen(true);
-              }}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Open Module
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                className="flex-1" 
+                onClick={() => setShowUpdatesTable(!showUpdatesTable)}
+              >
+                {showUpdatesTable ? "Close Module" : "Open Module"}
+              </Button>
+              <Button 
+                className="flex-1" 
+                onClick={() => setIsDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Work Update
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Updates Table */}
+      {showUpdatesTable && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>Work Update History</CardTitle>
+            <CardDescription>Recent work updates and progress</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Work Description</TableHead>
+                  <TableHead>Hours</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Reviewed</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allUpdates.length > 0 ? (
+                  allUpdates.map((update) => (
+                    <TableRow key={update.id}>
+                      <TableCell>{update.date}</TableCell>
+                      <TableCell className="max-w-md truncate">{update.work_description}</TableCell>
+                      <TableCell>{update.hours_spent}h</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          update.status === "completed" ? "default" :
+                          update.status === "in_progress" ? "secondary" :
+                          "outline"
+                        }>
+                          {update.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {update.is_reviewed ? (
+                          <Badge variant="outline">Reviewed</Badge>
+                        ) : (
+                          <Badge variant="secondary">Pending</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      No work updates yet
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
