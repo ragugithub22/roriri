@@ -150,6 +150,9 @@ export default function UsersRolesManager() {
                       <SelectItem value="manager">Manager</SelectItem>
                       <SelectItem value="staff">Staff</SelectItem>
                       <SelectItem value="viewer">Viewer</SelectItem>
+                      <SelectItem value="trainer">Trainer</SelectItem>
+                      <SelectItem value="trainee">Trainee</SelectItem>
+                      <SelectItem value="hr">HR</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
