@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import EntityCard from "@/components/dashboard/EntityCard";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EntityFlowDiagram from "@/components/dashboard/EntityFlowDiagram";
+import DailyUpdateCard from "@/components/dashboard/DailyUpdateCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -204,6 +205,13 @@ const Index = () => {
       <section className="py-12 px-6 border-b">
         <div className="container mx-auto max-w-7xl">
           <StatsOverview />
+        </div>
+      </section>
+
+      {/* Daily Update Card */}
+      <section className="py-12 px-6 border-b bg-muted/20">
+        <div className="container mx-auto max-w-7xl">
+          <DailyUpdateCard />
         </div>
       </section>
 
