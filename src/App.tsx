@@ -24,6 +24,12 @@ import EmployeeDetail from "./pages/EmployeeDetail";
 import DepartmentList from "./pages/DepartmentList";
 import PositionList from "./pages/PositionList";
 import StudentDetail from "./pages/StudentDetail";
+import ITParkDashboard from "./pages/ITParkDashboard";
+import RolesList from "./pages/RolesList";
+import MOUManagement from "./pages/MOUManagement";
+import HostelManagement from "./pages/HostelManagement";
+import AssetManagement from "./pages/AssetManagement";
+import EntitiesManagement from "./pages/EntitiesManagement";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +59,12 @@ const App = () => (
             <Route path="/departments" element={<ProtectedRoute><DepartmentList /></ProtectedRoute>} />
             <Route path="/positions" element={<ProtectedRoute><PositionList /></ProtectedRoute>} />
             <Route path="/students/:id" element={<ProtectedRoute><StudentDetail /></ProtectedRoute>} />
+            <Route path="/it-park" element={<ProtectedRoute><ITParkDashboard /></ProtectedRoute>} />
+            <Route path="/roles" element={<ProtectedRoute><RolesList /></ProtectedRoute>} />
+            <Route path="/mou" element={<ProtectedRoute><MOUManagement /></ProtectedRoute>} />
+            <Route path="/hostel" element={<ProtectedRoute><HostelManagement /></ProtectedRoute>} />
+            <Route path="/asset-management" element={<ProtectedRoute><AssetManagement /></ProtectedRoute>} />
+            <Route path="/entities" element={<ProtectedRoute><EntitiesManagement /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

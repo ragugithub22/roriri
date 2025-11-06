@@ -149,17 +149,37 @@ const Index = () => {
             <h1 className="text-xl font-bold">RORIRI ERP</h1>
           </div>
           <nav className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate("/employees")}>
-              <Users className="mr-2 h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={() => navigate("/it-park")}>
+              RORIRI IT Park Dashboard
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/roles")}>
+              Roles
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/departments")}>
+              Department
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/employees")}>
               Employees
             </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/mou")}>
+              MOU
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/hostel")}>
+              Hostel
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/asset-management")}>
+              Asset Management
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/entities")}>
+              Entities
+            </Button>
             {isAdmin && (
-              <Button variant="ghost" onClick={() => navigate("/admin")}>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/admin")}>
                 <Shield className="mr-2 h-4 w-4" />
                 Admin
               </Button>
             )}
-            <Button variant="ghost" onClick={handleLogout}>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
