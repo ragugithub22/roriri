@@ -27,7 +27,6 @@ export default function RolesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
   const [formData, setFormData] = useState({
-    user_id: "",
     role: ""
   });
 
@@ -48,27 +47,11 @@ export default function RolesList() {
     }
   });
 
-  const { data: users } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('full_name');
-      if (error) throw error;
-      return data;
-    }
-  });
-
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: data.user_id,
-          role: data.role as any
-        });
-      if (error) throw error;
+      // Note: user_id is required. Role assignments should be done via employee management.
+      toast.error("Please assign roles through the Employee Management page");
+      throw new Error("Direct role creation is not supported. Use Employee Management.");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
@@ -121,12 +104,11 @@ export default function RolesList() {
     if (role) {
       setEditingRole(role);
       setFormData({
-        user_id: role.user_id,
         role: role.role
       });
     } else {
       setEditingRole(null);
-      setFormData({ user_id: "", role: "" });
+      setFormData({ role: "" });
     }
     setIsDialogOpen(true);
   };
@@ -134,7 +116,7 @@ export default function RolesList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingRole(null);
-    setFormData({ user_id: "", role: "" });
+    setFormData({ role: "" });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -225,26 +207,6 @@ export default function RolesList() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
-              {!editingRole && (
-                <div className="space-y-2">
-                  <Label htmlFor="user_id">Select User</Label>
-                  <Select
-                    value={formData.user_id}
-                    onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a user" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users?.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.full_name} ({user.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
               <div className="space-y-2">
                 <Label htmlFor="role">Role Name</Label>
                 <Input

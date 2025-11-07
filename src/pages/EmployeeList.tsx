@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
@@ -30,7 +31,7 @@ export default function EmployeeList() {
     hire_date: undefined as Date | undefined,
     employee_code: '',
     entity_id: '',
-    selectedRoles: [] as string[],
+    selectedRole: '',
     selectedEntities: [] as string[]
   });
 
@@ -66,11 +67,18 @@ export default function EmployeeList() {
   const { data: roles } = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
-      return [
-        { value: 'admin', label: 'Admin' },
-        { value: 'manager', label: 'Manager' },
-        { value: 'user', label: 'User' }
-      ];
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .order('role');
+      if (error) throw error;
+      
+      // Get unique roles
+      const uniqueRoles = Array.from(new Set(data?.map(r => r.role) || []));
+      return uniqueRoles.map(role => ({
+        value: role,
+        label: role.charAt(0).toUpperCase() + role.slice(1)
+      }));
     },
   });
 
@@ -108,7 +116,7 @@ export default function EmployeeList() {
         hire_date: new Date(employee.hire_date),
         employee_code: employee.employee_code,
         entity_id: employee.entity_id,
-        selectedRoles: [],
+        selectedRole: '',
         selectedEntities: []
       });
     } else {
@@ -121,7 +129,7 @@ export default function EmployeeList() {
         hire_date: undefined,
         employee_code: '',
         entity_id: '',
-        selectedRoles: [],
+        selectedRole: '',
         selectedEntities: []
       });
     }
@@ -131,15 +139,6 @@ export default function EmployeeList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingEmployee(null);
-  };
-
-  const toggleRole = (roleValue: string) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedRoles: prev.selectedRoles.includes(roleValue)
-        ? prev.selectedRoles.filter(r => r !== roleValue)
-        : [...prev.selectedRoles, roleValue]
-    }));
   };
 
   const toggleEntity = (entityId: string) => {
@@ -342,24 +341,22 @@ export default function EmployeeList() {
               </div>
 
               <div className="space-y-2">
-                <Label>Role Selection</Label>
-                <div className="space-y-2 border rounded-lg p-4">
-                  {roles?.map((role) => (
-                    <div key={role.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`role-${role.value}`}
-                        checked={formData.selectedRoles.includes(role.value)}
-                        onCheckedChange={() => toggleRole(role.value)}
-                      />
-                      <label
-                        htmlFor={`role-${role.value}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
+                <Label htmlFor="role">Select Role</Label>
+                <Select
+                  value={formData.selectedRole}
+                  onValueChange={(value) => setFormData({ ...formData, selectedRole: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles?.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
                         {role.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

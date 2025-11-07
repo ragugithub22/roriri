@@ -326,11 +326,6 @@ export default function TraineeDetail() {
                   <span className="font-medium">Phone</span>
                   <span className="text-muted-foreground">{trainee.phone || "N/A"}</span>
                 </div>
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Password</span>
-                  <span className="text-muted-foreground">{trainee.password || "N/A"}</span>
-                </div>
 
                 {hasCourseAssigned && (
                   <>
