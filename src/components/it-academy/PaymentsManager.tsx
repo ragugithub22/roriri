@@ -17,8 +17,8 @@ export default function PaymentsManager() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: students = [] } = useQuery({
-    queryKey: ["students"],
+  const { data: trainees = [] } = useQuery({
+    queryKey: ["trainees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
@@ -55,17 +55,17 @@ export default function PaymentsManager() {
       if (error) throw error;
       const paymentsArray = (paymentsData as any[]) || [];
 
-      const studentIds = paymentsArray.map((p: any) => p.student_id).filter(Boolean);
-      const { data: studentsData } = await supabase
+      const traineeIds = paymentsArray.map((p: any) => p.student_id).filter(Boolean);
+      const { data: traineesData } = await supabase
         .from("students")
         .select("id, full_name, student_code")
-        .in("id", studentIds);
+        .in("id", traineeIds);
 
-      const studentsMap = new Map(((studentsData || []) as any[]).map((s: any) => [s.id, s]));
+      const traineesMap = new Map(((traineesData || []) as any[]).map((s: any) => [s.id, s]));
 
       return paymentsArray.map((payment: any) => ({
         ...payment,
-        student: studentsMap.get(payment.student_id)
+        trainee: traineesMap.get(payment.student_id)
       }));
     },
   });
@@ -148,7 +148,7 @@ export default function PaymentsManager() {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Payments Management</CardTitle>
-              <CardDescription>Track and manage student fee payments</CardDescription>
+              <CardDescription>Track and manage trainee fee payments</CardDescription>
             </div>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
@@ -173,15 +173,15 @@ export default function PaymentsManager() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="student_id">Student</Label>
+                      <Label htmlFor="student_id">Trainee</Label>
                       <Select name="student_id" required>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select student" />
+                          <SelectValue placeholder="Select trainee" />
                         </SelectTrigger>
                         <SelectContent>
-                          {students.map((student) => (
-                            <SelectItem key={student.id} value={student.id}>
-                              {student.full_name} ({student.student_code})
+                          {trainees.map((trainee) => (
+                            <SelectItem key={trainee.id} value={trainee.id}>
+                              {trainee.full_name} ({trainee.student_code})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -267,7 +267,7 @@ export default function PaymentsManager() {
             <TableHeader>
               <TableRow>
                 <TableHead>Code</TableHead>
-                <TableHead>Student</TableHead>
+                <TableHead>Trainee</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Method</TableHead>
@@ -278,7 +278,7 @@ export default function PaymentsManager() {
             {(payments as any[]).map((payment) => (
               <TableRow key={payment.id}>
                 <TableCell>{payment.payment_code}</TableCell>
-                <TableCell>{payment.student?.full_name || "-"}</TableCell>
+                <TableCell>{payment.trainee?.full_name || "-"}</TableCell>
                 <TableCell className="font-semibold">₹{Number(payment.amount).toLocaleString()}</TableCell>
                 <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
                 <TableCell>{payment.payment_method || "-"}</TableCell>

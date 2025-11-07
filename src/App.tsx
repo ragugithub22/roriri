@@ -23,7 +23,7 @@ import EmployeeList from "./pages/EmployeeList";
 import EmployeeDetail from "./pages/EmployeeDetail";
 import DepartmentList from "./pages/DepartmentList";
 import PositionList from "./pages/PositionList";
-import StudentDetail from "./pages/StudentDetail";
+import TraineeDetail from "./pages/TraineeDetail";
 import ITParkDashboard from "./pages/ITParkDashboard";
 import RolesList from "./pages/RolesList";
 import MOUManagement from "./pages/MOUManagement";
@@ -58,7 +58,7 @@ const App = () => (
             <Route path="/employees/:id" element={<ProtectedRoute><EmployeeDetail /></ProtectedRoute>} />
             <Route path="/departments" element={<ProtectedRoute><DepartmentList /></ProtectedRoute>} />
             <Route path="/positions" element={<ProtectedRoute><PositionList /></ProtectedRoute>} />
-            <Route path="/students/:id" element={<ProtectedRoute><StudentDetail /></ProtectedRoute>} />
+            <Route path="/trainees/:id" element={<ProtectedRoute><TraineeDetail /></ProtectedRoute>} />
             <Route path="/it-park" element={<ProtectedRoute><ITParkDashboard /></ProtectedRoute>} />
             <Route path="/roles" element={<ProtectedRoute><RolesList /></ProtectedRoute>} />
             <Route path="/mou" element={<ProtectedRoute><MOUManagement /></ProtectedRoute>} />

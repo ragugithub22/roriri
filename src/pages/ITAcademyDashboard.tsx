@@ -5,11 +5,10 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
 import { Code2, Users, BookOpen, Award } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import UsersRolesManager from "@/components/it-academy/UsersRolesManager";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
 import SyllabusManager from "@/components/it-academy/SyllabusManager";
-import StudentsManager from "@/components/it-academy/StudentsManager";
+import TraineesManager from "@/components/it-academy/TraineesManager";
 import PaymentsManager from "@/components/it-academy/PaymentsManager";
 import CertificatesManager from "@/components/it-academy/CertificatesManager";
 
@@ -53,7 +52,7 @@ const ITAcademyDashboard = () => {
     },
   });
 
-  // Fetch students enrolled in IT courses
+  // Fetch trainees enrolled in IT courses
   const { data: trainees = [] } = useQuery({
     queryKey: ["it-trainees"],
     queryFn: async () => {
@@ -153,11 +152,10 @@ const ITAcademyDashboard = () => {
         <div className="flex gap-6">
           <TabsList className="flex flex-col h-fit w-48 space-y-1">
             <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
-            <TabsTrigger value="users" className="w-full justify-start">Users & Roles</TabsTrigger>
             <TabsTrigger value="courses" className="w-full justify-start">Courses</TabsTrigger>
             <TabsTrigger value="subjects" className="w-full justify-start">Subjects</TabsTrigger>
             <TabsTrigger value="syllabus" className="w-full justify-start">Syllabus</TabsTrigger>
-            <TabsTrigger value="students" className="w-full justify-start">Students</TabsTrigger>
+            <TabsTrigger value="trainees" className="w-full justify-start">Trainees</TabsTrigger>
             <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
             <TabsTrigger value="certificates" className="w-full justify-start">Certificates</TabsTrigger>
           </TabsList>
@@ -175,7 +173,7 @@ const ITAcademyDashboard = () => {
                 <KPICard
                   title="Active Trainees"
                   value={totalTrainees}
-                  subtitle="Enrolled students"
+                  subtitle="Enrolled trainees"
                   icon={Users}
                   color="from-green-500 to-emerald-600"
                 />
@@ -196,10 +194,6 @@ const ITAcademyDashboard = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="users" className="mt-0">
-              <UsersRolesManager />
-            </TabsContent>
-
             <TabsContent value="courses" className="mt-0">
               <CoursesManager />
             </TabsContent>
@@ -212,8 +206,8 @@ const ITAcademyDashboard = () => {
               <SyllabusManager />
             </TabsContent>
 
-            <TabsContent value="students" className="mt-0">
-              <StudentsManager />
+            <TabsContent value="trainees" className="mt-0">
+              <TraineesManager />
             </TabsContent>
 
             <TabsContent value="payments" className="mt-0">

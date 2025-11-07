@@ -13,14 +13,14 @@ import { UserPlus, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-export default function StudentsManager() {
+export default function TraineesManager() {
   const [isOpen, setIsOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [editingTrainee, setEditingTrainee] = useState<any>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: students = [] } = useQuery({
-    queryKey: ["students"],
+  const { data: trainees = [] } = useQuery({
+    queryKey: ["trainees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
@@ -32,28 +32,28 @@ export default function StudentsManager() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (studentData: any) => {
-      if (editingStudent) {
+    mutationFn: async (traineeData: any) => {
+      if (editingTrainee) {
         const { error } = await supabase
           .from("students")
-          .update(studentData)
-          .eq("id", editingStudent.id);
+          .update(traineeData)
+          .eq("id", editingTrainee.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("students")
-          .insert(studentData);
+          .insert(traineeData);
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      toast.success(editingStudent ? "Student updated" : "Student registered");
-      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success(editingTrainee ? "Trainee updated" : "Trainee registered");
+      queryClient.invalidateQueries({ queryKey: ["trainees"] });
       setIsOpen(false);
-      setEditingStudent(null);
+      setEditingTrainee(null);
     },
     onError: () => {
-      toast.error("Failed to save student");
+      toast.error("Failed to save trainee");
     },
   });
 
@@ -63,18 +63,18 @@ export default function StudentsManager() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Student deleted");
-      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Trainee deleted");
+      queryClient.invalidateQueries({ queryKey: ["trainees"] });
     },
     onError: () => {
-      toast.error("Failed to delete student");
+      toast.error("Failed to delete trainee");
     },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const studentData = {
+    const traineeData = {
       student_code: formData.get("student_code"),
       full_name: formData.get("full_name"),
       email: formData.get("email"),
@@ -84,7 +84,7 @@ export default function StudentsManager() {
       enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
     };
-    saveMutation.mutate(studentData);
+    saveMutation.mutate(traineeData);
   };
 
   return (
@@ -92,28 +92,28 @@ export default function StudentsManager() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Students Management</CardTitle>
-            <CardDescription>Manage student registrations and records</CardDescription>
+            <CardTitle>Trainees Management</CardTitle>
+            <CardDescription>Manage trainee registrations and records</CardDescription>
           </div>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setEditingStudent(null)}>
+              <Button onClick={() => setEditingTrainee(null)}>
                 <UserPlus className="mr-2 h-4 w-4" />
-                Register Student
+                Register Trainee
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingStudent ? "Edit" : "Register"} Student</DialogTitle>
+                <DialogTitle>{editingTrainee ? "Edit" : "Register"} Trainee</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="student_code">Student Code</Label>
+                    <Label htmlFor="student_code">Trainee Code</Label>
                     <Input
                       id="student_code"
                       name="student_code"
-                      defaultValue={editingStudent?.student_code}
+                      defaultValue={editingTrainee?.student_code}
                       required
                     />
                   </div>
@@ -122,7 +122,7 @@ export default function StudentsManager() {
                     <Input
                       id="full_name"
                       name="full_name"
-                      defaultValue={editingStudent?.full_name}
+                      defaultValue={editingTrainee?.full_name}
                       required
                     />
                   </div>
@@ -134,7 +134,7 @@ export default function StudentsManager() {
                       id="email"
                       name="email"
                       type="email"
-                      defaultValue={editingStudent?.email}
+                      defaultValue={editingTrainee?.email}
                     />
                   </div>
                   <div>
@@ -142,7 +142,7 @@ export default function StudentsManager() {
                     <Input
                       id="phone"
                       name="phone"
-                      defaultValue={editingStudent?.phone}
+                      defaultValue={editingTrainee?.phone}
                     />
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export default function StudentsManager() {
                       id="date_of_birth"
                       name="date_of_birth"
                       type="date"
-                      defaultValue={editingStudent?.date_of_birth}
+                      defaultValue={editingTrainee?.date_of_birth}
                     />
                   </div>
                   <div>
@@ -162,14 +162,14 @@ export default function StudentsManager() {
                       id="enrollment_date"
                       name="enrollment_date"
                       type="date"
-                      defaultValue={editingStudent?.enrollment_date || new Date().toISOString().split('T')[0]}
+                      defaultValue={editingTrainee?.enrollment_date || new Date().toISOString().split('T')[0]}
                       required
                     />
                   </div>
                 </div>
                 <div>
                   <Label htmlFor="status">Status</Label>
-                  <Select name="status" defaultValue={editingStudent?.status || "active"}>
+                  <Select name="status" defaultValue={editingTrainee?.status || "active"}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -184,11 +184,11 @@ export default function StudentsManager() {
                   <Input
                     id="address"
                     name="address"
-                    defaultValue={editingStudent?.address}
+                    defaultValue={editingTrainee?.address}
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  {editingStudent ? "Update" : "Register"} Student
+                  {editingTrainee ? "Update" : "Register"} Trainee
                 </Button>
               </form>
             </DialogContent>
@@ -208,15 +208,15 @@ export default function StudentsManager() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {students.map((student) => (
-              <TableRow key={student.id}>
-                <TableCell>{student.student_code}</TableCell>
-                <TableCell>{student.full_name}</TableCell>
-                <TableCell>{student.email || "-"}</TableCell>
-                <TableCell>{student.phone || "-"}</TableCell>
+            {trainees.map((trainee) => (
+              <TableRow key={trainee.id}>
+                <TableCell>{trainee.student_code}</TableCell>
+                <TableCell>{trainee.full_name}</TableCell>
+                <TableCell>{trainee.email || "-"}</TableCell>
+                <TableCell>{trainee.phone || "-"}</TableCell>
                 <TableCell>
-                  <Badge variant={student.status === "active" ? "default" : "secondary"}>
-                    {student.status}
+                  <Badge variant={trainee.status === "active" ? "default" : "secondary"}>
+                    {trainee.status}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -224,7 +224,7 @@ export default function StudentsManager() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/students/${student.id}`)}
+                      onClick={() => navigate(`/trainees/${trainee.id}`)}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -232,7 +232,7 @@ export default function StudentsManager() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setEditingStudent(student);
+                        setEditingTrainee(trainee);
                         setIsOpen(true);
                       }}
                     >
@@ -241,7 +241,7 @@ export default function StudentsManager() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => deleteMutation.mutate(student.id)}
+                      onClick={() => deleteMutation.mutate(trainee.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

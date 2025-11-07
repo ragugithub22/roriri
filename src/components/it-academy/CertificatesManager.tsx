@@ -16,8 +16,8 @@ export default function CertificatesManager() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: students = [] } = useQuery({
-    queryKey: ["students"],
+  const { data: trainees = [] } = useQuery({
+    queryKey: ["trainees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
@@ -78,13 +78,13 @@ export default function CertificatesManager() {
       if (error) throw error;
       if (!certsData) return [];
 
-      const studentIds = (certsData as any[]).map((c: any) => c.student_id).filter(Boolean);
+      const traineeIds = (certsData as any[]).map((c: any) => c.student_id).filter(Boolean);
       const courseIds = (certsData as any[]).map((c: any) => c.course_id).filter(Boolean);
       const batchIds = (certsData as any[]).map((c: any) => c.batch_id).filter(Boolean);
 
-      const [studentsData, coursesData, batchesData] = await Promise.all([
-        studentIds.length > 0
-          ? supabase.from("students").select("id, full_name, student_code").in("id", studentIds)
+      const [traineesData, coursesData, batchesData] = await Promise.all([
+        traineeIds.length > 0
+          ? supabase.from("students").select("id, full_name, student_code").in("id", traineeIds)
           : Promise.resolve({ data: [] as any[] }),
         courseIds.length > 0
           ? supabase.from("courses").select("id, name").in("id", courseIds)
@@ -94,13 +94,13 @@ export default function CertificatesManager() {
           : Promise.resolve({ data: [] as any[] })
       ]);
 
-      const studentsMap = new Map(((studentsData.data || []) as any[]).map((s: any) => [s.id, s]));
+      const traineesMap = new Map(((traineesData.data || []) as any[]).map((s: any) => [s.id, s]));
       const coursesMap = new Map(((coursesData.data || []) as any[]).map((c: any) => [c.id, c]));
       const batchesMap = new Map(((batchesData.data || []) as any[]).map((b: any) => [b.id, b]));
 
       return (certsData as any[]).map((cert: any) => ({
         ...cert,
-        student: studentsMap.get(cert.student_id),
+        trainee: traineesMap.get(cert.student_id),
         course: coursesMap.get(cert.course_id),
         batch: batchesMap.get(cert.batch_id)
       }));
@@ -169,15 +169,15 @@ export default function CertificatesManager() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="student_id">Student</Label>
+                    <Label htmlFor="student_id">Trainee</Label>
                     <Select name="student_id" required>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select student" />
+                        <SelectValue placeholder="Select trainee" />
                       </SelectTrigger>
                       <SelectContent>
-                        {students.map((student) => (
-                          <SelectItem key={student.id} value={student.id}>
-                            {student.full_name} ({student.student_code})
+                        {trainees.map((trainee) => (
+                          <SelectItem key={trainee.id} value={trainee.id}>
+                            {trainee.full_name} ({trainee.student_code})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -238,7 +238,7 @@ export default function CertificatesManager() {
           <TableHeader>
             <TableRow>
               <TableHead>Certificate No.</TableHead>
-              <TableHead>Student</TableHead>
+              <TableHead>Trainee</TableHead>
               <TableHead>Course</TableHead>
               <TableHead>Batch</TableHead>
               <TableHead>Issue Date</TableHead>
@@ -250,7 +250,7 @@ export default function CertificatesManager() {
             {(certificates as any[]).map((cert) => (
               <TableRow key={cert.id}>
                 <TableCell className="font-mono">{cert.certificate_number}</TableCell>
-                <TableCell>{cert.student?.full_name || "-"}</TableCell>
+                <TableCell>{cert.trainee?.full_name || "-"}</TableCell>
                 <TableCell>{cert.course?.name || "-"}</TableCell>
                 <TableCell>{cert.batch?.batch_name || "-"}</TableCell>
                 <TableCell>{new Date(cert.issue_date).toLocaleDateString()}</TableCell>
