@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Plus, Upload, GraduationCap } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
 
 export default function TraineeDetail() {
   const { id } = useParams();
@@ -23,7 +22,6 @@ export default function TraineeDetail() {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [courseFees, setCourseFees] = useState(0);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   // Fetch trainee details
   const { data: trainee } = useQuery({
@@ -195,89 +193,167 @@ export default function TraineeDetail() {
   const hasCourseAssigned = !!assignedCourse;
 
   return (
-    <DashboardLayout
-      entityName="Trainee Details"
-      entityIcon={GraduationCap}
-      entityColor="from-blue-500 to-indigo-600"
-    >
-      <div className="space-y-6">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-card">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            
+            <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={hasCourseAssigned} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {hasCourseAssigned ? "Course Already Assigned" : "Add Course"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Assign Course</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCourseSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="course_id">Select Course</Label>
+                    <Select
+                      value={selectedCourse}
+                      onValueChange={handleCourseChange}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.name} - {course.duration_weeks} weeks
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {selectedCourse && (
+                    <div>
+                      <Label>Course Fees</Label>
+                      <p className="text-2xl font-bold">₹{courseFees.toFixed(2)}</p>
+                    </div>
+                  )}
+                  <Button type="submit" className="w-full">
+                    Assign Course
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          <h1 className="text-4xl font-bold text-center">Trainee Profile</h1>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-6 py-8 space-y-8">
         {/* Profile Section */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="flex flex-col items-center space-y-4">
-                <Avatar className="h-32 w-32">
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
+              {/* Left Side - Avatar and Basic Info */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <Avatar className="h-40 w-40">
                   <AvatarImage src="" />
-                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-center">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="photo-upload"
-                    onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
-                  />
-                  <Label htmlFor="photo-upload" className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild>
-                      <span>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Photo
-                      </span>
-                    </Button>
-                  </Label>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold">{trainee.full_name}</h2>
+                  {hasCourseAssigned && (
+                    <>
+                      <p className="text-lg text-muted-foreground">{assignedCourse.name}</p>
+                      <p className="text-base text-muted-foreground">
+                        {courses.find(c => c.id === assignedCourse.id)?.duration_weeks || 0} Months
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">Trainee Code</Label>
-                  <p className="text-lg font-semibold">{trainee.student_code}</p>
+              {/* Right Side - Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Full Name</span>
+                  <span className="text-muted-foreground">{trainee.full_name}</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Full Name</Label>
-                  <p className="text-lg font-semibold">{trainee.full_name}</p>
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Gender</span>
+                  <span className="text-muted-foreground">{trainee.gender || "N/A"}</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Email</Label>
-                  <p className="text-lg">{trainee.email || "-"}</p>
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Email</span>
+                  <span className="text-muted-foreground">{trainee.email || "N/A"}</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Phone</Label>
-                  <p className="text-lg">{trainee.phone || "-"}</p>
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Username</span>
+                  <span className="text-muted-foreground">{trainee.student_code}</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Date of Birth</Label>
-                  <p className="text-lg">{trainee.date_of_birth || "-"}</p>
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Date of Birth</span>
+                  <span className="text-muted-foreground">{trainee.date_of_birth || "N/A"}</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Enrollment Date</Label>
-                  <p className="text-lg">{trainee.enrollment_date}</p>
+                
+                {hasCourseAssigned && (
+                  <>
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Subject</span>
+                      <span className="text-muted-foreground">{assignedCourse.name}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Role</span>
+                      <span className="text-muted-foreground">Trainee</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Discount Amount</span>
+                      <span className="text-muted-foreground">₹0</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Fee</span>
+                      <span className="text-muted-foreground">₹{totalFees.toFixed(0)}</span>
+                    </div>
+                  </>
+                )}
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Mode</span>
+                  <span className="text-muted-foreground">Online</span>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Status</Label>
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Status</span>
                   <Badge variant={trainee.status === "active" ? "default" : "secondary"}>
                     {trainee.status}
                   </Badge>
                 </div>
-                <div>
-                  <Label className="text-muted-foreground">Address</Label>
-                  <p className="text-lg">{trainee.address || "-"}</p>
+                
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="font-medium">Phone</span>
+                  <span className="text-muted-foreground">{trainee.phone || "N/A"}</span>
                 </div>
+
                 {hasCourseAssigned && (
                   <>
-                    <div>
-                      <Label className="text-muted-foreground">Assigned Course</Label>
-                      <p className="text-lg font-semibold">{assignedCourse.name}</p>
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Amount Paid</span>
+                      <span className="text-green-600 font-semibold">₹{paidAmount.toFixed(0)}</span>
                     </div>
-                    <div>
-                      <Label className="text-muted-foreground">Course Fee</Label>
-                      <p className="text-lg font-semibold">₹{totalFees.toFixed(2)}</p>
+                    
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Pending Amount</span>
+                      <span className="text-red-600 font-semibold">₹{pendingAmount.toFixed(0)}</span>
                     </div>
                   </>
                 )}
@@ -286,98 +362,16 @@ export default function TraineeDetail() {
           </CardContent>
         </Card>
 
-        {/* Financial Summary */}
-        {hasCourseAssigned && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Total Course Fee</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">₹{totalFees.toFixed(2)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Amount Paid</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-green-600">₹{paidAmount.toFixed(2)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Pending Amount</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-red-600">₹{pendingAmount.toFixed(2)}</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Course Assignment Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Course Assignment</CardTitle>
-              <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button disabled={hasCourseAssigned}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {hasCourseAssigned ? "Course Already Assigned" : "Assign Course"}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Assign Course</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleCourseSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="course_id">Select Course</Label>
-                      <Select
-                        value={selectedCourse}
-                        onValueChange={handleCourseChange}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a course" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {courses.map((course) => (
-                            <SelectItem key={course.id} value={course.id}>
-                              {course.name} - {course.duration_weeks} weeks
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {selectedCourse && (
-                      <div>
-                        <Label>Course Fees</Label>
-                        <p className="text-2xl font-bold">₹{courseFees.toFixed(2)}</p>
-                      </div>
-                    )}
-                    <Button type="submit" className="w-full">
-                      Assign Course
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Payments Section */}
+        {/* Payment History Section */}
         {hasCourseAssigned && (
           <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Payment History</CardTitle>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Payment History</h2>
                 <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
                       Add Payment
                     </Button>
                   </DialogTrigger>
@@ -448,40 +442,49 @@ export default function TraineeDetail() {
                   </DialogContent>
                 </Dialog>
               </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Payment Code</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Notes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{payment.payment_code}</TableCell>
-                      <TableCell>{payment.payment_date}</TableCell>
-                      <TableCell>₹{Number(payment.amount).toFixed(2)}</TableCell>
-                      <TableCell>{payment.payment_method || "-"}</TableCell>
-                      <TableCell>
-                        <Badge variant={payment.status === "paid" ? "default" : "secondary"}>
-                          {payment.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{payment.notes || "-"}</TableCell>
+              
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Payment Code</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Notes</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No payment records found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium">{payment.payment_code}</TableCell>
+                          <TableCell>{payment.payment_date}</TableCell>
+                          <TableCell className="font-semibold">₹{Number(payment.amount).toFixed(2)}</TableCell>
+                          <TableCell className="capitalize">{payment.payment_method || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant={payment.status === "paid" ? "default" : "secondary"}>
+                              {payment.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{payment.notes || "-"}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
