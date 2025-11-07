@@ -10,39 +10,45 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Building2 } from 'lucide-react';
-
 const authSchema = z.object({
-  email: z.string().trim().email({ message: "Invalid email address" }).max(255),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(100),
-  fullName: z.string().trim().min(2).max(100).optional(),
+  email: z.string().trim().email({
+    message: "Invalid email address"
+  }).max(255),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters"
+  }).max(100),
+  fullName: z.string().trim().min(2).max(100).optional()
 });
-
 export default function Auth() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-
   useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      navigate('/', {
+        replace: true
+      });
     }
   }, [user, navigate]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
-      const validated = authSchema.parse({ email, password });
-      setLoading(true);
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: validated.email,
-        password: validated.password,
+      const validated = authSchema.parse({
+        email,
+        password
       });
-
+      setLoading(true);
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
+        email: validated.email,
+        password: validated.password
+      });
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Invalid email or password');
@@ -62,27 +68,28 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
-      const validated = authSchema.parse({ email, password, fullName });
+      const validated = authSchema.parse({
+        email,
+        password,
+        fullName
+      });
       setLoading(true);
-
       const redirectUrl = `${window.location.origin}/`;
-
-      const { error } = await supabase.auth.signUp({
+      const {
+        error
+      } = await supabase.auth.signUp({
         email: validated.email,
         password: validated.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: validated.fullName,
-          },
-        },
+            full_name: validated.fullName
+          }
+        }
       });
-
       if (error) {
         if (error.message.includes('already registered')) {
           toast.error('This email is already registered. Please login instead.');
@@ -102,14 +109,12 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-8 w-8 text-primary" />
+              <Building2 className="h-8 w-8 text-primary-foreground " />
             </div>
           </div>
           <CardTitle className="text-2xl">RORIRI ERP System</CardTitle>
@@ -128,25 +133,11 @@ export default function Auth() {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="login-email" type="email" placeholder="your.email@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
@@ -158,36 +149,15 @@ export default function Auth() {
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
+                  <Input id="signup-name" type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="signup-email" type="email" placeholder="your.email@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <Input id="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Creating account...' : 'Create Account'}
@@ -197,6 +167,5 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
