@@ -306,18 +306,8 @@ export default function TraineeDetail() {
                 {hasCourseAssigned && (
                   <>
                     <div className="flex justify-between items-center border-b pb-2">
-                      <span className="font-medium">Subject</span>
-                      <span className="text-muted-foreground">{assignedCourse.name}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center border-b pb-2">
                       <span className="font-medium">Role</span>
                       <span className="text-muted-foreground">Trainee</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center border-b pb-2">
-                      <span className="font-medium">Discount Amount</span>
-                      <span className="text-muted-foreground">₹0</span>
                     </div>
                     
                     <div className="flex justify-between items-center border-b pb-2">
@@ -333,15 +323,13 @@ export default function TraineeDetail() {
                 </div>
                 
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Status</span>
-                  <Badge variant={trainee.status === "active" ? "default" : "secondary"}>
-                    {trainee.status}
-                  </Badge>
+                  <span className="font-medium">Phone</span>
+                  <span className="text-muted-foreground">{trainee.phone || "N/A"}</span>
                 </div>
                 
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Phone</span>
-                  <span className="text-muted-foreground">{trainee.phone || "N/A"}</span>
+                  <span className="font-medium">Password</span>
+                  <span className="text-muted-foreground">{trainee.password || "N/A"}</span>
                 </div>
 
                 {hasCourseAssigned && (

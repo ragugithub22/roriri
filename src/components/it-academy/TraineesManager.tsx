@@ -77,10 +77,12 @@ export default function TraineesManager() {
     const traineeData = {
       student_code: formData.get("student_code"),
       full_name: formData.get("full_name"),
+      gender: formData.get("gender"),
       email: formData.get("email"),
       phone: formData.get("phone"),
       date_of_birth: formData.get("date_of_birth") || null,
       address: formData.get("address"),
+      password: formData.get("password"),
       enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
     };
@@ -109,15 +111,6 @@ export default function TraineesManager() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="student_code">Trainee Code</Label>
-                    <Input
-                      id="student_code"
-                      name="student_code"
-                      defaultValue={editingTrainee?.student_code}
-                      required
-                    />
-                  </div>
-                  <div>
                     <Label htmlFor="full_name">Full Name</Label>
                     <Input
                       id="full_name"
@@ -125,6 +118,19 @@ export default function TraineesManager() {
                       defaultValue={editingTrainee?.full_name}
                       required
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select name="gender" defaultValue={editingTrainee?.gender || ""}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -138,11 +144,12 @@ export default function TraineesManager() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="student_code">Username</Label>
                     <Input
-                      id="phone"
-                      name="phone"
-                      defaultValue={editingTrainee?.phone}
+                      id="student_code"
+                      name="student_code"
+                      defaultValue={editingTrainee?.student_code}
+                      required
                     />
                   </div>
                 </div>
@@ -157,6 +164,26 @@ export default function TraineesManager() {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      defaultValue={editingTrainee?.phone}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      defaultValue={editingTrainee?.password}
+                      required={!editingTrainee}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="enrollment_date">Enrollment Date</Label>
                     <Input
                       id="enrollment_date"
@@ -167,25 +194,27 @@ export default function TraineesManager() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select name="status" defaultValue={editingTrainee?.status || "active"}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    defaultValue={editingTrainee?.address}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select name="status" defaultValue={editingTrainee?.status || "active"}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      defaultValue={editingTrainee?.address}
+                    />
+                  </div>
                 </div>
                 <Button type="submit" className="w-full">
                   {editingTrainee ? "Update" : "Register"} Trainee
