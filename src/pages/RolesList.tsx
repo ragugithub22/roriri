@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
@@ -26,9 +27,8 @@ export default function RolesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
   const [formData, setFormData] = useState({
-    userId: "",
-    role: "",
-    entityId: ""
+    user_id: "",
+    role: ""
   });
 
   const { data: roles, isLoading } = useQuery({
@@ -48,14 +48,25 @@ export default function RolesList() {
     }
   });
 
+  const { data: users } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('full_name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from('user_roles')
         .insert({
-          user_id: data.userId,
-          role: data.role as any,
-          entity_id: data.entityId || null
+          user_id: data.user_id,
+          role: data.role as any
         });
       if (error) throw error;
     },
@@ -74,8 +85,7 @@ export default function RolesList() {
       const { error } = await supabase
         .from('user_roles')
         .update({
-          role: data.role as any,
-          entity_id: data.entityId || null
+          role: data.role as any
         })
         .eq('id', id);
       if (error) throw error;
@@ -111,13 +121,12 @@ export default function RolesList() {
     if (role) {
       setEditingRole(role);
       setFormData({
-        userId: role.user_id,
-        role: role.role,
-        entityId: role.entity_id || ""
+        user_id: role.user_id,
+        role: role.role
       });
     } else {
       setEditingRole(null);
-      setFormData({ userId: "", role: "", entityId: "" });
+      setFormData({ user_id: "", role: "" });
     }
     setIsDialogOpen(true);
   };
@@ -125,7 +134,7 @@ export default function RolesList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingRole(null);
-    setFormData({ userId: "", role: "", entityId: "" });
+    setFormData({ user_id: "", role: "" });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -216,33 +225,34 @@ export default function RolesList() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
+              {!editingRole && (
+                <div className="space-y-2">
+                  <Label htmlFor="user_id">Select User</Label>
+                  <Select
+                    value={formData.user_id}
+                    onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a user" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users?.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.full_name} ({user.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
-                <Label htmlFor="userId">User ID</Label>
-                <Input
-                  id="userId"
-                  value={formData.userId}
-                  onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                  disabled={!!editingRole}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role">Role Name</Label>
                 <Input
                   id="role"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  placeholder="admin, manager, user"
+                  placeholder="e.g., admin, manager, employee"
                   required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="entityId">Entity ID (Optional)</Label>
-                <Input
-                  id="entityId"
-                  value={formData.entityId}
-                  onChange={(e) => setFormData({ ...formData, entityId: e.target.value })}
-                  placeholder="Leave empty for all entities"
                 />
               </div>
             </div>

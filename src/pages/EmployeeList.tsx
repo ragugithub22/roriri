@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Users, Eye, Pencil, Trash2, Plus } from 'lucide-react';
+import { Users, Eye, Pencil, Trash2, Plus, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -153,12 +152,27 @@ export default function EmployeeList() {
   };
 
   return (
-    <DashboardLayout
-      entityName="Employee Management"
-      entityIcon={Users}
-      entityColor="blue"
-    >
-      <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <Users className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold">Employee Management</h1>
+            </div>
+          </div>
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Employee
+          </Button>
+        </div>
+      </header>
+
+      <section className="py-8 px-6">
+        <div className="container mx-auto max-w-7xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Employees</h2>
@@ -228,7 +242,8 @@ export default function EmployeeList() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </section>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -379,6 +394,6 @@ export default function EmployeeList() {
           </form>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </div>
   );
 }
