@@ -149,9 +149,6 @@ const Index = () => {
             <h1 className="text-xl font-bold">RORIRI ERP</h1>
           </div>
           <nav className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/it-park")}>
-              RORIRI IT Park Dashboard
-            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/roles")}>
               Roles
             </Button>

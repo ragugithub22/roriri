@@ -1,101 +1,122 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Building2, GraduationCap, Heart, Sprout, Briefcase, ShoppingCart, Factory, Laptop, Plane, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Plus, Pencil, ArrowLeft } from "lucide-react";
+import EntityCard from "@/components/dashboard/EntityCard";
 import { useNavigate } from "react-router-dom";
-
-interface Entity {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  status: string;
-  icon: string;
-  color: string;
-}
 
 export default function EntitiesManagement() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingEntity, setEditingEntity] = useState<Entity | null>(null);
-  const [formData, setFormData] = useState({
-    code: "",
-    name: "",
-    description: "",
-    icon: "",
-    color: ""
-  });
 
-  const { data: entities, isLoading } = useQuery({
-    queryKey: ['entities-management'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('entities')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Entity[];
+  const entities = [{
+    id: "academy",
+    name: "RORIRI Academy",
+    icon: GraduationCap,
+    description: "Education & Sports Management",
+    color: "from-blue-500 to-cyan-500",
+    stats: {
+      primary: "2,450",
+      secondary: "Students",
+      trend: "+12%"
     }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
-        .from('entities')
-        .update({
-          name: data.name,
-          description: data.description,
-          icon: data.icon,
-          color: data.color
-        })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['entities-management'] });
-      toast.success("Entity updated successfully");
-      handleCloseDialog();
-    },
-    onError: (error) => {
-      toast.error("Failed to update entity: " + error.message);
+  }, {
+    id: "it-academy",
+    name: "RORIRI IT Academy",
+    icon: Laptop,
+    description: "IT Training & Certification",
+    color: "from-blue-600 to-indigo-600",
+    stats: {
+      primary: "7",
+      secondary: "IT Courses",
+      trend: "+20%"
     }
-  });
-
-  const handleOpenDialog = (entity: Entity) => {
-    setEditingEntity(entity);
-    setFormData({
-      code: entity.code,
-      name: entity.name,
-      description: entity.description || "",
-      icon: entity.icon,
-      color: entity.color
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setEditingEntity(null);
-    setFormData({ code: "", name: "", description: "", icon: "", color: "" });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingEntity) {
-      updateMutation.mutate({ id: editingEntity.id, data: formData });
+  }, {
+    id: "foundation",
+    name: "RORIRI Foundation",
+    icon: Heart,
+    description: "Social Development & Charity",
+    color: "from-pink-500 to-rose-500",
+    stats: {
+      primary: "156",
+      secondary: "Projects",
+      trend: "+8%"
     }
-  };
+  }, {
+    id: "farm",
+    name: "Rithish Farms",
+    icon: Sprout,
+    description: "Agriculture & Livestock",
+    color: "from-green-500 to-emerald-500",
+    stats: {
+      primary: "850",
+      secondary: "Acres",
+      trend: "+15%"
+    }
+  }, {
+    id: "consultancy",
+    name: "RIYA Consultancy",
+    icon: Briefcase,
+    description: "Professional Services",
+    color: "from-purple-500 to-violet-500",
+    stats: {
+      primary: "89",
+      secondary: "Clients",
+      trend: "+22%"
+    }
+  }, {
+    id: "trading",
+    name: "ROSHAN Traders",
+    icon: ShoppingCart,
+    description: "Retail & Wholesale",
+    color: "from-orange-500 to-amber-500",
+    stats: {
+      primary: "₹45.2M",
+      secondary: "Revenue",
+      trend: "+18%"
+    }
+  }, {
+    id: "automation",
+    name: "RORIRI Automation",
+    icon: Factory,
+    description: "Manufacturing & Industry",
+    color: "from-slate-500 to-zinc-500",
+    stats: {
+      primary: "12K",
+      secondary: "Units/Mo",
+      trend: "+9%"
+    }
+  }, {
+    id: "it",
+    name: "RORIRI IT Company",
+    icon: Laptop,
+    description: "Technology & Software",
+    color: "from-indigo-500 to-blue-500",
+    stats: {
+      primary: "34",
+      secondary: "Projects",
+      trend: "+25%"
+    }
+  }, {
+    id: "tours-travels",
+    name: "Rithish Tours and Travels",
+    icon: Plane,
+    description: "Travel & Tourism Services",
+    color: "from-sky-400 to-blue-600",
+    stats: {
+      primary: "523",
+      secondary: "Bookings",
+      trend: "+16%"
+    }
+  }, {
+    id: "builders",
+    name: "Roshan Builders",
+    icon: Building2,
+    description: "Construction & Real Estate",
+    color: "from-amber-400 to-orange-600",
+    stats: {
+      primary: "28",
+      secondary: "Projects",
+      trend: "+14%"
+    }
+  }];
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,122 +126,36 @@ export default function EntitiesManagement() {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Entities Management</h1>
+            <div className="flex items-center gap-2">
+              <Building2 className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold">Entities Management</h1>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto max-w-7xl py-8 px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>System Entities</CardTitle>
-            <CardDescription>Manage organizational entities and business units</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {entities?.map((entity) => (
-                    <TableRow key={entity.id}>
-                      <TableCell className="font-mono text-sm">{entity.code}</TableCell>
-                      <TableCell className="font-medium">{entity.name}</TableCell>
-                      <TableCell className="max-w-md truncate">{entity.description}</TableCell>
-                      <TableCell>
-                        <Badge variant={entity.status === 'active' ? 'default' : 'secondary'}>
-                          {entity.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(entity)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+      <section className="py-16 px-6">
+        <div className="container mx-auto max-w-7xl">
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold mb-3">Integrated Business Units</h2>
+            <p className="text-muted-foreground text-lg">
+              Ten specialized divisions working in harmony through shared infrastructure
+            </p>
+          </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Entity</DialogTitle>
-            <DialogDescription>Update entity details</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Code</Label>
-                <Input
-                  id="code"
-                  value={formData.code}
-                  disabled
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {entities.map((entity, index) => (
+              <div 
+                key={entity.id} 
+                className="animate-fade-in" 
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <EntityCard {...entity} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="icon">Icon</Label>
-                <Input
-                  id="icon"
-                  value={formData.icon}
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  placeholder="Lucide icon name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="color">Color</Label>
-                <Input
-                  id="color"
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  placeholder="Tailwind gradient classes"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                Cancel
-              </Button>
-              <Button type="submit">Update</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
