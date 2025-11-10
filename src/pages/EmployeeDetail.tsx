@@ -4,7 +4,7 @@ import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, ArrowLeft, Mail, Calendar, Briefcase, Building2, Star } from 'lucide-react';
+import { Users, ArrowLeft, Mail, Calendar, Building2, Star } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function EmployeeDetail() {
@@ -20,8 +20,7 @@ export default function EmployeeDetail() {
           *,
           profiles:profile_id (full_name, email, phone),
           entities:entity_id (name, color, icon),
-          departments:department_id (name),
-          positions:position_id (title, description)
+          departments:department_id (name)
         `)
         .eq('id', id)
         .single();
@@ -135,13 +134,6 @@ export default function EmployeeDetail() {
               <div>
                 <div className="text-sm text-muted-foreground">Department</div>
                 <div>{employee.departments?.name || 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  Position
-                </div>
-                <div>{employee.positions?.title || 'N/A'}</div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground flex items-center gap-2">

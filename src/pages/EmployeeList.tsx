@@ -33,7 +33,6 @@ export default function EmployeeList() {
     employee_code: '',
     entity_id: '',
     department_id: '',
-    position_id: '',
     status: 'active' as 'active' | 'inactive',
     selectedRole: '',
     selectedEntities: [] as string[]
@@ -85,18 +84,6 @@ export default function EmployeeList() {
         .from('departments')
         .select('*')
         .order('name');
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: positions } = useQuery({
-    queryKey: ['positions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('positions')
-        .select('*')
-        .order('title');
       if (error) throw error;
       return data;
     },
@@ -185,7 +172,6 @@ export default function EmployeeList() {
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
           department_id: data.department_id || null,
-          position_id: data.position_id || null,
           status: data.status
         })
         .select()
@@ -253,7 +239,6 @@ export default function EmployeeList() {
         employee_code: employee.employee_code,
         entity_id: employee.entity_id,
         department_id: employee.department_id || '',
-        position_id: employee.position_id || '',
         status: employee.status || 'active',
         selectedRole: '',
         selectedEntities: []
@@ -269,7 +254,6 @@ export default function EmployeeList() {
         employee_code: '',
         entity_id: '',
         department_id: '',
-        position_id: '',
         status: 'active',
         selectedRole: '',
         selectedEntities: []
@@ -629,25 +613,6 @@ export default function EmployeeList() {
                     {departments?.map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Select
-                  value={formData.position_id}
-                  onValueChange={(value) => setFormData({ ...formData, position_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {positions?.map((pos) => (
-                      <SelectItem key={pos.id} value={pos.id}>
-                        {pos.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
