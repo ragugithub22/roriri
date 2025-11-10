@@ -90,15 +90,17 @@ export default function EmployeeList() {
   });
 
   const { data: roles } = useQuery({
-    queryKey: ['available-roles'],
+    queryKey: ['roles'],
     queryFn: async () => {
-      // Valid app_role enum values
-      const validRoles = ['admin', 'manager', 'staff', 'developer', 'viewer', 'hr', 'trainee', 'trainer'];
-      
-      return validRoles.map((role) => ({
-        value: role,
-        label: role.charAt(0).toUpperCase() + role.slice(1)
-      }));
+      const { data, error } = await supabase
+        .from('roles')
+        .select('id, role_name')
+        .order('role_name');
+      if (error) throw error;
+      return data?.map((role) => ({
+        value: role.role_name,
+        label: role.role_name
+      })) || [];
     },
   });
 
