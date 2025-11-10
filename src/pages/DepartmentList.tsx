@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,8 +18,6 @@ export default function DepartmentList() {
   const [editingDepartment, setEditingDepartment] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    entity_id: '',
   });
 
   const { data: departments, isLoading } = useQuery({
@@ -34,18 +30,6 @@ export default function DepartmentList() {
           entities:entity_id (name, color),
           employees:employees(count)
         `)
-        .order('name');
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: entities } = useQuery({
-    queryKey: ['entities'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('entities')
-        .select('*')
         .order('name');
       if (error) throw error;
       return data;
@@ -100,8 +84,6 @@ export default function DepartmentList() {
     if (department) {
       setFormData({
         name: department.name || '',
-        description: department.description || '',
-        entity_id: department.entity_id || '',
       });
       setEditingDepartment(department);
     }
@@ -113,8 +95,6 @@ export default function DepartmentList() {
     setEditingDepartment(null);
     setFormData({
       name: '',
-      description: '',
-      entity_id: '',
     });
   };
 
@@ -230,34 +210,7 @@ export default function DepartmentList() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="entity_id">Entity</Label>
-                <Select
-                  value={formData.entity_id}
-                  onValueChange={(value) => setFormData({ ...formData, entity_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an entity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {entities?.map((entity) => (
-                      <SelectItem key={entity.id} value={entity.id}>
-                        {entity.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Enter department name"
                 />
               </div>
             </div>
