@@ -80,11 +80,12 @@ export default function EmployeeList() {
         .select('role_name')
         .order('role_name');
       if (error) throw error;
-      
-      return data.map(role => ({
-        value: role.role_name,
-        label: role.role_name.charAt(0).toUpperCase() + role.role_name.slice(1)
-      }));
+
+      const allowed = new Set(['admin', 'manager', 'staff', 'hr', 'trainee', 'trainer']);
+      return data
+        .map((role) => role.role_name.toLowerCase())
+        .filter((r) => allowed.has(r))
+        .map((r) => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) }));
     },
   });
 
