@@ -85,10 +85,10 @@ export default function EmployeeList() {
       // Create user account first via edge function
       const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
         body: {
+          fullName: data.full_name,
           email: data.email,
-          password: Math.random().toString(36).slice(-8), // Generate random password
-          full_name: data.full_name,
-          phone: data.phone
+          phone: data.phone,
+          role: data.selectedRole
         }
       });
 
