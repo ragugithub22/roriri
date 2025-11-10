@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, email, phone, role, entityId } = await req.json()
+    const { fullName, email, phone, dob, role, entityId } = await req.json()
 
     // Validate input
     if (!fullName || !email || !role) {
@@ -71,11 +71,15 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id
 
-    // Update profile with phone number if provided
-    if (phone) {
+    // Update profile with phone and dob if provided
+    if (phone || dob) {
+      const updateData: any = {};
+      if (phone) updateData.phone = phone;
+      if (dob) updateData.dob = dob;
+      
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
-        .update({ phone })
+        .update(updateData)
         .eq('id', userId)
 
       if (profileError) {
