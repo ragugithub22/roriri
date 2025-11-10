@@ -393,42 +393,20 @@ export default function EmployeeList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Code</TableHead>
                     <TableHead>Employee Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Entity</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Hire Date</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {employees?.map((employee: any) => (
                     <TableRow key={employee.id}>
-                      <TableCell className="font-mono text-sm">
-                        {employee.employee_code}
-                      </TableCell>
                       <TableCell className="font-medium">
                         {employee.profiles?.full_name || 'N/A'}
                       </TableCell>
                       <TableCell>{employee.profiles?.email || 'N/A'}</TableCell>
-                      <TableCell>
-                        {employee.entities && (
-                          <Badge style={{ backgroundColor: employee.entities.color }}>
-                            {employee.entities.name}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{employee.departments?.name || 'N/A'}</TableCell>
-                      <TableCell>{employee.positions?.title || 'N/A'}</TableCell>
-                      <TableCell>{new Date(employee.hire_date).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Badge variant={employee.status === 'active' ? 'default' : 'secondary'}>
-                          {employee.status}
-                        </Badge>
-                      </TableCell>
+                      <TableCell>{employee.profiles?.phone || 'N/A'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
