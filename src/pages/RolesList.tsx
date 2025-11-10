@@ -27,7 +27,9 @@ export default function RolesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
   const [formData, setFormData] = useState({
-    role: ""
+    user_id: "",
+    role: "",
+    entity_id: ""
   });
 
   const { data: roles, isLoading } = useQuery({
@@ -47,19 +49,51 @@ export default function RolesList() {
     }
   });
 
+  const { data: users } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .order('full_name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: entities } = useQuery({
+    queryKey: ['entities'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('entities')
+        .select('id, name')
+        .eq('status', 'active')
+        .order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const availableRoles = ['admin', 'manager', 'staff', 'viewer', 'trainer', 'trainee', 'hr'];
+
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Note: user_id is required. Role assignments should be done via employee management.
-      toast.error("Please assign roles through the Employee Management page");
-      throw new Error("Direct role creation is not supported. Use Employee Management.");
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: data.user_id,
+          role: data.role as any,
+          entity_id: data.entity_id || null
+        });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
-      toast.success("Role created successfully");
+      toast.success("Role assigned successfully");
       handleCloseDialog();
     },
     onError: (error) => {
-      toast.error("Failed to create role: " + error.message);
+      toast.error("Failed to assign role: " + error.message);
     }
   });
 
@@ -104,11 +138,13 @@ export default function RolesList() {
     if (role) {
       setEditingRole(role);
       setFormData({
-        role: role.role
+        user_id: role.user_id,
+        role: role.role,
+        entity_id: role.entity_id || ""
       });
     } else {
       setEditingRole(null);
-      setFormData({ role: "" });
+      setFormData({ user_id: "", role: "", entity_id: "" });
     }
     setIsDialogOpen(true);
   };
@@ -116,7 +152,7 @@ export default function RolesList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingRole(null);
-    setFormData({ role: "" });
+    setFormData({ user_id: "", role: "", entity_id: "" });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -140,7 +176,7 @@ export default function RolesList() {
           </div>
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Role
+            Assign Role
           </Button>
         </div>
       </header>
@@ -200,22 +236,70 @@ export default function RolesList() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingRole ? 'Edit Role' : 'Add New Role'}</DialogTitle>
+            <DialogTitle>{editingRole ? 'Edit Role Assignment' : 'Assign Role to User'}</DialogTitle>
             <DialogDescription>
-              {editingRole ? 'Update the role details' : 'Create a new user role'}
+              {editingRole ? 'Update the role assignment' : 'Assign a role to a user'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="role">Role Name</Label>
-                <Input
-                  id="role"
+                <Label htmlFor="user_id">User</Label>
+                <Select
+                  value={formData.user_id}
+                  onValueChange={(value) => setFormData({ ...formData, user_id: value })}
+                  disabled={!!editingRole}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users?.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.full_name} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  placeholder="e.g., admin, manager, employee"
-                  required
-                />
+                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRoles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="entity_id">Entity (Optional)</Label>
+                <Select
+                  value={formData.entity_id}
+                  onValueChange={(value) => setFormData({ ...formData, entity_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select entity (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Entities</SelectItem>
+                    {entities?.map((entity) => (
+                      <SelectItem key={entity.id} value={entity.id}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter>
@@ -223,7 +307,7 @@ export default function RolesList() {
                 Cancel
               </Button>
               <Button type="submit">
-                {editingRole ? 'Update' : 'Create'}
+                {editingRole ? 'Update' : 'Assign Role'}
               </Button>
             </DialogFooter>
           </form>

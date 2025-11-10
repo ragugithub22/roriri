@@ -65,21 +65,69 @@ export default function EmployeeList() {
   });
 
   const { data: roles } = useQuery({
-    queryKey: ['roles'],
+    queryKey: ['available-roles'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .order('role');
-      if (error) throw error;
-      
-      // Get unique roles
-      const uniqueRoles = Array.from(new Set(data?.map(r => r.role) || []));
-      return uniqueRoles.map(role => ({
+      const availableRoles = ['admin', 'manager', 'staff', 'viewer', 'trainer', 'trainee', 'hr'];
+      return availableRoles.map(role => ({
         value: role,
         label: role.charAt(0).toUpperCase() + role.slice(1)
       }));
     },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      // Create user account first via edge function
+      const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: data.email,
+          password: Math.random().toString(36).slice(-8), // Generate random password
+          full_name: data.full_name,
+          phone: data.phone
+        }
+      });
+
+      if (userError) throw userError;
+      const userId = userData.user.id;
+
+      // Create employee record
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('employees')
+        .insert({
+          profile_id: userId,
+          employee_code: data.employee_code,
+          hire_date: data.hire_date?.toISOString().split('T')[0],
+          entity_id: data.entity_id,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (employeeError) throw employeeError;
+
+      // Assign role if selected
+      if (data.selectedRole) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            role: data.selectedRole as any,
+            entity_id: data.entity_id
+          });
+
+        if (roleError) throw roleError;
+      }
+
+      return employeeData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success("Employee created successfully");
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast.error("Failed to create employee: " + error.message);
+    }
   });
 
   const deleteMutation = useMutation({
@@ -252,7 +300,14 @@ export default function EmployeeList() {
               {editingEmployee ? 'Update employee information' : 'Enter employee details to add a new employee'}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); toast.info('Form submission coming soon'); }}>
+          <form onSubmit={(e) => { 
+            e.preventDefault(); 
+            if (!editingEmployee) {
+              createMutation.mutate(formData);
+            } else {
+              toast.info('Update functionality coming soon');
+            }
+          }}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="full_name">Employee Name</Label>
