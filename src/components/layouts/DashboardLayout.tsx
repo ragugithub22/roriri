@@ -29,7 +29,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className={`bg-gradient-to-r ${entityColor} text-white py-6 px-6 shadow-medium`}>
+      <header className="bg-gradient-primary text-primary-foreground py-6 px-6 shadow-medium">
         <div className="container mx-auto max-w-7xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -37,13 +37,13 @@ export default function DashboardLayout({
                 variant="ghost" 
                 size="icon"
                 onClick={() => navigate("/")}
-                className="text-white hover:bg-white/20"
+                className="text-primary-foreground hover:bg-primary-foreground/20"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-white/20">
+                <div className="p-2 rounded-lg bg-primary-foreground/20">
                   <Icon className="h-8 w-8" />
                 </div>
                 <div>
@@ -57,7 +57,7 @@ export default function DashboardLayout({
               <Button 
                 variant="ghost"
                 onClick={() => navigate("/")}
-                className="text-white hover:bg-white/20"
+                className="text-primary-foreground hover:bg-primary-foreground/20"
               >
                 <Home className="mr-2 h-4 w-4" />
                 All Entities
@@ -65,7 +65,7 @@ export default function DashboardLayout({
               <Button 
                 variant="ghost"
                 onClick={handleLogout}
-                className="text-white hover:bg-white/20"
+                className="text-primary-foreground hover:bg-primary-foreground/20"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
