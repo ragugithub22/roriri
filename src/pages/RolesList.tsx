@@ -27,9 +27,7 @@ export default function RolesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<UserRole | null>(null);
   const [formData, setFormData] = useState({
-    user_id: "",
-    role: "",
-    entity_id: ""
+    role: ""
   });
 
   const { data: roles, isLoading } = useQuery({
@@ -49,51 +47,18 @@ export default function RolesList() {
     }
   });
 
-  const { data: users } = useQuery({
-    queryKey: ['profiles'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .order('full_name');
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const { data: entities } = useQuery({
-    queryKey: ['entities'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('entities')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name');
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const availableRoles = ['admin', 'manager', 'staff', 'viewer', 'trainer', 'trainee', 'hr'];
-
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: data.user_id,
-          role: data.role as any,
-          entity_id: data.entity_id || null
-        });
-      if (error) throw error;
+      toast.error("Please assign roles through the Employee Management page");
+      throw new Error("Role assignment should be done via Employee Management");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
-      toast.success("Role assigned successfully");
+      toast.success("Role updated successfully");
       handleCloseDialog();
     },
     onError: (error) => {
-      toast.error("Failed to assign role: " + error.message);
+      toast.error("Failed to update role: " + error.message);
     }
   });
 
@@ -138,13 +103,11 @@ export default function RolesList() {
     if (role) {
       setEditingRole(role);
       setFormData({
-        user_id: role.user_id,
-        role: role.role,
-        entity_id: role.entity_id || ""
+        role: role.role
       });
     } else {
       setEditingRole(null);
-      setFormData({ user_id: "", role: "", entity_id: "" });
+      setFormData({ role: "" });
     }
     setIsDialogOpen(true);
   };
@@ -152,7 +115,7 @@ export default function RolesList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingRole(null);
-    setFormData({ user_id: "", role: "", entity_id: "" });
+    setFormData({ role: "" });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -236,78 +199,31 @@ export default function RolesList() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingRole ? 'Edit Role Assignment' : 'Assign Role to User'}</DialogTitle>
+            <DialogTitle>{editingRole ? 'Edit Role' : 'Add Role'}</DialogTitle>
             <DialogDescription>
-              {editingRole ? 'Update the role assignment' : 'Assign a role to a user'}
+              {editingRole ? 'Update the role assignment' : 'Roles should be assigned through Employee Management'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="user_id">User</Label>
-                <Select
-                  value={formData.user_id}
-                  onValueChange={(value) => setFormData({ ...formData, user_id: value })}
-                  disabled={!!editingRole}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select user" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users?.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.full_name} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Select
+                <Input
+                  id="role"
                   value={formData.role}
-                  onValueChange={(value) => setFormData({ ...formData, role: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableRoles.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="entity_id">Entity (Optional)</Label>
-                <Select
-                  value={formData.entity_id || "none"}
-                  onValueChange={(value) => setFormData({ ...formData, entity_id: value === "none" ? "" : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select entity (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">All Entities</SelectItem>
-                    {entities?.map((entity) => (
-                      <SelectItem key={entity.id} value={entity.id}>
-                        {entity.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  placeholder="e.g., admin, manager, staff"
+                  required
+                  disabled={!editingRole}
+                />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {editingRole ? 'Update' : 'Assign Role'}
+              <Button type="submit" disabled={!editingRole}>
+                {editingRole ? 'Update' : 'Create'}
               </Button>
             </DialogFooter>
           </form>
