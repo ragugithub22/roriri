@@ -38,7 +38,10 @@ export default function DepartmentList() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { error } = await supabase.from('departments').insert([data]);
+      const { error } = await supabase.from('departments').insert([{
+        name: data.name.trim(),
+        entity_id: null
+      }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -53,7 +56,10 @@ export default function DepartmentList() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: any) => {
-      const { error } = await supabase.from('departments').update(data).eq('id', id);
+      const { error } = await supabase
+        .from('departments')
+        .update({ name: data.name.trim() })
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -100,10 +106,31 @@ export default function DepartmentList() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate department name
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      toast({ 
+        title: 'Validation error', 
+        description: 'Department name cannot be empty',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    if (trimmedName.length > 100) {
+      toast({ 
+        title: 'Validation error', 
+        description: 'Department name must be less than 100 characters',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     if (editingDepartment) {
-      updateMutation.mutate({ id: editingDepartment.id, ...formData });
+      updateMutation.mutate({ id: editingDepartment.id, name: trimmedName });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate({ name: trimmedName });
     }
   };
 
@@ -209,9 +236,13 @@ export default function DepartmentList() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
                   placeholder="Enter department name"
+                  maxLength={100}
+                  required
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  {formData.name.length}/100 characters
+                </p>
               </div>
             </div>
 
@@ -219,7 +250,7 @@ export default function DepartmentList() {
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                 {editingDepartment ? 'Update' : 'Create'}
               </Button>
             </DialogFooter>
