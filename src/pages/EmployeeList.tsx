@@ -34,6 +34,14 @@ export default function EmployeeList() {
     selectedRole: '',
     selectedEntities: [] as string[]
   });
+  const [validationErrors, setValidationErrors] = useState({
+    full_name: '',
+    email: '',
+    employee_code: '',
+    entity_id: '',
+    selectedRole: '',
+    hire_date: ''
+  });
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ['employees'],
@@ -237,6 +245,62 @@ export default function EmployeeList() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingEmployee(null);
+    setValidationErrors({
+      full_name: '',
+      email: '',
+      employee_code: '',
+      entity_id: '',
+      selectedRole: '',
+      hire_date: ''
+    });
+  };
+
+  const validateForm = (): boolean => {
+    const errors = {
+      full_name: '',
+      email: '',
+      employee_code: '',
+      entity_id: '',
+      selectedRole: '',
+      hire_date: ''
+    };
+    let isValid = true;
+
+    if (!formData.full_name.trim()) {
+      errors.full_name = 'Employee name is required';
+      isValid = false;
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Invalid email format';
+      isValid = false;
+    }
+
+    if (!formData.employee_code.trim()) {
+      errors.employee_code = 'Employee code is required';
+      isValid = false;
+    }
+
+    if (!formData.entity_id) {
+      errors.entity_id = 'Please select a primary entity';
+      isValid = false;
+    }
+
+    if (!formData.selectedRole) {
+      errors.selectedRole = 'Please select a role';
+      isValid = false;
+    }
+
+    if (!formData.hire_date) {
+      errors.hire_date = 'Enroll date is required';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
   };
 
   const toggleEntity = (entityId: string) => {
@@ -351,7 +415,11 @@ export default function EmployeeList() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(e) => { 
-            e.preventDefault(); 
+            e.preventDefault();
+            if (!validateForm()) {
+              toast.error('Please fill in all required fields correctly');
+              return;
+            }
             if (!editingEmployee) {
               createMutation.mutate(formData);
             } else {
@@ -360,24 +428,36 @@ export default function EmployeeList() {
           }}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Employee Name</Label>
+                <Label htmlFor="full_name">Employee Name <span className="text-destructive">*</span></Label>
                 <Input
                   id="full_name"
                   value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, full_name: e.target.value });
+                    setValidationErrors({ ...validationErrors, full_name: '' });
+                  }}
+                  className={validationErrors.full_name ? 'border-destructive' : ''}
                 />
+                {validationErrors.full_name && (
+                  <p className="text-sm text-destructive">{validationErrors.full_name}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    setValidationErrors({ ...validationErrors, email: '' });
+                  }}
+                  className={validationErrors.email ? 'border-destructive' : ''}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-destructive">{validationErrors.email}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -387,6 +467,23 @@ export default function EmployeeList() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="employee_code">Employee Code <span className="text-destructive">*</span></Label>
+                <Input
+                  id="employee_code"
+                  value={formData.employee_code}
+                  onChange={(e) => {
+                    setFormData({ ...formData, employee_code: e.target.value });
+                    setValidationErrors({ ...validationErrors, employee_code: '' });
+                  }}
+                  placeholder="e.g., EMP001"
+                  className={validationErrors.employee_code ? 'border-destructive' : ''}
+                />
+                {validationErrors.employee_code && (
+                  <p className="text-sm text-destructive">{validationErrors.employee_code}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -421,14 +518,15 @@ export default function EmployeeList() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Enroll Date</Label>
+                  <Label>Enroll Date <span className="text-destructive">*</span></Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
-                          !formData.hire_date && "text-muted-foreground"
+                          !formData.hire_date && "text-muted-foreground",
+                          validationErrors.hire_date && "border-destructive"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
@@ -439,7 +537,10 @@ export default function EmployeeList() {
                       <Calendar
                         mode="single"
                         selected={formData.hire_date}
-                        onSelect={(date) => setFormData({ ...formData, hire_date: date })}
+                        onSelect={(date) => {
+                          setFormData({ ...formData, hire_date: date });
+                          setValidationErrors({ ...validationErrors, hire_date: '' });
+                        }}
                         disabled={(date) => date > new Date() || date < new Date("1990-01-01")}
                         initialFocus
                         captionLayout="dropdown-buttons"
@@ -448,16 +549,47 @@ export default function EmployeeList() {
                       />
                     </PopoverContent>
                   </Popover>
+                  {validationErrors.hire_date && (
+                    <p className="text-sm text-destructive">{validationErrors.hire_date}</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role">Select Role</Label>
+                <Label htmlFor="entity">Primary Entity <span className="text-destructive">*</span></Label>
+                <Select
+                  value={formData.entity_id}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, entity_id: value });
+                    setValidationErrors({ ...validationErrors, entity_id: '' });
+                  }}
+                >
+                  <SelectTrigger className={validationErrors.entity_id ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Choose an entity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entities?.map((entity) => (
+                      <SelectItem key={entity.id} value={entity.id}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {validationErrors.entity_id && (
+                  <p className="text-sm text-destructive">{validationErrors.entity_id}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Select Role <span className="text-destructive">*</span></Label>
                 <Select
                   value={formData.selectedRole}
-                  onValueChange={(value) => setFormData({ ...formData, selectedRole: value })}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, selectedRole: value });
+                    setValidationErrors({ ...validationErrors, selectedRole: '' });
+                  }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={validationErrors.selectedRole ? 'border-destructive' : ''}>
                     <SelectValue placeholder="Choose a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -468,10 +600,14 @@ export default function EmployeeList() {
                     ))}
                   </SelectContent>
                 </Select>
+                {validationErrors.selectedRole && (
+                  <p className="text-sm text-destructive">{validationErrors.selectedRole}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>Entity Selection</Label>
+                <Label>Additional Entities (Optional)</Label>
+                <p className="text-sm text-muted-foreground">Select additional entities this employee has access to</p>
                 <div className="space-y-2 border rounded-lg p-4 max-h-48 overflow-y-auto">
                   {entities?.map((entity) => (
                     <div key={entity.id} className="flex items-center space-x-2">
