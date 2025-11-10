@@ -259,6 +259,40 @@ export default function EmployeeList() {
 
       if (employeeError) throw employeeError;
 
+      // Upsert role assignment if a role is selected
+      if (data.selectedRole) {
+        // Check if a role already exists for this user and entity
+        const { data: existingRole, error: existingRoleError } = await supabase
+          .from('user_roles')
+          .select('id, role')
+          .eq('user_id', editingEmployee.profile_id)
+          .eq('entity_id', data.entity_id)
+          .maybeSingle();
+
+        if (existingRoleError) throw existingRoleError;
+
+        if (existingRole) {
+          // Update role if it's different
+          if (existingRole.role !== (data.selectedRole as any)) {
+            const { error: updateRoleError } = await supabase
+              .from('user_roles')
+              .update({ role: data.selectedRole as any })
+              .eq('id', existingRole.id);
+            if (updateRoleError) throw updateRoleError;
+          }
+        } else {
+          // Insert new role
+          const { error: insertRoleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: editingEmployee.profile_id,
+              role: data.selectedRole as any,
+              entity_id: data.entity_id
+            });
+          if (insertRoleError) throw insertRoleError;
+        }
+      }
+
       return { success: true };
     },
     onSuccess: () => {
@@ -377,7 +411,7 @@ export default function EmployeeList() {
       isValid = false;
     }
 
-    if (!formData.selectedRole) {
+    if (!formData.selectedRole && !editingEmployee) {
       errors.selectedRole = 'Please select a role';
       isValid = false;
     }
