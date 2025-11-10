@@ -189,17 +189,29 @@ export default function EmployeeList() {
 
       if (employeeError) throw employeeError;
 
-      // Assign role if selected
-      if (data.selectedRole) {
-        const { error: roleError } = await supabase
+      // Note: Role is already assigned by the create-user edge function
+      // Only assign role here if user already existed (didn't go through edge function)
+      if (data.selectedRole && existingProfile?.id) {
+        // Check if role already exists to avoid duplicates
+        const { data: existingRole } = await supabase
           .from('user_roles')
-          .insert({
-            user_id: userId,
-            role: data.selectedRole as any,
-            entity_id: data.entity_id
-          });
+          .select('id')
+          .eq('user_id', userId)
+          .eq('role', data.selectedRole as any)
+          .eq('entity_id', data.entity_id)
+          .maybeSingle();
 
-        if (roleError) throw roleError;
+        if (!existingRole) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: userId,
+              role: data.selectedRole as any,
+              entity_id: data.entity_id
+            });
+
+          if (roleError) throw roleError;
+        }
       }
 
       return employeeData;

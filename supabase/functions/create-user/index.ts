@@ -87,23 +87,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Assign role (normalize to lowercase for enum compatibility)
-    const normalizedRole = role.toLowerCase()
-    const allowedRoles = new Set(['admin','manager','staff','developer','viewer','hr','trainee','trainer'])
-    if (!allowedRoles.has(normalizedRole)) {
-      return new Response(
-        JSON.stringify({ error: `Invalid role: ${role}. Allowed roles: ${Array.from(allowedRoles).join(', ')}` }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
+    // Assign role - accept any role from the roles table
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({ 
         user_id: userId, 
-        role: normalizedRole,
+        role: role,
         entity_id: entityId || null
       })
 
