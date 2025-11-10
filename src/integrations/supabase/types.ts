@@ -2734,6 +2734,30 @@ export type Database = {
           },
         ]
       }
+      roles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          role_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          role_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          role_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sales_orders: {
         Row: {
           created_at: string | null

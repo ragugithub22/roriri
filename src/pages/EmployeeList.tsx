@@ -67,10 +67,15 @@ export default function EmployeeList() {
   const { data: roles } = useQuery({
     queryKey: ['available-roles'],
     queryFn: async () => {
-      const availableRoles = ['admin', 'manager', 'staff', 'viewer', 'trainer', 'trainee', 'hr'];
-      return availableRoles.map(role => ({
-        value: role,
-        label: role.charAt(0).toUpperCase() + role.slice(1)
+      const { data, error } = await supabase
+        .from('roles')
+        .select('role_name')
+        .order('role_name');
+      if (error) throw error;
+      
+      return data.map(role => ({
+        value: role.role_name,
+        label: role.role_name.charAt(0).toUpperCase() + role.role_name.slice(1)
       }));
     },
   });
