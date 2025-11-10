@@ -93,7 +93,17 @@ export default function EmployeeList() {
       });
 
       if (userError) throw userError;
-      const userId = userData.user.id;
+      
+      // Check if there's an error in the response
+      if (userData?.error) {
+        throw new Error(userData.error);
+      }
+      
+      if (!userData?.userId) {
+        throw new Error('Failed to create user account');
+      }
+      
+      const userId = userData.userId;
 
       // Create employee record
       const { data: employeeData, error: employeeError } = await supabase
