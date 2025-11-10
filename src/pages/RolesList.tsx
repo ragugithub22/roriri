@@ -285,14 +285,14 @@ export default function RolesList() {
               <div className="space-y-2">
                 <Label htmlFor="entity_id">Entity (Optional)</Label>
                 <Select
-                  value={formData.entity_id}
-                  onValueChange={(value) => setFormData({ ...formData, entity_id: value })}
+                  value={formData.entity_id || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, entity_id: value === "none" ? "" : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select entity (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Entities</SelectItem>
+                    <SelectItem value="none">All Entities</SelectItem>
                     {entities?.map((entity) => (
                       <SelectItem key={entity.id} value={entity.id}>
                         {entity.name}
