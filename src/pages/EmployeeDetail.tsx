@@ -103,21 +103,17 @@ export default function EmployeeDetail() {
                 </div>
                 <div>{employee.profiles?.email}</div>
               </div>
-              {employee.profiles?.phone && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Phone</div>
-                  <div>{employee.profiles.phone}</div>
+              <div>
+                <div className="text-sm text-muted-foreground">Phone</div>
+                <div>{employee.profiles?.phone || 'Not provided'}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Date of Birth
                 </div>
-              )}
-              {employee.profiles?.dob && (
-                <div>
-                  <div className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Date of Birth
-                  </div>
-                  <div>{new Date(employee.profiles.dob).toLocaleDateString()}</div>
-                </div>
-              )}
+                <div>{employee.profiles?.dob ? new Date(employee.profiles.dob).toLocaleDateString() : 'Not provided'}</div>
+              </div>
             </CardContent>
           </Card>
 
