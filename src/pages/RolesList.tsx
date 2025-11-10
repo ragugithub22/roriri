@@ -37,7 +37,7 @@ export default function RolesList() {
         .from('user_roles')
         .select(`
           *,
-          profiles!user_roles_user_id_fkey (full_name, email),
+          profiles (full_name, email),
           entities (name)
         `)
         .order('created_at', { ascending: false });
