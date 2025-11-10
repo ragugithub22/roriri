@@ -140,25 +140,6 @@ export default function DepartmentList() {
       label: 'Department Name',
     },
     {
-      key: 'entity',
-      label: 'Entity',
-      render: (_: any, row: any) => (
-        <Badge style={{ backgroundColor: row.entities?.color }}>
-          {row.entities?.name || 'N/A'}
-        </Badge>
-      ),
-    },
-    {
-      key: 'description',
-      label: 'Description',
-      render: (value: string) => value || 'N/A',
-    },
-    {
-      key: 'employee_count',
-      label: 'Employees',
-      render: (_: any, row: any) => row.employees?.[0]?.count || 0,
-    },
-    {
       key: 'created_at',
       label: 'Created',
       render: (value: string) => new Date(value).toLocaleDateString(),
