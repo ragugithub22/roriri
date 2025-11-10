@@ -75,17 +75,13 @@ export default function EmployeeList() {
   const { data: roles } = useQuery({
     queryKey: ['available-roles'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('roles')
-        .select('role_name')
-        .order('role_name');
-      if (error) throw error;
-
-      const allowed = new Set(['admin', 'manager', 'staff', 'hr', 'trainee', 'trainer']);
-      return data
-        .map((role) => role.role_name.toLowerCase())
-        .filter((r) => allowed.has(r))
-        .map((r) => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) }));
+      // Valid app_role enum values
+      const validRoles = ['admin', 'manager', 'staff', 'viewer', 'hr', 'trainee', 'trainer'];
+      
+      return validRoles.map((role) => ({
+        value: role,
+        label: role.charAt(0).toUpperCase() + role.slice(1)
+      }));
     },
   });
 
