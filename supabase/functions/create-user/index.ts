@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, email, phone, role } = await req.json()
+    const { fullName, email, phone, role, entityId } = await req.json()
 
     // Validate input
     if (!fullName || !email || !role) {
@@ -83,10 +83,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Assign role
+    // Assign role (normalize to lowercase for enum compatibility)
+    const normalizedRole = role.toLowerCase()
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
-      .insert({ user_id: userId, role })
+      .insert({ 
+        user_id: userId, 
+        role: normalizedRole,
+        entity_id: entityId || null
+      })
 
     if (roleError) {
       console.error('Role assignment error:', roleError)

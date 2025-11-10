@@ -104,12 +104,13 @@ export default function EmployeeList() {
         try {
           // Create user account via edge function
           const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
-            body: {
-              fullName: data.full_name,
-              email: data.email,
-              phone: data.phone,
-              role: data.selectedRole,
-            },
+        body: {
+          fullName: data.full_name,
+          email: data.email,
+          phone: data.phone,
+          role: data.selectedRole,
+          entityId: data.entity_id
+        },
           });
 
           if (userError) throw userError;
