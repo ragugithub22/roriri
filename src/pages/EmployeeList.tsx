@@ -226,6 +226,49 @@ export default function EmployeeList() {
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      if (!editingEmployee?.id) throw new Error('No employee selected for update');
+
+      // Update profile information
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: data.full_name,
+          phone: data.phone,
+          dob: data.dob ? data.dob.toISOString().split('T')[0] : null
+        })
+        .eq('id', editingEmployee.profile_id);
+
+      if (profileError) throw profileError;
+
+      // Update employee record
+      const { error: employeeError } = await supabase
+        .from('employees')
+        .update({
+          employee_code: data.employee_code,
+          hire_date: data.hire_date?.toISOString().split('T')[0],
+          entity_id: data.entity_id,
+          department_id: data.department_id || null,
+          status: data.status
+        })
+        .eq('id', editingEmployee.id);
+
+      if (employeeError) throw employeeError;
+
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', editingEmployee?.id] });
+      toast.success("Employee updated successfully");
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast.error("Failed to update employee: " + error.message);
+    }
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -256,7 +299,7 @@ export default function EmployeeList() {
         full_name: employee.profiles?.full_name || '',
         email: employee.profiles?.email || '',
         phone: employee.profiles?.phone || '',
-        dob: undefined,
+        dob: employee.profiles?.dob ? new Date(employee.profiles.dob) : undefined,
         hire_date: new Date(employee.hire_date),
         employee_code: employee.employee_code,
         entity_id: employee.entity_id,
@@ -461,7 +504,7 @@ export default function EmployeeList() {
             if (!editingEmployee) {
               createMutation.mutate(formData);
             } else {
-              toast.info('Update functionality coming soon');
+              updateMutation.mutate(formData);
             }
           }}>
             <div className="space-y-4 py-4">
