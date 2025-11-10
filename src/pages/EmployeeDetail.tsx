@@ -18,7 +18,7 @@ export default function EmployeeDetail() {
         .from('employees')
         .select(`
           *,
-          profiles:profile_id (full_name, email, phone),
+          profiles:profile_id (full_name, email, phone, dob),
           entities:entity_id (name, color, icon),
           departments:department_id (name)
         `)
@@ -109,6 +109,15 @@ export default function EmployeeDetail() {
                   <div>{employee.profiles.phone}</div>
                 </div>
               )}
+              {employee.profiles?.dob && (
+                <div>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Date of Birth
+                  </div>
+                  <div>{new Date(employee.profiles.dob).toLocaleDateString()}</div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -156,27 +165,107 @@ export default function EmployeeDetail() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Star className="h-5 w-5" />
-              Functional Roles
+              Functional Roles & Responsibilities
             </CardTitle>
-            <CardDescription>Skills and responsibilities assigned to this employee</CardDescription>
+            <CardDescription>Primary role and additional skills assigned to this employee</CardDescription>
           </CardHeader>
-          <CardContent>
-            {employeeFunctions && employeeFunctions.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {employeeFunctions.map((func: any) => (
-                  <Badge
-                    key={func.id}
-                    variant={func.is_primary ? 'default' : 'secondary'}
-                    className="text-sm"
-                  >
-                    {func.function.replace(/_/g, ' ')}
-                    {func.is_primary && <Star className="ml-1 h-3 w-3 fill-current" />}
-                  </Badge>
-                ))}
+          <CardContent className="space-y-6">
+            {/* Primary Role from user_roles */}
+            {userRoles && userRoles.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-3">Primary Role</h4>
+                {userRoles.map((role: any) => {
+                  // Define role descriptions and responsibilities
+                  const roleInfo: Record<string, { description: string; responsibilities: string[] }> = {
+                    admin: {
+                      description: "Full system access with ability to manage all entities and users",
+                      responsibilities: ["Manage users and permissions", "Configure system settings", "Access all modules", "Generate reports", "Oversee all operations"]
+                    },
+                    manager: {
+                      description: "Supervisory role with team and project management capabilities",
+                      responsibilities: ["Manage team members", "Approve requests and expenses", "Monitor project progress", "Review work updates", "Make strategic decisions"]
+                    },
+                    staff: {
+                      description: "Standard employee with access to assigned modules and tasks",
+                      responsibilities: ["Complete assigned tasks", "Submit daily work updates", "Collaborate with team", "Follow standard procedures", "Report to manager"]
+                    },
+                    developer: {
+                      description: "Technical role focused on software development and maintenance",
+                      responsibilities: ["Write and maintain code", "Debug and fix issues", "Participate in code reviews", "Develop new features", "Document technical work"]
+                    },
+                    hr: {
+                      description: "Human resources role managing employee lifecycle and welfare",
+                      responsibilities: ["Recruit and onboard employees", "Manage employee records", "Handle attendance and leave", "Conduct performance reviews", "Address employee concerns"]
+                    },
+                    trainer: {
+                      description: "Educational role responsible for teaching and mentoring",
+                      responsibilities: ["Conduct training sessions", "Develop course materials", "Assess student progress", "Provide mentorship", "Update curriculum"]
+                    },
+                    trainee: {
+                      description: "Learning role with supervised access to training materials",
+                      responsibilities: ["Attend training sessions", "Complete assignments", "Learn required skills", "Follow trainer guidance", "Track learning progress"]
+                    },
+                    viewer: {
+                      description: "Read-only access for monitoring and reporting purposes",
+                      responsibilities: ["View reports and data", "Monitor system activity", "Generate read-only reports", "No modification rights"]
+                    }
+                  };
+
+                  const info = roleInfo[role.role] || { description: "Standard system role", responsibilities: [] };
+
+                  return (
+                    <div key={role.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2 items-center">
+                          <Badge variant="default" className="text-base">{role.role.toUpperCase()}</Badge>
+                          {role.entities ? (
+                            <Badge variant="secondary">{role.entities.name}</Badge>
+                          ) : (
+                            <Badge>All Entities</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {info.description}
+                      </div>
+                      {info.responsibilities.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-sm font-medium mb-2">Key Responsibilities:</div>
+                          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                            {info.responsibilities.map((resp, idx) => (
+                              <li key={idx}>{resp}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            ) : (
+            )}
+
+            {/* Additional Functional Skills */}
+            {employeeFunctions && employeeFunctions.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold mb-3">Additional Skills & Functions</h4>
+                <div className="flex flex-wrap gap-2">
+                  {employeeFunctions.map((func: any) => (
+                    <Badge
+                      key={func.id}
+                      variant={func.is_primary ? 'default' : 'secondary'}
+                      className="text-sm"
+                    >
+                      {func.function.replace(/_/g, ' ')}
+                      {func.is_primary && <Star className="ml-1 h-3 w-3 fill-current" />}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(!userRoles || userRoles.length === 0) && (!employeeFunctions || employeeFunctions.length === 0) && (
               <div className="text-muted-foreground text-center py-4">
-                No functional roles assigned
+                No roles or functional skills assigned
               </div>
             )}
           </CardContent>
@@ -185,27 +274,16 @@ export default function EmployeeDetail() {
         <Card>
           <CardHeader>
             <CardTitle>System Access</CardTitle>
-            <CardDescription>Roles and permissions in the ERP system</CardDescription>
+            <CardDescription>Login credentials and system permissions</CardDescription>
           </CardHeader>
           <CardContent>
             {userRoles && userRoles.length > 0 ? (
-              <div className="space-y-3">
-                {userRoles.map((role: any) => (
-                  <div key={role.id} className="flex items-center justify-between border rounded-lg p-3">
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{role.role}</Badge>
-                      {role.entities ? (
-                        <Badge variant="secondary">{role.entities.name}</Badge>
-                      ) : (
-                        <Badge>All Entities</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="text-sm text-muted-foreground">
+                Account created with email: {employee.profiles?.email}
               </div>
             ) : (
               <div className="text-muted-foreground text-center py-4">
-                No system roles assigned
+                No system access configured
               </div>
             )}
           </CardContent>
