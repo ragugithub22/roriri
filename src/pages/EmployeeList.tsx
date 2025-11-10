@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Users, Eye, Pencil, Trash2, Plus, ArrowLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -31,6 +32,9 @@ export default function EmployeeList() {
     hire_date: undefined as Date | undefined,
     employee_code: '',
     entity_id: '',
+    department_id: '',
+    position_id: '',
+    status: 'active' as 'active' | 'inactive',
     selectedRole: '',
     selectedEntities: [] as string[]
   });
@@ -51,7 +55,9 @@ export default function EmployeeList() {
         .select(`
           *,
           profiles:profile_id (full_name, email, phone),
-          entities:entity_id (name, color)
+          entities:entity_id (name, color, icon),
+          departments:department_id (name),
+          positions:position_id (title)
         `)
         .order('employee_code');
       if (error) throw error;
@@ -67,6 +73,30 @@ export default function EmployeeList() {
         .select('*')
         .eq('status', 'active')
         .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: departments } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('departments')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: positions } = useQuery({
+    queryKey: ['positions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('positions')
+        .select('*')
+        .order('title');
       if (error) throw error;
       return data;
     },
@@ -154,7 +184,9 @@ export default function EmployeeList() {
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
-          status: 'active'
+          department_id: data.department_id || null,
+          position_id: data.position_id || null,
+          status: data.status
         })
         .select()
         .single();
@@ -220,6 +252,9 @@ export default function EmployeeList() {
         hire_date: new Date(employee.hire_date),
         employee_code: employee.employee_code,
         entity_id: employee.entity_id,
+        department_id: employee.department_id || '',
+        position_id: employee.position_id || '',
+        status: employee.status || 'active',
         selectedRole: '',
         selectedEntities: []
       });
@@ -233,6 +268,9 @@ export default function EmployeeList() {
         hire_date: undefined,
         employee_code: '',
         entity_id: '',
+        department_id: '',
+        position_id: '',
+        status: 'active',
         selectedRole: '',
         selectedEntities: []
       });
@@ -355,20 +393,42 @@ export default function EmployeeList() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Code</TableHead>
                     <TableHead>Employee Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
+                    <TableHead>Entity</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Hire Date</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {employees?.map((employee: any) => (
                     <TableRow key={employee.id}>
+                      <TableCell className="font-mono text-sm">
+                        {employee.employee_code}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {employee.profiles?.full_name || 'N/A'}
                       </TableCell>
                       <TableCell>{employee.profiles?.email || 'N/A'}</TableCell>
-                      <TableCell>{employee.profiles?.phone || 'N/A'}</TableCell>
+                      <TableCell>
+                        {employee.entities && (
+                          <Badge style={{ backgroundColor: employee.entities.color }}>
+                            {employee.entities.name}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{employee.departments?.name || 'N/A'}</TableCell>
+                      <TableCell>{employee.positions?.title || 'N/A'}</TableCell>
+                      <TableCell>{new Date(employee.hire_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Badge variant={employee.status === 'active' ? 'default' : 'secondary'}>
+                          {employee.status}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -576,6 +636,60 @@ export default function EmployeeList() {
                 {validationErrors.entity_id && (
                   <p className="text-sm text-destructive">{validationErrors.entity_id}</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="department">Department</Label>
+                <Select
+                  value={formData.department_id}
+                  onValueChange={(value) => setFormData({ ...formData, department_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments?.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="position">Position</Label>
+                <Select
+                  value={formData.position_id}
+                  onValueChange={(value) => setFormData({ ...formData, position_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a position" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {positions?.map((pos) => (
+                      <SelectItem key={pos.id} value={pos.id}>
+                        {pos.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
