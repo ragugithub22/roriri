@@ -375,8 +375,11 @@ export default function EmployeeList() {
                         mode="single"
                         selected={formData.dob}
                         onSelect={(date) => setFormData({ ...formData, dob: date })}
+                        disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
                         initialFocus
-                        className="pointer-events-auto"
+                        captionLayout="dropdown-buttons"
+                        fromYear={1940}
+                        toYear={new Date().getFullYear()}
                       />
                     </PopoverContent>
                   </Popover>
@@ -402,8 +405,11 @@ export default function EmployeeList() {
                         mode="single"
                         selected={formData.hire_date}
                         onSelect={(date) => setFormData({ ...formData, hire_date: date })}
+                        disabled={(date) => date > new Date() || date < new Date("1990-01-01")}
                         initialFocus
-                        className="pointer-events-auto"
+                        captionLayout="dropdown-buttons"
+                        fromYear={1990}
+                        toYear={new Date().getFullYear()}
                       />
                     </PopoverContent>
                   </Popover>
