@@ -76,7 +76,7 @@ export default function EmployeeList() {
     queryKey: ['available-roles'],
     queryFn: async () => {
       // Valid app_role enum values
-      const validRoles = ['admin', 'manager', 'staff', 'viewer', 'hr', 'trainee', 'trainer'];
+      const validRoles = ['admin', 'manager', 'staff', 'developer', 'viewer', 'hr', 'trainee', 'trainer'];
       
       return validRoles.map((role) => ({
         value: role,

@@ -3598,6 +3598,7 @@ export type Database = {
         | "trainer"
         | "trainee"
         | "hr"
+        | "developer"
       employee_function:
         | "administrator"
         | "trainer"
@@ -3785,6 +3786,7 @@ export const Constants = {
         "trainer",
         "trainee",
         "hr",
+        "developer",
       ],
       employee_function: [
         "administrator",
