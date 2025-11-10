@@ -82,28 +82,63 @@ export default function EmployeeList() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Create user account first via edge function
-      const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
-        body: {
-          fullName: data.full_name,
-          email: data.email,
-          phone: data.phone,
-          role: data.selectedRole
-        }
-      });
+      // Try to find an existing profile by email to avoid edge function 400s
+      let userId: string | null = null;
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', data.email)
+        .maybeSingle();
 
-      if (userError) throw userError;
-      
-      // Check if there's an error in the response
-      if (userData?.error) {
-        throw new Error(userData.error);
+      if (existingProfile?.id) {
+        userId = existingProfile.id;
+      } else {
+        try {
+          // Create user account via edge function
+          const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
+            body: {
+              fullName: data.full_name,
+              email: data.email,
+              phone: data.phone,
+              role: data.selectedRole,
+            },
+          });
+
+          if (userError) throw userError;
+          if (userData?.error) throw new Error(userData.error);
+          if (!userData?.userId) throw new Error('Failed to create user account');
+          userId = userData.userId as string;
+        } catch (e: any) {
+          const msg = (e?.message || '').toLowerCase();
+          // If user already exists, link to existing profile
+          if (msg.includes('already') && msg.includes('registered')) {
+            const { data: profileByEmail } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', data.email)
+              .maybeSingle();
+
+            if (!profileByEmail?.id) {
+              throw new Error('User exists but profile not found. Please contact admin.');
+            }
+            userId = profileByEmail.id;
+          } else {
+            throw e;
+          }
+        }
       }
-      
-      if (!userData?.userId) {
-        throw new Error('Failed to create user account');
+
+      if (!userId) throw new Error('Unable to resolve user for employee');
+
+      // Ensure we don't create a duplicate employee for this user
+      const { data: existingEmployee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('profile_id', userId)
+        .maybeSingle();
+      if (existingEmployee?.id) {
+        throw new Error('An employee for this email already exists');
       }
-      
-      const userId = userData.userId;
 
       // Create employee record
       const { data: employeeData, error: employeeError } = await supabase
