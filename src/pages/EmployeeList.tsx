@@ -46,20 +46,23 @@ export default function EmployeeList() {
     hire_date: ''
   });
 
-  const { data: employees, isLoading } = useQuery({
+  const { data: employees, isLoading, error: employeesError } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
         .select(`
           *,
-          profiles:profile_id (full_name, email, phone),
+          profiles:profile_id (full_name, email, phone, dob),
           entities:entity_id (name, color, icon),
           departments:department_id (name),
           positions:position_id (title)
         `)
         .order('employee_code');
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching employees:', error);
+        throw error;
+      }
       return data;
     },
   });
@@ -432,8 +435,17 @@ export default function EmployeeList() {
             <CardDescription>View and manage all employees</CardDescription>
           </CardHeader>
           <CardContent>
+            {employeesError && (
+              <div className="text-center py-8 text-destructive">
+                Error loading employees: {employeesError.message}
+              </div>
+            )}
             {isLoading ? (
               <div className="text-center py-8">Loading employees...</div>
+            ) : !employees || employees.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No employees found. Click "Add Employee" to create one.
+              </div>
             ) : (
               <Table>
                 <TableHeader>
