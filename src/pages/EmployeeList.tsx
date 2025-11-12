@@ -243,8 +243,8 @@ export default function EmployeeList() {
     mutationFn: async (data: typeof formData) => {
       if (!editingEmployee?.id) throw new Error('No employee selected for update');
 
-      // Update profile information
-      const { error: profileError } = await supabase
+      // Update profile information and verify row affected
+      const { data: updatedProfile, error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: data.full_name,
@@ -252,12 +252,15 @@ export default function EmployeeList() {
           phone: data.phone,
           dob: data.dob ? data.dob.toISOString().split('T')[0] : null
         })
-        .eq('id', editingEmployee.profile_id);
+        .eq('id', editingEmployee.profile_id)
+        .select('id')
+        .maybeSingle();
 
       if (profileError) throw profileError;
+      if (!updatedProfile?.id) throw new Error('Profile update not applied (no permission or no matching profile).');
 
-      // Update employee record
-      const { error: employeeError } = await supabase
+      // Update employee record and verify row affected
+      const { data: updatedEmployee, error: employeeError } = await supabase
         .from('employees')
         .update({
           employee_code: data.employee_code,
@@ -267,9 +270,12 @@ export default function EmployeeList() {
           status: data.status,
           residence_type: data.residence_type || null
         })
-        .eq('id', editingEmployee.id);
+        .eq('id', editingEmployee.id)
+        .select('id')
+        .maybeSingle();
 
       if (employeeError) throw employeeError;
+      if (!updatedEmployee?.id) throw new Error('Employee update not applied (no permission or no matching employee).');
 
       // Upsert role assignment if a role is selected
       if (data.selectedRole) {
