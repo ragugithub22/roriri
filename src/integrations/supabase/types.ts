@@ -3043,6 +3043,7 @@ export type Database = {
           guardian_name: string | null
           guardian_phone: string | null
           id: string
+          password: string | null
           phone: string | null
           status: Database["public"]["Enums"]["status_type"] | null
           student_code: string
@@ -3059,6 +3060,7 @@ export type Database = {
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
+          password?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
           student_code: string
@@ -3075,6 +3077,7 @@ export type Database = {
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
+          password?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
           student_code?: string

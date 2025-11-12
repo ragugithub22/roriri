@@ -82,6 +82,7 @@ export default function TraineesManager() {
       phone: formData.get("phone"),
       date_of_birth: formData.get("date_of_birth") || null,
       address: formData.get("address"),
+      password: formData.get("password"),
       enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
       residence_type: formData.get("residence_type"),
@@ -172,15 +173,27 @@ export default function TraineesManager() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="enrollment_date">Enrollment Date</Label>
-                  <Input
-                    id="enrollment_date"
-                    name="enrollment_date"
-                    type="date"
-                    defaultValue={editingTrainee?.enrollment_date || new Date().toISOString().split('T')[0]}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      defaultValue={editingTrainee?.password}
+                      required={!editingTrainee}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="enrollment_date">Enrollment Date</Label>
+                    <Input
+                      id="enrollment_date"
+                      name="enrollment_date"
+                      type="date"
+                      defaultValue={editingTrainee?.enrollment_date || new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
