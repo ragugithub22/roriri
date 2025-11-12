@@ -37,6 +37,7 @@ export default function EmployeeList() {
     entity_id: '',
     department_id: '',
     status: 'active' as 'active' | 'inactive',
+    residence_type: '',
     selectedRole: '',
     selectedEntities: [] as string[]
   });
@@ -182,7 +183,8 @@ export default function EmployeeList() {
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
           department_id: data.department_id || null,
-          status: data.status
+          status: data.status,
+          residence_type: data.residence_type || null
         })
         .select()
         .single();
@@ -258,7 +260,8 @@ export default function EmployeeList() {
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
           department_id: data.department_id || null,
-          status: data.status
+          status: data.status,
+          residence_type: data.residence_type || null
         })
         .eq('id', editingEmployee.id)
         .select('id, updated_at, hire_date')
@@ -356,6 +359,7 @@ export default function EmployeeList() {
         entity_id: employee.entity_id,
         department_id: employee.department_id || '',
         status: employee.status || 'active',
+        residence_type: employee.residence_type || '',
         selectedRole: '',
         selectedEntities: []
       });
@@ -371,6 +375,7 @@ export default function EmployeeList() {
         entity_id: '',
         department_id: '',
         status: 'active',
+        residence_type: '',
         selectedRole: '',
         selectedEntities: []
       });
@@ -661,6 +666,22 @@ export default function EmployeeList() {
                 {validationErrors.employee_code && (
                   <p className="text-sm text-destructive">{validationErrors.employee_code}</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="residence_type">Select Type</Label>
+                <Select
+                  value={formData.residence_type}
+                  onValueChange={(value) => setFormData({ ...formData, residence_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose residence type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hostel">Stays in Hostel</SelectItem>
+                    <SelectItem value="daily">Comes Daily</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -1222,6 +1222,7 @@ export type Database = {
           id: string
           position_id: string | null
           profile_id: string
+          residence_type: string | null
           status: Database["public"]["Enums"]["status_type"] | null
           updated_at: string | null
         }
@@ -1234,6 +1235,7 @@ export type Database = {
           id?: string
           position_id?: string | null
           profile_id: string
+          residence_type?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
           updated_at?: string | null
         }
@@ -1246,6 +1248,7 @@ export type Database = {
           id?: string
           position_id?: string | null
           profile_id?: string
+          residence_type?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
           updated_at?: string | null
         }
