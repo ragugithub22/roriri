@@ -24,122 +24,74 @@ const Index = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch entities from database
+  const { data: dbEntities } = useQuery({
+    queryKey: ['entities'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('entities')
+        .select('*')
+        .eq('status', 'active')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch employees count
+  const { data: employeesCount } = useQuery({
+    queryKey: ['employees-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Fetch departments count
+  const { data: departmentsCount } = useQuery({
+    queryKey: ['departments-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('departments')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   const handleLogout = async () => {
     await signOut();
     navigate("/auth");
   };
 
-  const entities = [{
-    id: "academy",
-    name: "RORIRI Academy",
-    icon: GraduationCap,
-    description: "Education & Sports Management",
-    color: "from-blue-500 to-cyan-500",
+  // Map icon names to components
+  const iconMap: Record<string, any> = {
+    GraduationCap,
+    Heart,
+    Sprout,
+    Briefcase,
+    ShoppingCart,
+    Factory,
+    Laptop,
+    Plane,
+    Building2,
+  };
+
+  const entities = dbEntities?.map(entity => ({
+    id: entity.id,
+    name: entity.name,
+    icon: iconMap[entity.icon] || Building2,
+    description: entity.description || '',
+    color: `from-${entity.color}-400 to-${entity.color}-600`,
     stats: {
-      primary: "2,450",
-      secondary: "Students",
-      trend: "+12%"
+      primary: entity.code === 'it_academy' ? '7' : '—',
+      secondary: 'Active',
+      trend: '—'
     }
-  }, {
-    id: "it-academy",
-    name: "RORIRI IT Academy",
-    icon: Laptop,
-    description: "IT Training & Certification",
-    color: "from-blue-600 to-indigo-600",
-    stats: {
-      primary: "7",
-      secondary: "IT Courses",
-      trend: "+20%"
-    }
-  }, {
-    id: "foundation",
-    name: "RORIRI Foundation",
-    icon: Heart,
-    description: "Social Development & Charity",
-    color: "from-pink-500 to-rose-500",
-    stats: {
-      primary: "156",
-      secondary: "Projects",
-      trend: "+8%"
-    }
-  }, {
-    id: "farm",
-    name: "Rithish Farms",
-    icon: Sprout,
-    description: "Agriculture & Livestock",
-    color: "from-green-500 to-emerald-500",
-    stats: {
-      primary: "850",
-      secondary: "Acres",
-      trend: "+15%"
-    }
-  }, {
-    id: "consultancy",
-    name: "RIYA Consultancy",
-    icon: Briefcase,
-    description: "Professional Services",
-    color: "from-purple-500 to-violet-500",
-    stats: {
-      primary: "89",
-      secondary: "Clients",
-      trend: "+22%"
-    }
-  }, {
-    id: "trading",
-    name: "ROSHAN Traders",
-    icon: ShoppingCart,
-    description: "Retail & Wholesale",
-    color: "from-orange-500 to-amber-500",
-    stats: {
-      primary: "₹45.2M",
-      secondary: "Revenue",
-      trend: "+18%"
-    }
-  }, {
-    id: "automation",
-    name: "RORIRI Automation",
-    icon: Factory,
-    description: "Manufacturing & Industry",
-    color: "from-slate-500 to-zinc-500",
-    stats: {
-      primary: "12K",
-      secondary: "Units/Mo",
-      trend: "+9%"
-    }
-  }, {
-    id: "it",
-    name: "RORIRI IT Company",
-    icon: Laptop,
-    description: "Technology & Software",
-    color: "from-indigo-500 to-blue-500",
-    stats: {
-      primary: "34",
-      secondary: "Projects",
-      trend: "+25%"
-    }
-  }, {
-    id: "tours-travels",
-    name: "Rithish Tours and Travels",
-    icon: Plane,
-    description: "Travel & Tourism Services",
-    color: "from-sky-400 to-blue-600",
-    stats: {
-      primary: "523",
-      secondary: "Bookings",
-      trend: "+16%"
-    }
-  }, {
-    id: "builders",
-    name: "Roshan Builders",
-    icon: Building2,
-    description: "Construction & Real Estate",
-    color: "from-amber-400 to-orange-600",
-    stats: {
-      primary: "28",
-      secondary: "Projects",
-      trend: "+14%"
-    }
-  }];
+  })) || [];
   return <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
