@@ -98,10 +98,17 @@ export default function EmployeeList() {
     },
   });
 
-  const roles = Constants.public.Enums.app_role.map((r) => ({
-    value: r,
-    label: r.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-  }));
+  const { data: roles } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('*')
+        .order('role_name');
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -820,9 +827,9 @@ export default function EmployeeList() {
                     <SelectValue placeholder="Choose a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        {role.label}
+                    {roles?.map((role) => (
+                      <SelectItem key={role.id} value={role.role_name}>
+                        {role.role_name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                       </SelectItem>
                     ))}
                   </SelectContent>
