@@ -18,6 +18,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Constants } from '@/integrations/supabase/types';
 
 export default function EmployeeList() {
   const navigate = useNavigate();
@@ -92,20 +93,10 @@ export default function EmployeeList() {
     },
   });
 
-  const { data: roles } = useQuery({
-    queryKey: ['roles'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('roles')
-        .select('id, role_name')
-        .order('role_name');
-      if (error) throw error;
-      return data?.map((role) => ({
-        value: role.role_name,
-        label: role.role_name
-      })) || [];
-    },
-  });
+  const roles = Constants.public.Enums.app_role.map((r) => ({
+    value: r,
+    label: r.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+  }));
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -137,7 +128,7 @@ export default function EmployeeList() {
               email: data.email,
               phone: data.phone,
               dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
-              role: data.selectedRole,
+              role: data.selectedRole ? data.selectedRole.toLowerCase() : null,
               entityId: data.entity_id
             },
           });
@@ -197,25 +188,29 @@ export default function EmployeeList() {
       // Note: Role is already assigned by the create-user edge function
       // Only assign role here if user already existed (didn't go through edge function)
       if (data.selectedRole && existingProfile?.id) {
-        // Check if role already exists to avoid duplicates
-        const { data: existingRole } = await supabase
-          .from('user_roles')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('role', data.selectedRole as any)
-          .eq('entity_id', data.entity_id)
-          .maybeSingle();
-
-        if (!existingRole) {
-          const { error: roleError } = await supabase
+        const normalizedRole = (data.selectedRole || '').toLowerCase();
+        const allowed = Constants.public.Enums.app_role as unknown as string[];
+        if (allowed.includes(normalizedRole)) {
+          // Check if role already exists to avoid duplicates
+          const { data: existingRole } = await supabase
             .from('user_roles')
-            .insert({
-              user_id: userId,
-              role: data.selectedRole as any,
-              entity_id: data.entity_id
-            });
+            .select('id')
+            .eq('user_id', userId)
+            .eq('role', normalizedRole as any)
+            .eq('entity_id', data.entity_id)
+            .maybeSingle();
 
-          if (roleError) throw roleError;
+          if (!existingRole) {
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .insert({
+                user_id: userId,
+                role: normalizedRole as any,
+                entity_id: data.entity_id
+              });
+
+            if (roleError) throw roleError;
+          }
         }
       }
 
@@ -264,6 +259,12 @@ export default function EmployeeList() {
 
       // Upsert role assignment if a role is selected
       if (data.selectedRole) {
+        const normalizedRole = (data.selectedRole || '').toLowerCase();
+        const allowed = Constants.public.Enums.app_role as unknown as string[];
+        if (!allowed.includes(normalizedRole)) {
+          // Skip invalid roles
+          return { success: true };
+        }
         // Check if a role already exists for this user and entity
         const { data: existingRole, error: existingRoleError } = await supabase
           .from('user_roles')
@@ -276,10 +277,10 @@ export default function EmployeeList() {
 
         if (existingRole) {
           // Update role if it's different
-          if (existingRole.role !== (data.selectedRole as any)) {
+          if (existingRole.role !== (normalizedRole as any)) {
             const { error: updateRoleError } = await supabase
               .from('user_roles')
-              .update({ role: data.selectedRole as any })
+              .update({ role: normalizedRole as any })
               .eq('id', existingRole.id);
             if (updateRoleError) throw updateRoleError;
           }
@@ -289,7 +290,7 @@ export default function EmployeeList() {
             .from('user_roles')
             .insert({
               user_id: editingEmployee.profile_id,
-              role: data.selectedRole as any,
+              role: normalizedRole as any,
               entity_id: data.entity_id
             });
           if (insertRoleError) throw insertRoleError;
