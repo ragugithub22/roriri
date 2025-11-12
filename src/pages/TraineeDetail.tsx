@@ -237,23 +237,33 @@ export default function TraineeDetail() {
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Company Email</p>
+                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="font-medium">{trainee.full_name}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Gender</p>
+                    <p className="font-medium capitalize">{trainee.gender || "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Email</p>
                     <p className="font-medium">{trainee.email || "N/A"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Mobile</p>
-                    <p className="font-medium">{trainee.phone || "N/A"}</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Address</p>
-                    <p className="font-medium">{trainee.address || "N/A"}</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">User ID</p>
+                    <p className="text-sm text-muted-foreground">Username</p>
                     <p className="font-medium">{trainee.student_code}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="font-medium">{trainee.date_of_birth ? new Date(trainee.date_of_birth).toLocaleDateString() : "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium">{trainee.phone || "N/A"}</p>
                   </div>
                   
                   <div className="space-y-1">
@@ -262,13 +272,25 @@ export default function TraineeDetail() {
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Date Of Joining</p>
-                    <p className="font-medium">{trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">Enrollment Date</p>
+                    <p className="font-medium">{trainee.enrollment_date ? new Date(trainee.enrollment_date).toLocaleDateString() : "N/A"}</p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Date of Birth</p>
-                    <p className="font-medium">{trainee.date_of_birth || "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <Badge variant={trainee.status === "active" ? "default" : "secondary"} className="capitalize">
+                      {trainee.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Residence Type</p>
+                    <p className="font-medium capitalize">{trainee.residence_type || "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p className="font-medium">{trainee.address || "N/A"}</p>
                   </div>
                   
                   {hasCourseAssigned && (

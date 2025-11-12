@@ -241,7 +241,6 @@ export default function TraineesManager() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
@@ -252,7 +251,6 @@ export default function TraineesManager() {
           <TableBody>
             {trainees.map((trainee) => (
               <TableRow key={trainee.id}>
-                <TableCell>{trainee.student_code}</TableCell>
                 <TableCell>{trainee.full_name}</TableCell>
                 <TableCell>{trainee.email || "-"}</TableCell>
                 <TableCell>{trainee.phone || "-"}</TableCell>
