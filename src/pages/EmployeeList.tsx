@@ -236,8 +236,8 @@ export default function EmployeeList() {
     mutationFn: async (data: typeof formData) => {
       if (!editingEmployee?.id) throw new Error('No employee selected for update');
 
-      // Update profile information with verification
-      const { data: updatedProfile, error: profileError } = await supabase
+      // Update profile information
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: data.full_name,
@@ -245,15 +245,12 @@ export default function EmployeeList() {
           phone: data.phone,
           dob: data.dob ? data.dob.toISOString().split('T')[0] : null
         })
-        .eq('id', editingEmployee.profile_id)
-        .select('id')
-        .single();
+        .eq('id', editingEmployee.profile_id);
 
       if (profileError) throw profileError;
-      if (!updatedProfile?.id) throw new Error('Profile update failed');
 
-      // Update employee record with verification
-      const { data: updatedEmployee, error: employeeError } = await supabase
+      // Update employee record
+      const { error: employeeError } = await supabase
         .from('employees')
         .update({
           employee_code: data.employee_code,
@@ -263,12 +260,9 @@ export default function EmployeeList() {
           status: data.status,
           residence_type: data.residence_type || null
         })
-        .eq('id', editingEmployee.id)
-        .select('id, updated_at, hire_date')
-        .single();
+        .eq('id', editingEmployee.id);
 
       if (employeeError) throw employeeError;
-      if (!updatedEmployee?.id) throw new Error('Employee update failed');
 
       // Upsert role assignment if a role is selected
       if (data.selectedRole) {
