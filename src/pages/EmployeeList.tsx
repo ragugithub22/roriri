@@ -119,13 +119,15 @@ export default function EmployeeList() {
 
       if (existingProfile?.id) {
         userId = existingProfile.id;
-        // Update DOB if provided for existing profile
-        if (data.dob) {
-          await supabase
-            .from('profiles')
-            .update({ dob: data.dob.toISOString().split('T')[0] })
-            .eq('id', userId);
-        }
+        // Update profile fields for existing profile
+        await supabase
+          .from('profiles')
+          .update({
+            full_name: data.full_name,
+            phone: data.phone || null,
+            dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
+          })
+          .eq('id', userId);
       } else {
         try {
           // Create user account via edge function
@@ -238,6 +240,7 @@ export default function EmployeeList() {
         .from('profiles')
         .update({
           full_name: data.full_name,
+          email: data.email,
           phone: data.phone,
           dob: data.dob ? data.dob.toISOString().split('T')[0] : null
         })
