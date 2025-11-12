@@ -85,6 +85,7 @@ export default function TraineesManager() {
       password: formData.get("password"),
       enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
+      residence_type: formData.get("residence_type"),
     };
     saveMutation.mutate(traineeData);
   };
@@ -208,13 +209,25 @@ export default function TraineesManager() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      defaultValue={editingTrainee?.address}
-                    />
+                    <Label htmlFor="residence_type">Select Type</Label>
+                    <Select name="residence_type" defaultValue={editingTrainee?.residence_type || ""}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hostel">Hostel</SelectItem>
+                        <SelectItem value="daily">Daily Come</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    defaultValue={editingTrainee?.address}
+                  />
                 </div>
                 <Button type="submit" className="w-full">
                   {editingTrainee ? "Update" : "Register"} Trainee
