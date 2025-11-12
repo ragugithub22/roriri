@@ -198,81 +198,34 @@ export default function TraineeDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            
-            <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
-              <DialogTrigger asChild>
-                <Button disabled={hasCourseAssigned} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  {hasCourseAssigned ? "Course Already Assigned" : "Add Course"}
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Assign Course</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCourseSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="course_id">Select Course</Label>
-                    <Select
-                      value={selectedCourse}
-                      onValueChange={handleCourseChange}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a course" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courses.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.name} - {course.duration_weeks} weeks
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {selectedCourse && (
-                    <div>
-                      <Label>Course Fees</Label>
-                      <p className="text-2xl font-bold">₹{courseFees.toFixed(2)}</p>
-                    </div>
-                  )}
-                  <Button type="submit" className="w-full">
-                    Assign Course
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          <h1 className="text-4xl font-bold text-center">Trainee Profile</h1>
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        {/* Header with Back Button */}
+        <div className="mb-6">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 mb-4">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-8 space-y-8">
         {/* Profile Section */}
-        <Card>
+        <Card className="shadow-lg">
           <CardContent className="p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
               {/* Left Side - Avatar and Basic Info */}
-              <div className="flex flex-col items-center text-center space-y-4">
-                <Avatar className="h-40 w-40">
+              <div className="flex flex-col items-center space-y-4 border-r pr-6">
+                <Avatar className="h-32 w-32 border-4 border-primary/10">
                   <AvatarImage src="" />
-                  <AvatarFallback className="text-3xl">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-3xl bg-primary/10 text-primary">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="space-y-2">
+                <div className="space-y-2 text-center">
                   <h2 className="text-2xl font-bold">{trainee.full_name}</h2>
+                  <Badge variant="secondary" className="text-xs">
+                    {trainee.student_code}
+                  </Badge>
                   {hasCourseAssigned && (
                     <>
-                      <p className="text-lg text-muted-foreground">{assignedCourse.name}</p>
-                      <p className="text-base text-muted-foreground">
+                      <p className="text-sm font-medium text-primary pt-2">{assignedCourse.name}</p>
+                      <p className="text-xs text-muted-foreground">
                         {courses.find(c => c.id === assignedCourse.id)?.duration_weeks || 0} Months
                       </p>
                     </>
@@ -281,69 +234,87 @@ export default function TraineeDetail() {
               </div>
 
               {/* Right Side - Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Full Name</span>
-                  <span className="text-muted-foreground">{trainee.full_name}</span>
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Company Email</p>
+                    <p className="font-medium">{trainee.email || "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Mobile</p>
+                    <p className="font-medium">{trainee.phone || "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p className="font-medium">{trainee.address || "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">User ID</p>
+                    <p className="font-medium">{trainee.student_code}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Password</p>
+                    <p className="font-medium">{trainee.password || "********"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Date Of Joining</p>
+                    <p className="font-medium">{trainee.created_at ? new Date(trainee.created_at).toLocaleDateString() : "N/A"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="font-medium">{trainee.date_of_birth || "N/A"}</p>
+                  </div>
+                  
+                  {hasCourseAssigned && (
+                    <>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Course Name</p>
+                        <p className="font-medium">{assignedCourse.name}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Course Duration</p>
+                        <p className="font-medium">{courses.find(c => c.id === assignedCourse.id)?.duration_weeks || 0} Months</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Slot Timing</p>
+                        <p className="font-medium">9:30 - 1:00</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Batch</p>
+                        <p className="font-medium">-</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Incharge Name</p>
+                        <p className="font-medium">-</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Total Fees</p>
+                        <p className="font-medium text-primary">₹{totalFees.toFixed(2)}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Total Paid Amount</p>
+                        <p className="font-medium text-green-600">₹{paidAmount.toFixed(2)}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Balance Amount</p>
+                        <p className="font-medium text-red-600">₹{pendingAmount.toFixed(2)}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Gender</span>
-                  <span className="text-muted-foreground">{trainee.gender || "N/A"}</span>
-                </div>
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Email</span>
-                  <span className="text-muted-foreground">{trainee.email || "N/A"}</span>
-                </div>
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Username</span>
-                  <span className="text-muted-foreground">{trainee.student_code}</span>
-                </div>
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Date of Birth</span>
-                  <span className="text-muted-foreground">{trainee.date_of_birth || "N/A"}</span>
-                </div>
-                
-                {hasCourseAssigned && (
-                  <>
-                    <div className="flex justify-between items-center border-b pb-2">
-                      <span className="font-medium">Role</span>
-                      <span className="text-muted-foreground">Trainee</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center border-b pb-2">
-                      <span className="font-medium">Fee</span>
-                      <span className="text-muted-foreground">₹{totalFees.toFixed(0)}</span>
-                    </div>
-                  </>
-                )}
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Mode</span>
-                  <span className="text-muted-foreground">Online</span>
-                </div>
-                
-                <div className="flex justify-between items-center border-b pb-2">
-                  <span className="font-medium">Phone</span>
-                  <span className="text-muted-foreground">{trainee.phone || "N/A"}</span>
-                </div>
-
-                {hasCourseAssigned && (
-                  <>
-                    <div className="flex justify-between items-center border-b pb-2">
-                      <span className="font-medium">Amount Paid</span>
-                      <span className="text-green-600 font-semibold">₹{paidAmount.toFixed(0)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center border-b pb-2">
-                      <span className="font-medium">Pending Amount</span>
-                      <span className="text-red-600 font-semibold">₹{pendingAmount.toFixed(0)}</span>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
           </CardContent>
@@ -351,17 +322,62 @@ export default function TraineeDetail() {
 
         {/* Payment History Section */}
         {hasCourseAssigned && (
-          <Card>
+          <Card className="shadow-lg">
             <CardContent className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Payment History</h2>
-                <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      Add Payment
-                    </Button>
-                  </DialogTrigger>
+                <h2 className="text-xl font-bold">Payment History</h2>
+                <div className="flex gap-2">
+                  <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="gap-2 bg-primary">
+                        <Plus className="h-4 w-4" />
+                        Add Course
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Assign Course</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleCourseSubmit} className="space-y-4">
+                        <div>
+                          <Label htmlFor="course_id">Select Course</Label>
+                          <Select
+                            value={selectedCourse}
+                            onValueChange={handleCourseChange}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose a course" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {courses.map((course) => (
+                                <SelectItem key={course.id} value={course.id}>
+                                  {course.name} - {course.duration_weeks} weeks
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {selectedCourse && (
+                          <div>
+                            <Label>Course Fees</Label>
+                            <p className="text-2xl font-bold">₹{courseFees.toFixed(2)}</p>
+                          </div>
+                        )}
+                        <Button type="submit" className="w-full">
+                          Assign Course
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add Payment
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Record Payment</DialogTitle>
@@ -428,6 +444,7 @@ export default function TraineeDetail() {
                     </form>
                   </DialogContent>
                 </Dialog>
+                </div>
               </div>
               
               <div className="rounded-md border">
