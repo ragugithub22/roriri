@@ -322,6 +322,11 @@ export default function TraineeDetail() {
                   </div>
                   
                   <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Username</p>
+                    <p className="font-medium">{trainee.student_code}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Password</p>
                     <p className="font-medium">{trainee.password || "********"}</p>
                   </div>
