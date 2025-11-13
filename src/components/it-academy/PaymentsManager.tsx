@@ -91,7 +91,7 @@ export default function PaymentsManager() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const paymentData = {
-      payment_code: formData.get("payment_code"),
+      payment_code: `PAY-${Date.now()}`,
       student_id: formData.get("student_id"),
       enrollment_id: formData.get("enrollment_id") || null,
       amount: parseFloat(formData.get("amount") as string),
@@ -162,31 +162,20 @@ export default function PaymentsManager() {
                   <DialogTitle>Record Payment</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="payment_code">Payment Code</Label>
-                      <Input
-                        id="payment_code"
-                        name="payment_code"
-                        placeholder="PAY-001"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="student_id">Trainee</Label>
-                      <Select name="student_id" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select trainee" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {trainees.map((trainee) => (
-                            <SelectItem key={trainee.id} value={trainee.id}>
-                              {trainee.full_name} ({trainee.student_code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div>
+                    <Label htmlFor="student_id">Trainee</Label>
+                    <Select name="student_id" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select trainee" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {trainees.map((trainee) => (
+                          <SelectItem key={trainee.id} value={trainee.id}>
+                            {trainee.full_name} ({trainee.student_code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -266,7 +255,6 @@ export default function PaymentsManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Code</TableHead>
                 <TableHead>Trainee</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
@@ -275,28 +263,35 @@ export default function PaymentsManager() {
               </TableRow>
             </TableHeader>
             <TableBody>
-            {(payments as any[]).map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell>{payment.payment_code}</TableCell>
-                <TableCell>{payment.trainee?.full_name || "-"}</TableCell>
-                <TableCell className="font-semibold">₹{Number(payment.amount).toLocaleString()}</TableCell>
-                <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
-                <TableCell>{payment.payment_method || "-"}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      payment.status === "completed"
-                        ? "default"
-                        : payment.status === "pending"
-                        ? "secondary"
-                        : "destructive"
-                    }
-                  >
-                    {payment.status}
-                  </Badge>
+            {(payments as any[]).length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  No payment records found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              (payments as any[]).map((payment) => (
+                <TableRow key={payment.id}>
+                  <TableCell>{payment.trainee?.full_name || "-"}</TableCell>
+                  <TableCell className="font-semibold">₹{Number(payment.amount).toLocaleString()}</TableCell>
+                  <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
+                  <TableCell className="capitalize">{payment.payment_method || "-"}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        payment.status === "completed" || payment.status === "paid"
+                          ? "default"
+                          : payment.status === "pending"
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {payment.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
             </TableBody>
           </Table>
         </CardContent>
