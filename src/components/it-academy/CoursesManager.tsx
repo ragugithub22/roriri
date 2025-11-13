@@ -166,7 +166,7 @@ export default function CoursesManager() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="duration_weeks">Duration (weeks)</Label>
+                    <Label htmlFor="duration_weeks">Duration (months)</Label>
                     <Input
                       id="duration_weeks"
                       name="duration_weeks"
@@ -238,7 +238,7 @@ export default function CoursesManager() {
                 <TableCell>
                   <Badge variant="outline">{course.course_level}</Badge>
                 </TableCell>
-                <TableCell>{course.duration_weeks}w</TableCell>
+                <TableCell>{course.duration_weeks} months</TableCell>
                 <TableCell>₹{course.fees?.toLocaleString()}</TableCell>
                 <TableCell>
                   <Badge variant={course.status === "active" ? "default" : "secondary"}>
