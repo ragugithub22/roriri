@@ -56,74 +56,117 @@ export function Certificate({ certificateData }: CertificateProps) {
           ["--scale" as any]: `${scale}`,
         }}
       >
-        <div className="absolute inset-0 bg-white rounded-xl shadow-2xl p-6 sm:p-10 md:p-12 lg:p-16 overflow-hidden flex flex-col">
-          {/* Top Right Design */}
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 overflow-hidden">
-            <svg viewBox="0 0 200 200" className="w-full h-full">
-              <polygon points="100,0 200,0 200,100" fill="#C41E56" />
-              <polygon points="200,0 200,150 150,0" fill="#1E3A5F" />
-              <polygon points="200,150 200,200 150,200" fill="#F5A623" />
+        <div className="absolute inset-0 bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
+          {/* Top Left - Curved Abstract Design */}
+          <div className="absolute top-0 left-0 w-[45%] h-[25%] overflow-visible" style={{ zIndex: 1 }}>
+            <svg viewBox="0 0 600 300" className="w-full h-full" preserveAspectRatio="none">
+              {/* Navy/Purple curved shape */}
+              <path d="M 0,0 L 0,300 Q 250,200 350,0 Z" fill="#2D1B4E" />
+              {/* Pink curved shape */}
+              <path d="M 0,150 L 0,300 Q 200,250 300,150 L 300,300 L 0,300 Z" fill="#E91E63" />
+              {/* Yellow curved shape */}
+              <path d="M 350,0 Q 250,200 600,180 L 600,0 Z" fill="#FFC107" />
             </svg>
-            <div className="absolute top-3 right-3 sm:top-6 sm:right-6 w-10 h-10 sm:w-16 sm:h-16">
-              <img
-                src="/roriri-logo.png"
-                alt="Roriri Logo"
-                className="w-full h-full object-contain"
-              />
+          </div>
+
+          {/* Top Left Logo */}
+          <div className="absolute top-6 left-6 sm:top-8 sm:left-8 md:top-10 md:left-12 z-10">
+            <img
+              src="/roriri-logo.png"
+              alt="Roriri Logo"
+              className="h-12 sm:h-14 md:h-16 w-auto object-contain"
+            />
+          </div>
+
+          {/* Top Right - Certification Logos */}
+          <div className="absolute top-6 right-6 sm:top-8 sm:right-8 md:top-10 md:right-12 flex gap-4 sm:gap-6 items-center z-10">
+            <div className="h-10 sm:h-12 md:h-14 w-auto bg-white/80 rounded px-2 py-1 flex items-center justify-center">
+              <span className="text-[8px] sm:text-[10px] md:text-xs font-bold text-gray-800">DPIIT</span>
+            </div>
+            <div className="h-10 sm:h-12 md:h-14 w-auto bg-white/80 rounded px-2 py-1 flex items-center justify-center">
+              <span className="text-[8px] sm:text-[10px] md:text-xs font-bold text-gray-800">StartupIndia</span>
+            </div>
+            <div className="h-10 sm:h-12 md:h-14 w-auto bg-white/80 rounded px-2 py-1 flex items-center justify-center">
+              <span className="text-[8px] sm:text-[10px] md:text-xs font-bold text-gray-800">MSME</span>
+            </div>
+            <div className="h-10 sm:h-12 md:h-14 w-auto bg-white/80 rounded px-2 py-1 flex items-center justify-center">
+              <span className="text-[8px] sm:text-[10px] md:text-xs font-bold text-gray-800">ISO 9001-27001</span>
             </div>
           </div>
 
-          {/* Bottom Left Design */}
-          <div className="absolute bottom-0 left-0 w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 overflow-hidden">
-            <svg viewBox="0 0 200 200" className="w-full h-full">
-              <polygon points="0,100 0,200 100,200" fill="#2D1B4E" />
-              <polygon points="0,200 150,200 0,50" fill="#C41E56" />
+          {/* Bottom Right - Curved Design */}
+          <div className="absolute bottom-0 right-0 w-[45%] h-[25%] overflow-visible" style={{ zIndex: 1 }}>
+            <svg viewBox="0 0 600 300" className="w-full h-full" preserveAspectRatio="none">
+              {/* Purple curved shape */}
+              <path d="M 600,300 L 600,0 Q 350,100 250,300 Z" fill="#2D1B4E" />
+              {/* Pink curved shape */}
+              <path d="M 250,300 Q 350,100 600,0 L 600,150 Q 400,200 300,300 Z" fill="#E91E63" />
             </svg>
           </div>
 
           {/* Certificate Text */}
-          <div className="relative z-10 flex flex-col justify-center items-center h-full text-center px-8 sm:px-12 md:px-20">
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide mb-4">
-              Certificate of <span className="text-yellow-600">Completion</span>
-            </h1>
+          <div className="relative z-10 flex flex-col justify-center items-center h-full text-center px-8 sm:px-12 md:px-20 py-12 sm:py-16 md:py-20">
+            <div className="mb-6 sm:mb-8">
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 font-light mb-2">
+                Certificate of
+              </p>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-black">
+                Completion
+              </h1>
+            </div>
 
-            <p className="text-base sm:text-lg md:text-xl leading-relaxed max-w-3xl">
-              This is to certify that{" "}
-              <span className="font-bold text-xl sm:text-2xl md:text-3xl">
-                {certificateData.traineeName}
-              </span>{" "}
-              has successfully completed the{" "}
-              <span className="font-bold text-xl sm:text-2xl md:text-3xl">
-                {certificateData.courseName}
-              </span>{" "}
-              course.
-            </p>
+            <div className="max-w-4xl text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed text-gray-800 space-y-4 sm:space-y-6">
+              <p>
+                This is to certify that{" "}
+                <span className="border-b-2 border-dotted border-gray-400 px-2 font-semibold">
+                  {certificateData.traineeName}
+                </span>{" "}
+                has successfully
+              </p>
+              
+              <p>
+                completed the{" "}
+                <span className="border-b-2 border-dotted border-gray-400 px-2 font-semibold">
+                  {certificateData.courseName}
+                </span>{" "}
+                held from
+              </p>
+              
+              <p>
+                <span className="border-b-2 border-dotted border-gray-400 px-2 font-semibold">
+                  {certificateData.issue_date}
+                </span>{" "}
+                to{" "}
+                <span className="border-b-2 border-dotted border-gray-400 px-2 font-semibold">
+                  {certificateData.issue_date}
+                </span>{" "}
+                at Roriri Software Solutions
+              </p>
+              
+              <p className="font-semibold">Private Limited</p>
+            </div>
 
-            <p className="text-sm sm:text-base md:text-lg text-gray-700 max-w-2xl mt-6">
-              Their dedication and enthusiasm have set a benchmark of excellence,
-              reflecting the core values of Roriri Software Solutions.
-              We are honored to have been part of their journey and excited to
-              see the impact they will make in their future endeavors.
-            </p>
-
-            <p className="text-sm sm:text-base md:text-lg font-semibold mt-6">
-              Issued on: {certificateData.issue_date}
+            <p className="text-sm sm:text-base md:text-lg text-gray-700 max-w-3xl mt-8 sm:mt-10 md:mt-12 leading-relaxed">
+              Their dedication, and enthusiasm have set a benchmark of excellence,
+              reflecting the core values of Roriri Software Solutions. We are honored
+              to have been part of their journey and excited to see the impact they will
+              make in their future endeavors.
             </p>
 
             {/* Footer Info */}
-            <div className="mt-10 sm:mt-12 md:mt-16 w-full flex justify-between items-center px-10">
-              <div>
-                <p className="text-sm sm:text-base md:text-lg font-semibold">
-                  Authorized Signature
+            <div className="mt-12 sm:mt-16 md:mt-20 w-full flex justify-between items-end px-6 sm:px-10 md:px-16">
+              <div className="text-left">
+                <div className="w-40 sm:w-48 border-b-2 border-gray-400 mb-2"></div>
+                <p className="text-sm sm:text-base md:text-lg text-gray-700 italic">
+                  Date Issued
                 </p>
-                <div className="w-32 border-b-2 border-black mt-2"></div>
               </div>
 
               <div className="text-right">
-                <p className="text-sm sm:text-base md:text-lg font-semibold">
-                  Roriri Software Solutions
+                <div className="w-40 sm:w-48 border-b-2 border-gray-400 mb-2 ml-auto"></div>
+                <p className="text-sm sm:text-base md:text-lg text-gray-700 italic">
+                  Authorized Signature
                 </p>
-                <p className="text-xs sm:text-sm">Private Limited</p>
               </div>
             </div>
           </div>
