@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
@@ -20,6 +20,22 @@ export function Certificate({ certificateData }: CertificateProps) {
     document.title = `Certificate - ${certificateData.certificate_number}`;
   }, [certificateData.certificate_number]);
 
+  const BASE_WIDTH = 1400;
+  const BASE_HEIGHT = 990;
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const recalc = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const s = Math.min(vw / BASE_HEIGHT, vh / BASE_WIDTH);
+      setScale(s);
+    };
+    recalc();
+    window.addEventListener('resize', recalc);
+    return () => window.removeEventListener('resize', recalc);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
       {/* Print Button - Hidden on print */}
@@ -34,10 +50,9 @@ export function Certificate({ certificateData }: CertificateProps) {
         id="certificate-content" 
         className="relative mx-auto rotate-certificate" 
         style={{ 
-          width: '210mm',
-          height: '297mm',
-          maxWidth: '90vh',
-          maxHeight: '90vw'
+          width: `${BASE_WIDTH}px`,
+          height: `${BASE_HEIGHT}px`,
+          ["--scale" as any]: `${scale}`
         }}
       >
         {/* Main Certificate Container - A4 Landscape */}
@@ -136,8 +151,9 @@ export function Certificate({ certificateData }: CertificateProps) {
 
       <style>{`
         .rotate-certificate {
-          transform: rotate(-90deg);
+          transform: rotate(-90deg) scale(var(--scale, 1));
           transform-origin: center center;
+          will-change: transform;
         }
         
         @media print {
@@ -162,18 +178,6 @@ export function Certificate({ certificateData }: CertificateProps) {
           @page {
             margin: 0;
             size: A4 landscape;
-          }
-        }
-        
-        @media (max-width: 640px) {
-          .rotate-certificate {
-            transform: rotate(-90deg) scale(0.4);
-          }
-        }
-        
-        @media (min-width: 641px) and (max-width: 1024px) {
-          .rotate-certificate {
-            transform: rotate(-90deg) scale(0.6);
           }
         }
       `}</style>
