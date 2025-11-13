@@ -3182,6 +3182,7 @@ export type Database = {
           description: string | null
           id: string
           learning_objectives: string | null
+          pdf_url: string | null
           resources: string | null
           subject_id: string
           topic: string
@@ -3193,6 +3194,7 @@ export type Database = {
           description?: string | null
           id?: string
           learning_objectives?: string | null
+          pdf_url?: string | null
           resources?: string | null
           subject_id: string
           topic: string
@@ -3204,6 +3206,7 @@ export type Database = {
           description?: string | null
           id?: string
           learning_objectives?: string | null
+          pdf_url?: string | null
           resources?: string | null
           subject_id?: string
           topic?: string

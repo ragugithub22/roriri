@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft, Upload, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SyllabusDetails() {
@@ -17,6 +17,9 @@ export default function SyllabusDetails() {
   const navigate = useNavigate();
   const [isSyllabusOpen, setIsSyllabusOpen] = useState(false);
   const [editingSyllabus, setEditingSyllabus] = useState<any>(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadingSyllabus, setUploadingSyllabus] = useState<any>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
 
   const { data: subject } = useQuery({
@@ -107,6 +110,41 @@ export default function SyllabusDetails() {
     },
   });
 
+  const uploadPdfMutation = useMutation({
+    mutationFn: async ({ syllabusId, file }: { syllabusId: string; file: File }) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${syllabusId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('syllabus-pdfs')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('syllabus-pdfs')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("syllabus" as any)
+        .update({ pdf_url: publicUrl })
+        .eq("id", syllabusId);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["syllabus", subjectId] });
+      setIsUploadOpen(false);
+      setUploadFile(null);
+      setUploadingSyllabus(null);
+      toast.success("PDF uploaded successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to upload PDF: ${error.message}`);
+    },
+  });
+
   const handleSyllabusSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -121,6 +159,23 @@ export default function SyllabusDetails() {
     };
 
     saveSyllabusMutation.mutate(syllabusData);
+  };
+
+  const handleUploadSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!uploadFile || !uploadingSyllabus) {
+      toast.error("Please select a PDF file");
+      return;
+    }
+
+    uploadPdfMutation.mutate({
+      syllabusId: uploadingSyllabus.id,
+      file: uploadFile,
+    });
+  };
+
+  const handleViewPdf = (pdfUrl: string) => {
+    window.open(pdfUrl, '_blank');
   };
 
   return (
@@ -230,6 +285,7 @@ export default function SyllabusDetails() {
                   <TableHead>Week</TableHead>
                   <TableHead>Topic</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>PDF</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -246,8 +302,34 @@ export default function SyllabusDetails() {
                       <TableCell className="font-medium">Week {item.week_number}</TableCell>
                       <TableCell>{item.topic}</TableCell>
                       <TableCell className="max-w-md truncate">{item.description}</TableCell>
+                      <TableCell>
+                        {item.pdf_url ? (
+                          <span className="text-green-600 text-sm">Uploaded</span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No PDF</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setUploadingSyllabus(item);
+                              setIsUploadOpen(true);
+                            }}
+                          >
+                            <Upload className="h-4 w-4" />
+                          </Button>
+                          {item.pdf_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewPdf(item.pdf_url)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -274,6 +356,37 @@ export default function SyllabusDetails() {
             </Table>
           </CardContent>
         </Card>
+
+        <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upload PDF for {uploadingSyllabus?.topic}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUploadSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="pdf-file">PDF File</Label>
+                <Input
+                  id="pdf-file"
+                  name="pdf-file"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsUploadOpen(false);
+                  setUploadFile(null);
+                  setUploadingSyllabus(null);
+                }}>
+                  Cancel
+                </Button>
+                <Button type="submit">Upload</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
         </div>
       </div>
     </div>
