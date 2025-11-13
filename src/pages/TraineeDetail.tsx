@@ -12,8 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { PaymentReceipt } from "@/components/it-academy/PaymentReceipt";
 
 export default function TraineeDetail() {
   const { id } = useParams();
@@ -23,7 +24,11 @@ export default function TraineeDetail() {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [courseFees, setCourseFees] = useState(0);
+  const [courseDuration, setCourseDuration] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [receiptData, setReceiptData] = useState<any>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const itemsPerPage = 7;
 
@@ -104,10 +109,11 @@ export default function TraineeDetail() {
 
   // Calculate totals
   const totalFees = assignedCourse ? Number(assignedCourse.fees || 0) : 0;
-  const paidAmount = payments
+  const totalPaidAmount = payments
     .filter(p => p.status === "paid")
     .reduce((sum, p) => sum + Number(p.amount || 0), 0);
-  const pendingAmount = totalFees - paidAmount;
+  const pendingAmount = totalFees - totalPaidAmount;
+  const balanceAmount = totalFees - totalPaidAmount - paidAmount;
 
   // Handle course selection
   const handleCourseChange = (courseId: string) => {
@@ -115,6 +121,7 @@ export default function TraineeDetail() {
     const course = courses.find(c => c.id === courseId);
     if (course) {
       setCourseFees(Number(course.fees || 0));
+      setCourseDuration(course.duration_weeks || 0);
     }
   };
 
@@ -149,24 +156,30 @@ export default function TraineeDetail() {
   // Add payment mutation
   const addPaymentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const { error } = await supabase
+      const paymentData = {
+        student_id: id,
+        payment_code: formData.get("receipt_id") as string,
+        course_id: assignedCourse?.id,
+        amount: Number(formData.get("paid_amount")),
+        payment_date: formData.get("payment_date") as string,
+        payment_method: formData.get("payment_method") as string,
+        status: "paid" as const,
+      };
+      
+      const { data, error } = await supabase
         .from("academy_payments")
-        .insert({
-          student_id: id,
-          payment_code: formData.get("payment_code") as string,
-          course_id: assignedCourse?.id,
-          amount: Number(formData.get("paid_amount")),
-          payment_date: formData.get("payment_date") as string,
-          payment_method: formData.get("payment_method") as string,
-          notes: `Received by: ${formData.get("received_by")}`,
-          status: "paid" as const,
-        });
+        .insert(paymentData)
+        .select()
+        .single();
+      
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       toast.success("Payment recorded successfully");
       queryClient.invalidateQueries({ queryKey: ["trainee-payments", id] });
       setIsPaymentDialogOpen(false);
+      setPaidAmount(0);
     },
     onError: () => {
       toast.error("Failed to record payment");
@@ -325,9 +338,9 @@ export default function TraineeDetail() {
                         <p className="font-medium text-primary">₹{totalFees.toFixed(2)}</p>
                       </div>
                       
-                      <div className="space-y-1">
+                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Total Paid Amount</p>
-                        <p className="font-medium text-green-600">₹{paidAmount.toFixed(2)}</p>
+                        <p className="font-medium text-green-600">₹{totalPaidAmount.toFixed(2)}</p>
                       </div>
                       
                       <div className="space-y-1">
@@ -342,131 +355,193 @@ export default function TraineeDetail() {
           </CardContent>
         </Card>
 
+        {/* Assign Course Button */}
+        {!hasCourseAssigned && (
+          <div className="mt-6">
+            <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="default" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Assign Course
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Assign Course</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCourseSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="course_id">Select Course</Label>
+                    <Select
+                      value={selectedCourse}
+                      onValueChange={handleCourseChange}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {selectedCourse && (
+                    <>
+                      <div>
+                        <Label>Course Fees</Label>
+                        <p className="text-2xl font-bold text-primary">₹{courseFees.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <Label>Duration</Label>
+                        <p className="text-lg font-medium">{courseDuration} Months</p>
+                      </div>
+                    </>
+                  )}
+                  <Button type="submit" className="w-full">
+                    Assign Course
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
+
         {/* Payment History Section */}
         {hasCourseAssigned && (
           <Card className="shadow-lg">
             <CardContent className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Payment History</h2>
-                <div className="flex gap-2">
-                  <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="default" className="gap-2 bg-primary">
-                        <Plus className="h-4 w-4" />
-                        Add Course
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Assign Course</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleCourseSubmit} className="space-y-4">
-                        <div>
-                          <Label htmlFor="course_id">Select Course</Label>
-                          <Select
-                            value={selectedCourse}
-                            onValueChange={handleCourseChange}
-                            required
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choose a course" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {courses.map((course) => (
-                                <SelectItem key={course.id} value={course.id}>
-                                  {course.name} - {course.duration_weeks} weeks
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {selectedCourse && (
-                          <div>
-                            <Label>Course Fees</Label>
-                            <p className="text-2xl font-bold">₹{courseFees.toFixed(2)}</p>
-                          </div>
-                        )}
-                        <Button type="submit" className="w-full">
-                          Assign Course
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                  
-                  <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add Payment
-                      </Button>
-                    </DialogTrigger>
-                  <DialogContent>
+                <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Payment
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                      <DialogTitle>Record Payment</DialogTitle>
+                      <DialogTitle>Add Payment</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handlePaymentSubmit} className="space-y-4">
                       <div>
-                        <Label>Trainee Name</Label>
-                        <Input value={trainee.full_name} disabled />
+                        <Label>Trainee Name <span className="text-red-500">*</span></Label>
+                        <Input value={trainee.full_name} disabled className="bg-muted" />
                       </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Overall Amount <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center border rounded-md px-3 py-2 bg-muted">
+                            <span className="mr-2">₹</span>
+                            <span>{totalFees.toFixed(2)}</span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label>Amount Received <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center border rounded-md px-3 py-2 bg-muted">
+                            <span className="mr-2">₹</span>
+                            <span>{totalPaidAmount.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="paid_amount">Amount Paid <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center border rounded-md">
+                            <span className="px-3 text-muted-foreground">₹</span>
+                            <Input
+                              id="paid_amount"
+                              name="paid_amount"
+                              type="number"
+                              step="0.01"
+                              placeholder="Enter the Amount"
+                              className="border-0 focus-visible:ring-0"
+                              value={paidAmount || ""}
+                              onChange={(e) => setPaidAmount(Number(e.target.value))}
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label>Balance Amount <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center border rounded-md px-3 py-2 bg-muted">
+                            <span className="mr-2">₹</span>
+                            <span>{balanceAmount.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="payment_date">Payment Date <span className="text-red-500">*</span></Label>
+                          <Input
+                            id="payment_date"
+                            name="payment_date"
+                            type="date"
+                            defaultValue={new Date().toISOString().split('T')[0]}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="payment_method">Payment Mode <span className="text-red-500">*</span></Label>
+                          <Select name="payment_method" required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose...." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                              <SelectItem value="upi">UPI</SelectItem>
+                              <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
                       <div>
-                        <Label>Course</Label>
-                        <Input value={assignedCourse?.name} disabled />
+                        <Label htmlFor="receipt_id">Receipt/Transaction Id</Label>
+                        <div className="flex items-center border rounded-md">
+                          <span className="px-3 text-muted-foreground">
+                            <FileText className="h-4 w-4" />
+                          </span>
+                          <Input
+                            id="receipt_id"
+                            name="receipt_id"
+                            placeholder="Receipt/Transaction ID"
+                            className="border-0 focus-visible:ring-0"
+                            defaultValue={`TXN-${Date.now()}`}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="payment_code">Payment Code</Label>
-                        <Input
-                          id="payment_code"
-                          name="payment_code"
-                          defaultValue={`PAY-${Date.now()}`}
-                          required
-                        />
+                      
+                      <div className="flex gap-3 pt-4">
+                        <Button 
+                          type="button" 
+                          variant="secondary" 
+                          className="flex-1"
+                          onClick={() => {
+                            setIsPaymentDialogOpen(false);
+                            setPaidAmount(0);
+                          }}
+                        >
+                          Close
+                        </Button>
+                        <Button type="submit" className="flex-1">
+                          Save changes
+                        </Button>
                       </div>
-                      <div>
-                        <Label htmlFor="payment_date">Date</Label>
-                        <Input
-                          id="payment_date"
-                          name="payment_date"
-                          type="date"
-                          defaultValue={new Date().toISOString().split('T')[0]}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="paid_amount">Paid Amount</Label>
-                        <Input
-                          id="paid_amount"
-                          name="paid_amount"
-                          type="number"
-                          step="0.01"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="payment_method">Payment Mode</Label>
-                        <Select name="payment_method" required>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="card">Card</SelectItem>
-                            <SelectItem value="upi">UPI</SelectItem>
-                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="received_by">Received By</Label>
-                        <Input id="received_by" name="received_by" required />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Save Payment
-                      </Button>
                     </form>
                   </DialogContent>
                 </Dialog>
-                </div>
               </div>
               
               <div className="rounded-md border">
@@ -478,7 +553,7 @@ export default function TraineeDetail() {
                       <TableHead>Amount</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -492,7 +567,7 @@ export default function TraineeDetail() {
                       payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((payment) => (
                         <TableRow key={payment.id}>
                           <TableCell className="font-medium">{payment.payment_code}</TableCell>
-                          <TableCell>{payment.payment_date}</TableCell>
+                          <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
                           <TableCell className="font-semibold">₹{Number(payment.amount).toFixed(2)}</TableCell>
                           <TableCell className="capitalize">{payment.payment_method || "-"}</TableCell>
                           <TableCell>
@@ -500,7 +575,26 @@ export default function TraineeDetail() {
                               {payment.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">{payment.notes || "-"}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => {
+                                setReceiptData({
+                                  ...payment,
+                                  studentName: trainee.full_name,
+                                  courseName: assignedCourse?.name || "All",
+                                  totalFees,
+                                  balance: totalFees - totalPaidAmount,
+                                });
+                                setShowReceipt(true);
+                              }}
+                            >
+                              <FileText className="h-4 w-4" />
+                              Bill PDF
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -543,6 +637,14 @@ export default function TraineeDetail() {
               )}
             </CardContent>
           </Card>
+        )}
+
+        {/* Payment Receipt Modal */}
+        {showReceipt && receiptData && (
+          <PaymentReceipt
+            receiptData={receiptData}
+            onClose={() => setShowReceipt(false)}
+          />
         )}
       </div>
     </div>
