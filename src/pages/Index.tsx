@@ -184,25 +184,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Entity Cards Grid */}
-      <section className="py-16 px-6">
-        <div className="container mx-auto max-w-7xl">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-3">Integrated Business Units</h2>
-            <p className="text-muted-foreground text-lg">
-              Ten specialized divisions working in harmony through shared infrastructure
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {entities.map((entity, index) => <div key={entity.id} className="animate-fade-in" style={{
-            animationDelay: `${index * 0.1}s`
-          }}>
-                <EntityCard {...entity} />
-              </div>)}
-          </div>
-        </div>
-      </section>
 
       {/* Entity Flow Diagram */}
       <section className="py-16 px-6 bg-muted/30">
