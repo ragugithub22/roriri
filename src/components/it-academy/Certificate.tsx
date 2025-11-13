@@ -21,7 +21,7 @@ export function Certificate({ certificateData }: CertificateProps) {
   }, [certificateData.certificate_number]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
       {/* Print Button - Hidden on print */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 print:hidden">
         <Button onClick={handlePrint} className="gap-2 shadow-lg">
@@ -30,7 +30,16 @@ export function Certificate({ certificateData }: CertificateProps) {
         </Button>
       </div>
 
-      <div id="certificate-content" className="relative w-full max-w-7xl mx-auto" style={{ aspectRatio: '297/210' }}>
+      <div 
+        id="certificate-content" 
+        className="relative mx-auto rotate-certificate" 
+        style={{ 
+          width: '210mm',
+          height: '297mm',
+          maxWidth: '90vh',
+          maxHeight: '90vw'
+        }}
+      >
         {/* Main Certificate Container - A4 Landscape */}
         <div className="absolute inset-0 bg-white p-6 sm:p-8 md:p-12 lg:p-16 shadow-2xl">
           {/* Top Right Decorative Shape */}
@@ -126,6 +135,11 @@ export function Certificate({ certificateData }: CertificateProps) {
       </div>
 
       <style>{`
+        .rotate-certificate {
+          transform: rotate(-90deg);
+          transform-origin: center center;
+        }
+        
         @media print {
           body {
             margin: 0;
@@ -134,10 +148,14 @@ export function Certificate({ certificateData }: CertificateProps) {
           .print\\:hidden {
             display: none !important;
           }
+          .rotate-certificate {
+            transform: none !important;
+          }
           #certificate-content {
-            width: 297mm;
-            height: 210mm;
-            max-width: 100%;
+            width: 297mm !important;
+            height: 210mm !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
             page-break-after: avoid;
             box-shadow: none;
           }
@@ -148,8 +166,14 @@ export function Certificate({ certificateData }: CertificateProps) {
         }
         
         @media (max-width: 640px) {
-          #certificate-content {
-            min-height: 100vh;
+          .rotate-certificate {
+            transform: rotate(-90deg) scale(0.4);
+          }
+        }
+        
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .rotate-certificate {
+            transform: rotate(-90deg) scale(0.6);
           }
         }
       `}</style>
