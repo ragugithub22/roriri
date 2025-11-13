@@ -7,7 +7,7 @@ import { Code2, Users, BookOpen, Award } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
-import SyllabusManager from "@/components/it-academy/SyllabusManager";
+
 import TraineesManager from "@/components/it-academy/TraineesManager";
 import PaymentsManager from "@/components/it-academy/PaymentsManager";
 import CertificatesManager from "@/components/it-academy/CertificatesManager";
@@ -154,7 +154,6 @@ const ITAcademyDashboard = () => {
             <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
             <TabsTrigger value="courses" className="w-full justify-start">Courses</TabsTrigger>
             <TabsTrigger value="subjects" className="w-full justify-start">Subjects</TabsTrigger>
-            <TabsTrigger value="syllabus" className="w-full justify-start">Syllabus</TabsTrigger>
             <TabsTrigger value="trainees" className="w-full justify-start">Trainees</TabsTrigger>
             <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
             <TabsTrigger value="certificates" className="w-full justify-start">Certificates</TabsTrigger>
@@ -200,10 +199,6 @@ const ITAcademyDashboard = () => {
 
             <TabsContent value="subjects" className="mt-0">
               <SubjectsManager />
-            </TabsContent>
-
-            <TabsContent value="syllabus" className="mt-0">
-              <SyllabusManager />
             </TabsContent>
 
             <TabsContent value="trainees" className="mt-0">

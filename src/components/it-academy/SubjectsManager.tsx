@@ -9,12 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SubjectsManager() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null);
+  const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
+  const [isSyllabusOpen, setIsSyllabusOpen] = useState(false);
+  const [editingSyllabus, setEditingSyllabus] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: entity } = useQuery({
@@ -70,6 +74,23 @@ export default function SubjectsManager() {
     },
   });
 
+  const { data: syllabusList = [] } = useQuery({
+    queryKey: ["syllabus", expandedSubjectId],
+    queryFn: async () => {
+      if (!expandedSubjectId) return [];
+      
+      const { data, error } = await supabase
+        .from("syllabus" as any)
+        .select("*")
+        .eq("subject_id", expandedSubjectId)
+        .order("week_number", { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!expandedSubjectId,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (subjectData: any) => {
       if (editingSubject) {
@@ -110,6 +131,50 @@ export default function SubjectsManager() {
     },
   });
 
+  const saveSyllabusMutation = useMutation({
+    mutationFn: async (syllabusData: any) => {
+      if (editingSyllabus) {
+        const { error } = await supabase
+          .from("syllabus" as any)
+          .update(syllabusData)
+          .eq("id", editingSyllabus.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("syllabus" as any)
+          .insert([syllabusData]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["syllabus", expandedSubjectId] });
+      setIsSyllabusOpen(false);
+      setEditingSyllabus(null);
+      toast.success("Syllabus saved successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to save syllabus: ${error.message}`);
+    },
+  });
+
+  const deleteSyllabusMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("syllabus" as any)
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["syllabus", expandedSubjectId] });
+      toast.success("Syllabus deleted successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete syllabus: ${error.message}`);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -122,6 +187,26 @@ export default function SubjectsManager() {
       status: formData.get("status"),
     };
     saveMutation.mutate(subjectData);
+  };
+
+  const handleSyllabusSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const syllabusData = {
+      subject_id: expandedSubjectId,
+      week_number: parseInt(formData.get("week_number") as string),
+      topic: formData.get("topic") as string,
+      description: formData.get("description") as string,
+      learning_objectives: formData.get("learning_objectives") as string,
+      resources: formData.get("resources") as string,
+    };
+
+    if (editingSyllabus) {
+      saveSyllabusMutation.mutate({ ...syllabusData, id: editingSyllabus.id });
+    } else {
+      saveSyllabusMutation.mutate(syllabusData);
+    }
   };
 
   return (
@@ -227,43 +312,183 @@ export default function SubjectsManager() {
               <TableHead>Course</TableHead>
               <TableHead>Hours</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>View</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {subjects.map((subject: any) => (
-              <TableRow key={subject.id}>
-                <TableCell>{subject.subject_code}</TableCell>
-                <TableCell>{subject.subject_name}</TableCell>
-                <TableCell>{subject.course?.name || "-"}</TableCell>
-                <TableCell>{subject.hours || "-"}</TableCell>
-                <TableCell>
-                  <Badge variant={subject.status === "active" ? "default" : "secondary"}>
-                    {subject.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
+              <>
+                <TableRow key={subject.id}>
+                  <TableCell>{subject.subject_code}</TableCell>
+                  <TableCell>{subject.subject_name}</TableCell>
+                  <TableCell>{subject.course?.name || "-"}</TableCell>
+                  <TableCell>{subject.hours || "-"}</TableCell>
+                  <TableCell>
+                    <Badge variant={subject.status === "active" ? "default" : "secondary"}>
+                      {subject.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setEditingSubject(subject);
-                        setIsOpen(true);
-                      }}
+                      onClick={() => setExpandedSubjectId(expandedSubjectId === subject.id ? null : subject.id)}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Eye className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate(subject.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingSubject(subject);
+                          setIsOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteMutation.mutate(subject.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+                {expandedSubjectId === subject.id && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="bg-muted/50 p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold">Syllabus for {subject.subject_name}</h3>
+                          <Dialog open={isSyllabusOpen} onOpenChange={setIsSyllabusOpen}>
+                            <DialogTrigger asChild>
+                              <Button onClick={() => setEditingSyllabus(null)}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Syllabus
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>{editingSyllabus ? "Edit" : "Add"} Syllabus</DialogTitle>
+                              </DialogHeader>
+                              <form onSubmit={handleSyllabusSubmit} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="week_number">Week Number</Label>
+                                    <Input
+                                      id="week_number"
+                                      name="week_number"
+                                      type="number"
+                                      defaultValue={editingSyllabus?.week_number}
+                                      required
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="topic">Topic</Label>
+                                    <Input
+                                      id="topic"
+                                      name="topic"
+                                      defaultValue={editingSyllabus?.topic}
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="description">Description</Label>
+                                  <Textarea
+                                    id="description"
+                                    name="description"
+                                    defaultValue={editingSyllabus?.description}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="learning_objectives">Learning Objectives</Label>
+                                  <Textarea
+                                    id="learning_objectives"
+                                    name="learning_objectives"
+                                    defaultValue={editingSyllabus?.learning_objectives}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="resources">Resources</Label>
+                                  <Textarea
+                                    id="resources"
+                                    name="resources"
+                                    defaultValue={editingSyllabus?.resources}
+                                  />
+                                </div>
+                                <div className="flex justify-end gap-2">
+                                  <Button type="button" variant="outline" onClick={() => {
+                                    setIsSyllabusOpen(false);
+                                    setEditingSyllabus(null);
+                                  }}>
+                                    Cancel
+                                  </Button>
+                                  <Button type="submit">Save</Button>
+                                </div>
+                              </form>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Week</TableHead>
+                              <TableHead>Topic</TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {syllabusList.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                  No syllabus items found
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              syllabusList.map((item: any) => (
+                                <TableRow key={item.id}>
+                                  <TableCell className="font-medium">Week {item.week_number}</TableCell>
+                                  <TableCell>{item.topic}</TableCell>
+                                  <TableCell className="max-w-md truncate">{item.description}</TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex gap-2 justify-end">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setEditingSyllabus(item);
+                                          setIsSyllabusOpen(true);
+                                        }}
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => deleteSyllabusMutation.mutate(item.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             ))}
           </TableBody>
         </Table>
