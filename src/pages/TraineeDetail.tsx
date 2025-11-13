@@ -286,11 +286,10 @@ export default function TraineeDetail() {
                 <div className="space-y-2 text-center">
                   <h2 className="text-2xl font-bold">{trainee.full_name}</h2>
                   {hasCourseAssigned && (
-                    <p className="text-sm font-medium text-primary pt-1">{assignedCourse.name}</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {assignedCourse.name}
+                    </Badge>
                   )}
-                  <Badge variant="secondary" className="text-xs">
-                    {trainee.student_code}
-                  </Badge>
                 </div>
               </div>
 
