@@ -90,6 +90,30 @@ export default function TraineeDetail() {
     },
   });
 
+  // Fetch trainer (incharge) for the assigned course
+  const { data: trainerInfo } = useQuery({
+    queryKey: ["course-trainer", assignedCourse?.id],
+    queryFn: async () => {
+      if (!assignedCourse?.id) return null;
+      
+      const { data: batch } = await supabase
+        .from("batches")
+        .select(`
+          trainer_id,
+          it_trainers!inner(
+            full_name
+          )
+        `)
+        .eq("course_id", assignedCourse.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+      
+      return batch?.it_trainers?.full_name || null;
+    },
+    enabled: !!assignedCourse?.id,
+  });
+
   // Fetch payment history
   const { data: payments = [] } = useQuery({
     queryKey: ["trainee-payments", id],
@@ -370,18 +394,8 @@ export default function TraineeDetail() {
                   {hasCourseAssigned && (
                     <>
                       <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Slot Timing</p>
-                        <p className="font-medium">9:30 - 1:00</p>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Batch</p>
-                        <p className="font-medium">-</p>
-                      </div>
-                      
-                      <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Incharge Name</p>
-                        <p className="font-medium">-</p>
+                        <p className="font-medium">{trainerInfo || "Not Assigned"}</p>
                       </div>
                       
                       <div className="space-y-1">
@@ -545,7 +559,6 @@ export default function TraineeDetail() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Payment Code</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Method</TableHead>
@@ -556,19 +569,21 @@ export default function TraineeDetail() {
                   <TableBody>
                     {payments.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                           No payment records found
                         </TableCell>
                       </TableRow>
                     ) : (
-                      payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((payment) => (
+                      payments
+                        .filter(payment => payment.status === "paid")
+                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                        .map((payment) => (
                         <TableRow key={payment.id}>
-                          <TableCell className="font-medium">{payment.payment_code}</TableCell>
                           <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
                           <TableCell className="font-semibold">₹{Number(payment.amount).toFixed(2)}</TableCell>
                           <TableCell className="capitalize">{payment.payment_method || "-"}</TableCell>
                           <TableCell>
-                            <Badge variant={payment.status === "paid" ? "default" : "secondary"}>
+                            <Badge variant="default">
                               {payment.status}
                             </Badge>
                           </TableCell>
@@ -599,7 +614,7 @@ export default function TraineeDetail() {
                 </Table>
               </div>
 
-              {payments.length > itemsPerPage && (
+              {payments.filter(p => p.status === "paid").length > itemsPerPage && (
                 <div className="mt-4">
                   <Pagination>
                     <PaginationContent>
@@ -610,7 +625,7 @@ export default function TraineeDetail() {
                         />
                       </PaginationItem>
                       
-                      {Array.from({ length: Math.ceil(payments.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                      {Array.from({ length: Math.ceil(payments.filter(p => p.status === "paid").length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
                         <PaginationItem key={page}>
                           <PaginationLink
                             onClick={() => setCurrentPage(page)}
@@ -624,8 +639,8 @@ export default function TraineeDetail() {
                       
                       <PaginationItem>
                         <PaginationNext
-                          onClick={() => currentPage < Math.ceil(payments.length / itemsPerPage) && setCurrentPage(currentPage + 1)}
-                          className={currentPage === Math.ceil(payments.length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          onClick={() => currentPage < Math.ceil(payments.filter(p => p.status === "paid").length / itemsPerPage) && setCurrentPage(currentPage + 1)}
+                          className={currentPage === Math.ceil(payments.filter(p => p.status === "paid").length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
                     </PaginationContent>
