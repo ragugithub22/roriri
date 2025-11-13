@@ -61,17 +61,6 @@ export default function EntitiesManagement() {
   };
 
   const entities = [{
-    id: "academy",
-    name: "RORIRI Academy",
-    icon: GraduationCap,
-    description: "Education & Sports Management",
-    color: "from-blue-500 to-cyan-500",
-    stats: {
-      primary: "2,450",
-      secondary: "Students",
-      trend: "+12%"
-    }
-  }, {
     id: "it-academy",
     name: "RORIRI IT Academy",
     icon: Laptop,
@@ -139,7 +128,7 @@ export default function EntitiesManagement() {
     }
   }, {
     id: "it",
-    name: "RORIRI IT Company",
+    name: "RORIRI Software Solution",
     icon: Laptop,
     description: "Technology & Software",
     color: "from-indigo-500 to-blue-500",
