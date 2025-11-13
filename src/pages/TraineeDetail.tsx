@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { PaymentReceipt } from "@/components/it-academy/PaymentReceipt";
 
 export default function TraineeDetail() {
   const { id } = useParams();
@@ -27,8 +26,6 @@ export default function TraineeDetail() {
   const [courseDuration, setCourseDuration] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [paidAmount, setPaidAmount] = useState(0);
-  const [receiptData, setReceiptData] = useState<any>(null);
-  const [showReceipt, setShowReceipt] = useState(false);
 
   const itemsPerPage = 7;
 
@@ -593,14 +590,25 @@ export default function TraineeDetail() {
                               size="sm"
                               className="gap-2"
                               onClick={() => {
-                                setReceiptData({
-                                  ...payment,
+                                const receiptInfo = {
+                                  payment_code: payment.payment_code,
+                                  payment_date: payment.payment_date,
+                                  amount: payment.amount,
+                                  payment_method: payment.payment_method,
                                   studentName: trainee.full_name,
                                   courseName: assignedCourse?.name || "All",
                                   totalFees,
                                   balance: totalFees - totalPaidAmount,
-                                });
-                                setShowReceipt(true);
+                                };
+                                
+                                // Store receipt data in localStorage
+                                localStorage.setItem('receiptData', JSON.stringify(receiptInfo));
+                                
+                                // Open receipt in new tab
+                                const receiptWindow = window.open('/receipt', '_blank');
+                                if (!receiptWindow) {
+                                  toast.error('Please allow pop-ups to view receipt');
+                                }
                               }}
                             >
                               <FileText className="h-4 w-4" />
@@ -651,13 +659,6 @@ export default function TraineeDetail() {
           </Card>
         )}
 
-        {/* Payment Receipt Modal */}
-        {showReceipt && receiptData && (
-          <PaymentReceipt
-            receiptData={receiptData}
-            onClose={() => setShowReceipt(false)}
-          />
-        )}
       </div>
     </div>
   );

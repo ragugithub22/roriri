@@ -31,6 +31,7 @@ import HostelManagement from "./pages/HostelManagement";
 import AssetManagement from "./pages/AssetManagement";
 import EntitiesManagement from "./pages/EntitiesManagement";
 import SyllabusDetails from "./pages/SyllabusDetails";
+import ReceiptPage from "./pages/ReceiptPage";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/asset-management" element={<ProtectedRoute><AssetManagement /></ProtectedRoute>} />
             <Route path="/entities" element={<ProtectedRoute><EntitiesManagement /></ProtectedRoute>} />
             <Route path="/syllabus/:subjectId" element={<ProtectedRoute><SyllabusDetails /></ProtectedRoute>} />
+            <Route path="/receipt" element={<ReceiptPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
