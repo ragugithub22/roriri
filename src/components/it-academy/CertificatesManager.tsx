@@ -260,7 +260,20 @@ export default function CertificatesManager() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const certificateInfo = {
+                        certificate_number: cert.certificate_number,
+                        traineeName: cert.trainee?.full_name || "N/A",
+                        courseName: cert.course?.name || "N/A",
+                        issue_date: cert.issue_date,
+                      };
+                      localStorage.setItem('certificateData', JSON.stringify(certificateInfo));
+                      window.open('/certificate', '_blank');
+                    }}
+                  >
                     <Download className="h-4 w-4 mr-1" />
                     Download
                   </Button>

@@ -32,6 +32,7 @@ import AssetManagement from "./pages/AssetManagement";
 import EntitiesManagement from "./pages/EntitiesManagement";
 import SyllabusDetails from "./pages/SyllabusDetails";
 import ReceiptPage from "./pages/ReceiptPage";
+import CertificatePage from "./pages/CertificatePage";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/entities" element={<ProtectedRoute><EntitiesManagement /></ProtectedRoute>} />
             <Route path="/syllabus/:subjectId" element={<ProtectedRoute><SyllabusDetails /></ProtectedRoute>} />
             <Route path="/receipt" element={<ReceiptPage />} />
+            <Route path="/certificate" element={<CertificatePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
