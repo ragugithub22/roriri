@@ -19,7 +19,8 @@ export default function EmployeeDetail() {
         .select(`
           *,
           profiles:profile_id (full_name, email, phone, dob),
-          entities:entity_id (name, color, icon),
+          primary_entity:entities!entity_id (name, color, icon),
+          additional_entity:entities!additional_entity_id (name, color, icon),
           departments:department_id (name)
         `)
         .eq('id', id)
@@ -130,12 +131,23 @@ export default function EmployeeDetail() {
               <div>
                 <div className="text-sm text-muted-foreground flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  Entity
+                  Primary Entity
                 </div>
-                <Badge style={{ backgroundColor: employee.entities?.color }}>
-                  {employee.entities?.name}
+                <Badge style={{ backgroundColor: employee.primary_entity?.color }}>
+                  {employee.primary_entity?.name}
                 </Badge>
               </div>
+              {employee.additional_entity && (
+                <div>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Additional Entity
+                  </div>
+                  <Badge style={{ backgroundColor: employee.additional_entity?.color }}>
+                    {employee.additional_entity?.name}
+                  </Badge>
+                </div>
+              )}
               <div>
                 <div className="text-sm text-muted-foreground">Department</div>
                 <div>{employee.departments?.name || 'N/A'}</div>

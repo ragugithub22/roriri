@@ -36,13 +36,38 @@ export default function CoursesManager() {
     queryKey: ["courses", entity?.id],
     queryFn: async () => {
       if (!entity?.id) return [];
-      const { data, error } = await supabase
+      
+      // Fetch courses
+      const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("*")
         .eq("entity_id", entity.id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      
+      if (coursesError) throw coursesError;
+      if (!coursesData) return [];
+      
+      // Fetch all subjects for these courses
+      const courseIds = coursesData.map(c => c.id);
+      const { data: subjectsData } = await supabase
+        .from("subjects" as any)
+        .select("id, subject_name, subject_code, course_id")
+        .in("course_id", courseIds);
+      
+      // Group subjects by course_id
+      const subjectsByCourse = new Map<string, any[]>();
+      (subjectsData || []).forEach((subject: any) => {
+        if (!subjectsByCourse.has(subject.course_id)) {
+          subjectsByCourse.set(subject.course_id, []);
+        }
+        subjectsByCourse.get(subject.course_id)?.push(subject);
+      });
+      
+      // Add subjects to courses
+      return coursesData.map(course => ({
+        ...course,
+        subjects: subjectsByCourse.get(course.id) || []
+      }));
     },
     enabled: !!entity?.id,
   });
@@ -223,28 +248,32 @@ export default function CoursesManager() {
             <TableRow>
               <TableHead>Code</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Level</TableHead>
+              <TableHead>Subjects</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Fees</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {courses.map((course) => (
+            {courses.map((course: any) => (
               <TableRow key={course.id}>
                 <TableCell>{course.course_code}</TableCell>
                 <TableCell>{course.name}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">{course.course_level}</Badge>
+                  <div className="flex flex-wrap gap-1">
+                    {course.subjects && course.subjects.length > 0 ? (
+                      course.subjects.map((subject: any) => (
+                        <Badge key={subject.id} variant="outline" className="text-xs">
+                          {subject.subject_name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No subjects</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>{course.duration_weeks} months</TableCell>
                 <TableCell>₹{course.fees?.toLocaleString()}</TableCell>
-                <TableCell>
-                  <Badge variant={course.status === "active" ? "default" : "secondary"}>
-                    {course.status}
-                  </Badge>
-                </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button

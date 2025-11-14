@@ -240,7 +240,6 @@ export default function CertificatesManager() {
               <TableHead>Certificate No.</TableHead>
               <TableHead>Trainee</TableHead>
               <TableHead>Course</TableHead>
-              <TableHead>Batch</TableHead>
               <TableHead>Issue Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
@@ -252,7 +251,6 @@ export default function CertificatesManager() {
                 <TableCell className="font-mono">{cert.certificate_number}</TableCell>
                 <TableCell>{cert.trainee?.full_name || "-"}</TableCell>
                 <TableCell>{cert.course?.name || "-"}</TableCell>
-                <TableCell>{cert.batch?.batch_name || "-"}</TableCell>
                 <TableCell>{new Date(cert.issue_date).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Badge variant={cert.status === "active" ? "default" : "secondary"}>

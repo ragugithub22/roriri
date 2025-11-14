@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -40,27 +42,78 @@ const DataTable = ({
   emptyMessage = "No data available" 
 }: DataTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const itemsPerPage = 7;
   
-  const totalPages = Math.ceil(data.length / itemsPerPage);
+  // Filter data
+  const filteredData = data.filter((row) => {
+    // Search filter - searches across all string fields
+    const matchesSearch = searchTerm === "" || 
+      Object.values(row).some(value => 
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    
+    // Status filter - only applies if row has status field
+    const matchesStatus = statusFilter === "all" || 
+      !row.status || 
+      row.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+  
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedData = data.slice(startIndex, endIndex);
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+  
+  // Get unique status values from data
+  const statusOptions = Array.from(new Set(data.map(row => row.status).filter(Boolean)));
+  const hasStatusField = statusOptions.length > 0;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
+        <div className="flex gap-4 mt-4">
+          <Input
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="max-w-sm"
+          />
+          {hasStatusField && (
+            <Select value={statusFilter} onValueChange={(value) => {
+              setStatusFilter(value);
+              setCurrentPage(1);
+            }}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
+        {filteredData.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            {emptyMessage}
+            {data.length === 0 ? emptyMessage : "No matching records found"}
           </div>
         ) : (
           <>

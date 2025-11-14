@@ -18,6 +18,7 @@ export default function DepartmentList() {
   const [editingDepartment, setEditingDepartment] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
   });
 
   const { data: departments, isLoading } = useQuery({
@@ -40,6 +41,7 @@ export default function DepartmentList() {
     mutationFn: async (data: any) => {
       const { error } = await supabase.from('departments').insert([{
         name: data.name.trim(),
+        description: data.description?.trim() || null,
         entity_id: null
       }]);
       if (error) throw error;
@@ -58,7 +60,10 @@ export default function DepartmentList() {
     mutationFn: async ({ id, ...data }: any) => {
       const { error } = await supabase
         .from('departments')
-        .update({ name: data.name.trim() })
+        .update({ 
+          name: data.name.trim(),
+          description: data.description?.trim() || null
+        })
         .eq('id', id);
       if (error) throw error;
     },
@@ -90,6 +95,7 @@ export default function DepartmentList() {
     if (department) {
       setFormData({
         name: department.name || '',
+        description: department.description || '',
       });
       setEditingDepartment(department);
     }
@@ -101,6 +107,7 @@ export default function DepartmentList() {
     setEditingDepartment(null);
     setFormData({
       name: '',
+      description: '',
     });
   };
 
@@ -128,9 +135,9 @@ export default function DepartmentList() {
     }
 
     if (editingDepartment) {
-      updateMutation.mutate({ id: editingDepartment.id, name: trimmedName });
+      updateMutation.mutate({ id: editingDepartment.id, name: trimmedName, description: formData.description });
     } else {
-      createMutation.mutate({ name: trimmedName });
+      createMutation.mutate({ name: trimmedName, description: formData.description });
     }
   };
 
@@ -138,6 +145,11 @@ export default function DepartmentList() {
     {
       key: 'name',
       label: 'Department Name',
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      render: (value: string) => value || 'N/A',
     },
     {
       key: 'created_at',
@@ -224,6 +236,15 @@ export default function DepartmentList() {
                 <p className="text-sm text-muted-foreground mt-1">
                   {formData.name.length}/100 characters
                 </p>
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Enter department description"
+                />
               </div>
             </div>
 
