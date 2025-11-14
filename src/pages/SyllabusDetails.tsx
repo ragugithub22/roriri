@@ -186,7 +186,7 @@ export default function SyllabusDetails() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate("/it-academy")}
+              onClick={() => navigate("/subjects")}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>

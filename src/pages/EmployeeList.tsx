@@ -35,6 +35,7 @@ export default function EmployeeList() {
     hire_date: undefined as Date | undefined,
     employee_code: '',
     entity_id: '',
+    additional_entity_id: '',
     department_id: '',
     status: 'active' as 'active' | 'inactive',
     residence_type: '',
@@ -60,7 +61,7 @@ export default function EmployeeList() {
         .select(`
           *,
           profiles:profile_id (full_name, email, phone, dob),
-          entities:entity_id (name, color, icon),
+          primary_entity:entities!entity_id (name, color, icon),
           departments:department_id (name),
           positions:position_id (title)
         `)
@@ -189,6 +190,7 @@ export default function EmployeeList() {
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
+          additional_entity_id: data.additional_entity_id || null,
           department_id: data.department_id || null,
           status: data.status,
           residence_type: data.residence_type || null
@@ -266,6 +268,7 @@ export default function EmployeeList() {
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
+          additional_entity_id: data.additional_entity_id || null,
           department_id: data.department_id || null,
           status: data.status,
           residence_type: data.residence_type || null
@@ -364,6 +367,7 @@ export default function EmployeeList() {
         hire_date: new Date(employee.hire_date),
         employee_code: employee.employee_code,
         entity_id: employee.entity_id,
+        additional_entity_id: employee.additional_entity_id || '',
         department_id: employee.department_id || '',
         status: employee.status || 'active',
         residence_type: employee.residence_type || '',
@@ -380,6 +384,7 @@ export default function EmployeeList() {
         hire_date: undefined,
         employee_code: '',
         entity_id: '',
+        additional_entity_id: '',
         department_id: '',
         status: 'active',
         residence_type: '',
@@ -463,7 +468,7 @@ export default function EmployeeList() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto max-w-7xl flex h-16 items-center px-6">
+        <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
@@ -473,21 +478,15 @@ export default function EmployeeList() {
               <h1 className="text-xl font-bold">Employee Management</h1>
             </div>
           </div>
-        </div>
-      </header>
-
-      <section className="py-8 px-6">
-        <div className="container mx-auto max-w-7xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Employees</h2>
-            <p className="text-muted-foreground">Manage all employees across entities</p>
-          </div>
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="mr-2 h-4 w-4" />
             Add Employee
           </Button>
         </div>
+      </header>
+
+      <section className="py-8 px-6">
+        <div className="container mx-auto max-w-7xl space-y-6">
 
         <Card>
           <CardHeader>
@@ -783,6 +782,26 @@ export default function EmployeeList() {
                 {validationErrors.entity_id && (
                   <p className="text-sm text-destructive">{validationErrors.entity_id}</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="additional_entity">Additional Entity (Optional)</Label>
+                <Select
+                  value={formData.additional_entity_id}
+                  onValueChange={(value) => setFormData({ ...formData, additional_entity_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an additional entity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {entities?.map((entity) => (
+                      <SelectItem key={entity.id} value={entity.id}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
