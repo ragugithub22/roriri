@@ -26,8 +26,9 @@ interface ConsultancySetting {
 }
 
 const SettingsManager = () => {
+  const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingSetting, setEditingSetting] = useState<ConsultancySetting | null>(null);
+  const [editingSet, setEditingSetting] = useState<ConsultancySetting | null>(null);
   const [formData, setFormData] = useState({
     setting_key: "",
     setting_value: "",
@@ -39,7 +40,7 @@ const SettingsManager = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: settings = [], isLoading } = useQuery({
+  const { data: settings = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-settings"],
     queryFn: async () => {
       const { data, error } = await supabaseClient
@@ -51,9 +52,9 @@ const SettingsManager = () => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+  const createMutation = useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      const { error } = await supabaseClient
         .from("consultancy_settings")
         .insert([data]);
       if (error) throw error;
@@ -69,9 +70,9 @@ const SettingsManager = () => {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase
+  const updateMutation = useMutation<any, Error, any>({
+    mutationFn: async ({ id, data }: any) => {
+      const { error } = await supabaseClient
         .from("consultancy_settings")
         .update({ ...data, updated_at: new Date().toISOString() })
         .eq("id", id);
@@ -88,9 +89,9 @@ const SettingsManager = () => {
     },
   });
 
-  const deleteMutation = useMutation({
+  const deleteMutation = useMutation<any, Error, string>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_settings")
         .delete()
         .eq("id", id);

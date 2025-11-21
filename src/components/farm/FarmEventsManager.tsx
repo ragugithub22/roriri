@@ -28,6 +28,7 @@ interface FarmEvent {
 }
 
 const FarmEventsManager = () => {
+  const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<FarmEvent | null>(null);
   const [formData, setFormData] = useState({
@@ -45,10 +46,10 @@ const FarmEventsManager = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading } = useQuery<any[]>({
     queryKey: ["farm-events"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("farm_events")
         .select("*")
         .order("event_date", { ascending: false });

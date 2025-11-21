@@ -28,6 +28,7 @@ interface FarmBooking {
 }
 
 const FarmBookingsManager = () => {
+  const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<FarmBooking | null>(null);
   const [formData, setFormData] = useState({
@@ -45,10 +46,10 @@ const FarmBookingsManager = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading } = useQuery<any[]>({
     queryKey: ["farm-bookings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("farm_bookings")
         .select("*")
         .order("created_at", { ascending: false });
@@ -57,9 +58,9 @@ const FarmBookingsManager = () => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+  const createMutation = useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      const { error } = await supabaseClient
         .from("farm_bookings")
         .insert([{
           ...data,

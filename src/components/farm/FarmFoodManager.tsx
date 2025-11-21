@@ -26,6 +26,7 @@ interface FarmFoodItem {
 }
 
 const FarmFoodManager = () => {
+  const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<FarmFoodItem | null>(null);
   const [formData, setFormData] = useState({
@@ -41,10 +42,10 @@ const FarmFoodManager = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: foodItems = [], isLoading } = useQuery({
+  const { data: foodItems = [], isLoading } = useQuery<any[]>({
     queryKey: ["farm-food-items"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("farm_food_items")
         .select("*")
         .order("created_at", { ascending: false });
@@ -53,9 +54,9 @@ const FarmFoodManager = () => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+  const createMutation = useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      const { error } = await supabaseClient
         .from("farm_food_items")
         .insert([{
           ...data,

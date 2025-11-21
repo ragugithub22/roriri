@@ -26,6 +26,7 @@ interface FarmExpense {
 }
 
 const FarmExpensesManager = () => {
+  const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<FarmExpense | null>(null);
   const [formData, setFormData] = useState({
@@ -41,10 +42,10 @@ const FarmExpensesManager = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: expenses = [], isLoading } = useQuery({
+  const { data: expenses = [], isLoading } = useQuery<any[]>({
     queryKey: ["farm-expenses"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("farm_expenses")
         .select("*")
         .order("created_at", { ascending: false });
@@ -53,9 +54,9 @@ const FarmExpensesManager = () => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+  const createMutation = useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      const { error } = await supabaseClient
         .from("farm_expenses")
         .insert([{
           ...data,

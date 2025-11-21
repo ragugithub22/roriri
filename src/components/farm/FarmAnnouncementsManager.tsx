@@ -26,6 +26,7 @@ interface FarmAnnouncement {
 }
 
 const FarmAnnouncementsManager = () => {
+  const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<FarmAnnouncement | null>(null);
   const [formData, setFormData] = useState({
@@ -41,10 +42,10 @@ const FarmAnnouncementsManager = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: announcements = [], isLoading } = useQuery({
+  const { data: announcements = [], isLoading } = useQuery<any[]>({
     queryKey: ["farm-announcements"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("farm_announcements")
         .select("*")
         .order("created_at", { ascending: false });
@@ -53,9 +54,9 @@ const FarmAnnouncementsManager = () => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+  const createMutation = useMutation<any, Error, any>({
+    mutationFn: async (data: any) => {
+      const { error } = await supabaseClient
         .from("farm_announcements")
         .insert([data]);
       if (error) throw error;
