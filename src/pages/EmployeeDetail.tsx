@@ -81,7 +81,7 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
     <DashboardLayout entityName="Employee Details" entityIcon={Users} entityColor="blue">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={onBack || (() => navigate('/employees'))}>
+          <Button variant="outline" onClick={onBack || (() => navigate('/it'))}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Employees
           </Button>
@@ -115,6 +115,10 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
                   Date of Birth
                 </div>
                 <div>{employee.profiles?.dob ? new Date(employee.profiles.dob).toLocaleDateString() : 'Not provided'}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Address</div>
+                <div>{'Not provided'}</div>
               </div>
             </CardContent>
           </Card>
