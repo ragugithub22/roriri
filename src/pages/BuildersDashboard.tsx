@@ -1,133 +1,251 @@
-import { Building2, Hammer, Users, TrendingUp, PlusCircle, UserPlus, FileText, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import ChartCard from "@/components/dashboard/ChartCard";
-import { DataTable } from "@/components/dashboard/DataTable";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import QuickActions from "@/components/dashboard/QuickActions";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Building2, Hammer, Users, TrendingUp, MapPin, HardHat, Package, DollarSign } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProjectsManager from "@/components/builders/ProjectsManager";
+import SitesManager from "@/components/builders/SitesManager";
+import ContractorsManager from "@/components/builders/ContractorsManager";
+import LabourManager from "@/components/builders/LabourManager";
+import MaterialsManager from "@/components/builders/MaterialsManager";
+import ClientsManager from "@/components/builders/ClientsManager";
+import FinanceManager from "@/components/builders/FinanceManager";
+import DocumentsManager from "@/components/builders/DocumentsManager";
+import ReportsManager from "@/components/builders/ReportsManager";
+import UsersRolesManager from "@/components/builders/UsersRolesManager";
+import SettingsManager from "@/components/builders/SettingsManager";
 
 const BuildersDashboard = () => {
-  // Fetch activity logs
-  const { data: activityLogs = [] } = useQuery({
-    queryKey: ["activity-logs-builders"],
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash && ['dashboard', 'projects', 'sites', 'contractors', 'labour', 'materials', 'clients', 'finance', 'documents', 'reports', 'users', 'settings'].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, [location.hash]);
+
+  // Fetch projects
+  const { data: projects = [] } = useQuery({
+    queryKey: ["builders-projects"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("activity_logs")
+        .from("builders_projects")
         .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
-    }
+      return data;
+    },
   });
 
-  const kpis = [
-    {
-      title: "Active Projects",
-      value: "28",
-      change: "+14%",
-      trend: 14,
-      icon: Building2,
+  // Fetch sites
+  const { data: sites = [] } = useQuery({
+    queryKey: ["builders-sites"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("builders_sites")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
-    {
-      title: "Completed Units",
-      value: "145",
-      change: "+18%",
-      trend: 18,
-      icon: Hammer,
+  });
+
+  // Fetch contractors
+  const { data: contractors = [] } = useQuery({
+    queryKey: ["builders-contractors"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("builders_contractors")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
-    {
-      title: "Total Clients",
-      value: "312",
-      change: "+10%",
-      trend: 10,
-      icon: Users,
+  });
+
+  // Fetch clients
+  const { data: clients = [] } = useQuery({
+    queryKey: ["builders-clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("builders_clients")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
-    {
-      title: "Revenue",
-      value: "₹48.2M",
-      change: "+25%",
-      trend: 25,
-      icon: TrendingUp,
+  });
+
+  // Fetch financial transactions
+  const { data: financialTransactions = [] } = useQuery({
+    queryKey: ["builders-financial-transactions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("builders_financial_transactions")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
-  ];
+  });
 
-  const projectData = [
-    { month: "Jan", projects: 22 },
-    { month: "Feb", projects: 24 },
-    { month: "Mar", projects: 23 },
-    { month: "Apr", projects: 26 },
-    { month: "May", projects: 27 },
-    { month: "Jun", projects: 28 },
-  ];
-
-  const projectColumns = [
-    { key: "name", label: "Project Name" },
-    { key: "location", label: "Location" },
-    { key: "type", label: "Type" },
-    { key: "units", label: "Units" },
-    { key: "status", label: "Status" },
-  ];
-
-  const projectTableData = [
-    { id: "1", name: "Roshan Heights", location: "Bangalore", type: "Residential", units: "120", status: "In Progress" },
-    { id: "2", name: "Green Valley Villas", location: "Mysore", type: "Villas", units: "45", status: "Planning" },
-    { id: "3", name: "Commercial Plaza", location: "Hubli", type: "Commercial", units: "80", status: "In Progress" },
-  ];
-
-  const quickActions = [
-    { label: "New Project", icon: PlusCircle, onClick: () => console.log("New Project") },
-    { label: "Add Client", icon: UserPlus, onClick: () => console.log("Add Client") },
-    { label: "View Contracts", icon: Eye, onClick: () => console.log("View Contracts") },
-    { label: "Generate Report", icon: FileText, onClick: () => console.log("Generate Report") },
-  ];
+  // Calculate KPIs
+  const activeProjects = projects.filter(p => p.status === 'in_progress').length;
+  const completedProjects = projects.filter(p => p.status === 'completed').length;
+  const activeSites = sites.filter(s => s.status === 'active').length;
+  const activeContractors = contractors.filter(c => c.status === 'active').length;
+  const totalClients = clients.length;
+  const totalRevenue = financialTransactions
+    .filter(t => t.transaction_type === 'income' && t.status === 'completed')
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   return (
     <DashboardLayout
-      entityName="Roshan Builders"
+      entityName="Roshan Builders - Super Admin"
       entityIcon={Building2}
-      entityColor="from-amber-400 to-orange-600"
+      entityColor="from-amber-500 to-orange-500"
     >
-      <div className="space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {kpis.map((kpi) => (
-            <KPICard key={kpi.title} {...kpi} />
-          ))}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" orientation="vertical">
+        <div className="flex gap-6">
+          <TabsList className="flex flex-col h-fit w-48 space-y-1">
+            <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
+            <TabsTrigger value="projects" className="w-full justify-start">Projects</TabsTrigger>
+            <TabsTrigger value="sites" className="w-full justify-start">Sites</TabsTrigger>
+            <TabsTrigger value="contractors" className="w-full justify-start">Contractors</TabsTrigger>
+            <TabsTrigger value="labour" className="w-full justify-start">Labour</TabsTrigger>
+            <TabsTrigger value="materials" className="w-full justify-start">Materials</TabsTrigger>
+            <TabsTrigger value="clients" className="w-full justify-start">Clients</TabsTrigger>
+            <TabsTrigger value="finance" className="w-full justify-start">Finance</TabsTrigger>
+            <TabsTrigger value="documents" className="w-full justify-start">Documents</TabsTrigger>
+            <TabsTrigger value="reports" className="w-full justify-start">Reports</TabsTrigger>
+            <TabsTrigger value="users" className="w-full justify-start">Users & Roles</TabsTrigger>
+            <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1">
+            <TabsContent value="dashboard" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <KPICard
+                  title="Active Projects"
+                  value={activeProjects}
+                  subtitle="Currently in progress"
+                  trend={15}
+                  icon={Building2}
+                  color="from-amber-500 to-orange-500"
+                />
+                <KPICard
+                  title="Active Sites"
+                  value={activeSites}
+                  subtitle="Construction sites"
+                  trend={8}
+                  icon={MapPin}
+                  color="from-blue-500 to-cyan-500"
+                />
+                <KPICard
+                  title="Active Contractors"
+                  value={activeContractors}
+                  subtitle="Working contractors"
+                  trend={12}
+                  icon={HardHat}
+                  color="from-green-500 to-emerald-500"
+                />
+                <KPICard
+                  title="Total Clients"
+                  value={totalClients}
+                  subtitle="Registered clients"
+                  trend={25}
+                  icon={Users}
+                  color="from-purple-500 to-violet-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPICard
+                  title="Completed Projects"
+                  value={completedProjects}
+                  subtitle="Successfully delivered"
+                  trend={18}
+                  icon={Hammer}
+                  color="from-emerald-500 to-teal-500"
+                />
+                <KPICard
+                  title="Total Revenue"
+                  value={`₹${totalRevenue.toLocaleString()}`}
+                  subtitle="Total earnings"
+                  trend={22}
+                  icon={DollarSign}
+                  color="from-indigo-500 to-purple-500"
+                />
+                <KPICard
+                  title="Material Stock"
+                  value="85%"
+                  subtitle="Average stock level"
+                  trend={5}
+                  icon={Package}
+                  color="from-pink-500 to-rose-500"
+                />
+                <KPICard
+                  title="On-Time Delivery"
+                  value="92%"
+                  subtitle="Project completion rate"
+                  trend={3}
+                  icon={TrendingUp}
+                  color="from-cyan-500 to-blue-500"
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="projects" className="mt-0">
+              <ProjectsManager />
+            </TabsContent>
+
+            <TabsContent value="sites" className="mt-0">
+              <SitesManager />
+            </TabsContent>
+
+            <TabsContent value="contractors" className="mt-0">
+              <ContractorsManager />
+            </TabsContent>
+
+            <TabsContent value="labour" className="mt-0">
+              <LabourManager />
+            </TabsContent>
+
+            <TabsContent value="materials" className="mt-0">
+              <MaterialsManager />
+            </TabsContent>
+
+            <TabsContent value="clients" className="mt-0">
+              <ClientsManager />
+            </TabsContent>
+
+            <TabsContent value="finance" className="mt-0">
+              <FinanceManager />
+            </TabsContent>
+
+            <TabsContent value="documents" className="mt-0">
+              <DocumentsManager />
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-0">
+              <ReportsManager />
+            </TabsContent>
+
+            <TabsContent value="users" className="mt-0">
+              <UsersRolesManager />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0">
+              <SettingsManager />
+            </TabsContent>
+          </div>
         </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Project Growth" description="Active projects over the last 6 months">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={projectData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="projects" stroke="hsl(var(--primary))" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          <ActivityFeed activities={activityLogs} />
-        </div>
-
-        {/* Data Table */}
-        <DataTable
-          title="Construction Projects"
-          description="Manage all construction and real estate projects"
-          columns={projectColumns}
-          data={projectTableData}
-        />
-
-        {/* Quick Actions */}
-        <QuickActions actions={quickActions} />
-      </div>
+      </Tabs>
     </DashboardLayout>
   );
 };

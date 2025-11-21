@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Users, ArrowLeft, Mail, Calendar, Building2, Star } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-export default function EmployeeDetail() {
+export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: string; onBack?: () => void }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const employeeIdToUse = employeeId || id;
 
   const { data: employee, isLoading } = useQuery({
     queryKey: ['employee', id],
@@ -31,17 +32,17 @@ export default function EmployeeDetail() {
   });
 
   const { data: employeeFunctions } = useQuery({
-    queryKey: ['employee-functions', id],
+    queryKey: ['employee-functions', employeeIdToUse],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employee_functions')
         .select('*')
-        .eq('employee_id', id)
+        .eq('employee_id', employeeIdToUse)
         .order('is_primary', { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!employeeIdToUse,
   });
 
   const { data: userRoles } = useQuery({
@@ -80,7 +81,7 @@ export default function EmployeeDetail() {
     <DashboardLayout entityName="Employee Details" entityIcon={Users} entityColor="blue">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => navigate('/employees')}>
+          <Button variant="outline" onClick={onBack || (() => navigate('/employees'))}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Employees
           </Button>

@@ -1,80 +1,78 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { DataTable, Badge } from '@/components/dashboard/DataTable';
-import { Building2, ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { toast } from "sonner";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 export default function DepartmentList() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: departments, isLoading } = useQuery({
-    queryKey: ['departments-with-counts'],
+    queryKey: ['departments'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('departments')
-        .select(`
-          *,
-          entities:entity_id (name, color),
-          employees:employees(count)
-        `)
+        .select('*')
         .order('name');
+      
       if (error) throw error;
       return data;
-    },
+    }
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: typeof formData) => {
       const { error } = await supabase.from('departments').insert([{
-        name: data.name.trim(),
-        description: data.description?.trim() || null,
+        name: data.name,
+        description: data.description || null,
         entity_id: null
       }]);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-with-counts'] });
-      toast({ title: 'Department created successfully' });
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      toast.success("Department created successfully");
       handleCloseDialog();
     },
-    onError: (error: any) => {
-      toast({ title: 'Error creating department', description: error.message, variant: 'destructive' });
-    },
+    onError: (error) => {
+      toast.error("Failed to create department: " + error.message);
+    }
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, ...data }: any) => {
+    mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
       const { error } = await supabase
         .from('departments')
-        .update({ 
-          name: data.name.trim(),
-          description: data.description?.trim() || null
+        .update({
+          name: data.name,
+          description: data.description
         })
         .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments-with-counts'] });
-      toast({ title: 'Department updated successfully' });
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      toast.success("Department updated successfully");
       handleCloseDialog();
     },
-    onError: (error: any) => {
-      toast({ title: 'Error updating department', description: error.message, variant: 'destructive' });
-    },
+    onError: (error) => {
+      toast.error("Failed to update department: " + error.message);
+    }
   });
 
   const deleteMutation = useMutation({
@@ -84,10 +82,10 @@ export default function DepartmentList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments-with-counts'] });
-      toast({ title: 'Department deleted successfully' });
+      toast.success('Department deleted successfully');
     },
     onError: (error: any) => {
-      toast({ title: 'Error deleting department', description: error.message, variant: 'destructive' });
+      toast.error('Error deleting department: ' + error.message);
     },
   });
 
@@ -98,6 +96,12 @@ export default function DepartmentList() {
         description: department.description || '',
       });
       setEditingDepartment(department);
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+      });
+      setEditingDepartment(null);
     }
     setIsDialogOpen(true);
   };
@@ -109,117 +113,139 @@ export default function DepartmentList() {
       name: '',
       description: '',
     });
+    setCurrentPage(1);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate department name
-    const trimmedName = formData.name.trim();
-    if (!trimmedName) {
-      toast({ 
-        title: 'Validation error', 
-        description: 'Department name cannot be empty',
-        variant: 'destructive' 
-      });
-      return;
-    }
-
-    if (trimmedName.length > 100) {
-      toast({ 
-        title: 'Validation error', 
-        description: 'Department name must be less than 100 characters',
-        variant: 'destructive' 
-      });
-      return;
-    }
-
     if (editingDepartment) {
-      updateMutation.mutate({ id: editingDepartment.id, name: trimmedName, description: formData.description });
+      updateMutation.mutate({ id: editingDepartment.id, data: formData });
     } else {
-      createMutation.mutate({ name: trimmedName, description: formData.description });
+      createMutation.mutate(formData);
     }
   };
 
-  const columns = [
-    {
-      key: 'name',
-      label: 'Department Name',
-    },
-    {
-      key: 'description',
-      label: 'Description',
-      render: (value: string) => value || 'N/A',
-    },
-    {
-      key: 'created_at',
-      label: 'Created',
-      render: (value: string) => new Date(value).toLocaleDateString(),
-    },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_: any, row: any) => (
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleOpenDialog(row)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this department?')) {
-                deleteMutation.mutate(row.id);
-              }
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const paginatedDepartments = departments?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  ) || [];
+
+  const totalPages = Math.ceil((departments?.length || 0) / itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Department Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <div></div>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Department
             </Button>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Department Management</h1>
-            </div>
           </div>
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Department
-          </Button>
-        </div>
-      </header>
 
-      <section className="py-8 px-6">
-        <div className="container mx-auto max-w-7xl">
-          <DataTable
-            title="Department Directory"
-            description={`Showing ${departments?.length || 0} departments`}
-            columns={columns}
-            data={departments || []}
-            emptyMessage={isLoading ? "Loading departments..." : "No departments found"}
-          />
-        </div>
-      </section>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Department Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8">
+                      Loading departments...
+                    </TableCell>
+                  </TableRow>
+                ) : paginatedDepartments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8">
+                      No departments found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedDepartments.map((department) => (
+                    <TableRow key={department.id}>
+                      <TableCell className="font-medium">{department.name}</TableCell>
+                      <TableCell>{department.description || "N/A"}</TableCell>
+                      <TableCell>{new Date(department.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(department)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (confirm("Are you sure you want to delete this department?")) {
+                                deleteMutation.mutate(department.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingDepartment ? 'Edit Department' : 'Add Department'}</DialogTitle>
+            <DialogTitle>{editingDepartment ? "Edit Department" : "Add Department"}</DialogTitle>
+            <DialogDescription>
+              {editingDepartment ? "Update the department details below." : "Fill in the details to create a new department."}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
@@ -230,12 +256,8 @@ export default function DepartmentList() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Enter department name"
-                  maxLength={100}
                   required
                 />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {formData.name.length}/100 characters
-                </p>
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
@@ -247,13 +269,12 @@ export default function DepartmentList() {
                 />
               </div>
             </div>
-
             <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingDepartment ? 'Update' : 'Create'}
+                {editingDepartment ? "Update" : "Create"}
               </Button>
             </DialogFooter>
           </form>

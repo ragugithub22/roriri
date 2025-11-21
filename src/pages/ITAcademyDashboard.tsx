@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
@@ -7,13 +8,23 @@ import { Code2, Users, BookOpen, Award } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
-
 import TraineesManager from "@/components/it-academy/TraineesManager";
 import PaymentsManager from "@/components/it-academy/PaymentsManager";
 import CertificatesManager from "@/components/it-academy/CertificatesManager";
+import ApplicationsManager from "../components/it-academy/ApplicationsManager";
+import DailyWorkUpdateManager from "../components/it-academy/DailyWorkUpdateManager";
+import ComplaintsManager from "../components/it-academy/ComplaintsManager";
 
 const ITAcademyDashboard = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash && ['dashboard', 'courses', 'subjects', 'trainees', 'payments', 'certificates', 'applications', 'daily-work-update', 'complaints'].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, [location.hash]);
 
   // Fetch IT courses
   const { data: courses = [] } = useQuery({
@@ -157,6 +168,9 @@ const ITAcademyDashboard = () => {
             <TabsTrigger value="trainees" className="w-full justify-start">Trainees</TabsTrigger>
             <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
             <TabsTrigger value="certificates" className="w-full justify-start">Certificates</TabsTrigger>
+            <TabsTrigger value="applications" className="w-full justify-start">Applications</TabsTrigger>
+            <TabsTrigger value="daily-work-update" className="w-full justify-start">Daily Work Update</TabsTrigger>
+            <TabsTrigger value="complaints" className="w-full justify-start">Complaints</TabsTrigger>
           </TabsList>
 
           <div className="flex-1">
@@ -211,6 +225,18 @@ const ITAcademyDashboard = () => {
 
             <TabsContent value="certificates" className="mt-0">
               <CertificatesManager />
+            </TabsContent>
+
+            <TabsContent value="applications" className="mt-0">
+              <ApplicationsManager />
+            </TabsContent>
+
+            <TabsContent value="daily-work-update" className="mt-0">
+              <DailyWorkUpdateManager />
+            </TabsContent>
+
+            <TabsContent value="complaints" className="mt-0">
+              <ComplaintsManager />
             </TabsContent>
           </div>
         </div>

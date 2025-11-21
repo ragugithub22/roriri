@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Building2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 const authSchema = z.object({
   email: z.string().trim().email({
     message: "Invalid email address"
@@ -28,13 +29,36 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+
+  const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
+      if (error) return false;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   useEffect(() => {
-    if (user) {
-      navigate('/', {
-        replace: true
-      });
+    if (!user || isAdminLoading || typeof isAdmin === "undefined") {
+      return;
     }
-  }, [user, navigate]);
+
+    if (user) {
+      // Redirect Admin users to IT Park, others to home
+      if (isAdmin) {
+        navigate('/it-park', {
+          replace: true
+        });
+      } else {
+        navigate('/', {
+          replace: true
+        });
+      }
+    }
+  }, [user, isAdmin, navigate]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -109,7 +133,7 @@ export default function Auth() {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+  return <div className="min-h-screen flex items-center justify-center auth-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
