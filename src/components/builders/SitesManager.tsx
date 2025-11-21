@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, MapPin, Building2, User } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const SitesManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
@@ -30,10 +32,10 @@ const SitesManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch sites with project info
-  const { data: sites = [], isLoading } = useQuery({
+  const { data: sites = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-sites"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_sites")
         .select(`
           *,
@@ -46,10 +48,10 @@ const SitesManager = () => {
   });
 
   // Fetch projects for dropdown
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["builders-projects-dropdown"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .select("id, project_name")
         .order("project_name");
@@ -59,9 +61,9 @@ const SitesManager = () => {
   });
 
   // Create site mutation
-  const createSiteMutation = useMutation({
-    mutationFn: async (siteData) => {
-      const { data, error } = await supabase
+  const createSiteMutation = useMutation<any, Error, any>({
+    mutationFn: async (siteData: any) => {
+      const { data, error } = await supabaseClient
         .from("builders_sites")
         .insert([siteData])
         .select();
@@ -80,9 +82,9 @@ const SitesManager = () => {
   });
 
   // Update site mutation
-  const updateSiteMutation = useMutation({
+  const updateSiteMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...siteData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_sites")
         .update(siteData)
         .eq("id", id)
@@ -102,9 +104,9 @@ const SitesManager = () => {
   });
 
   // Delete site mutation
-  const deleteSiteMutation = useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase
+  const deleteSiteMutation = useMutation<any, Error, any>({
+    mutationFn: async (id: string) => {
+      const { error } = await supabaseClient
         .from("builders_sites")
         .delete()
         .eq("id", id);

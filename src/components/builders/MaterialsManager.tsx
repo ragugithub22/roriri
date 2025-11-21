@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, Package, DollarSign, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const MaterialsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
@@ -31,10 +33,10 @@ const MaterialsManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch materials
-  const { data: materials = [], isLoading } = useQuery({
+  const { data: materials = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-materials"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_materials")
         .select("*")
         .order("created_at", { ascending: false });
@@ -44,9 +46,9 @@ const MaterialsManager = () => {
   });
 
   // Create material mutation
-  const createMaterialMutation = useMutation({
+  const createMaterialMutation = useMutation<any, Error, any>({
     mutationFn: async (materialData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_materials")
         .insert([materialData])
         .select();
@@ -65,9 +67,9 @@ const MaterialsManager = () => {
   });
 
   // Update material mutation
-  const updateMaterialMutation = useMutation({
+  const updateMaterialMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...materialData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_materials")
         .update(materialData)
         .eq("id", id)
@@ -87,9 +89,9 @@ const MaterialsManager = () => {
   });
 
   // Delete material mutation
-  const deleteMaterialMutation = useMutation({
+  const deleteMaterialMutation = useMutation<any, Error, any>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_materials")
         .delete()
         .eq("id", id);
@@ -160,12 +162,12 @@ const MaterialsManager = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       active: { variant: "default", label: "Active" },
       inactive: { variant: "secondary", label: "Inactive" },
       discontinued: { variant: "destructive", label: "Discontinued" }
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
+    const config = statusConfig[status] || statusConfig.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 

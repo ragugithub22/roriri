@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, Users, Phone, MapPin, Calendar } from "lucide-react
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const LabourManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLabour, setEditingLabour] = useState(null);
@@ -29,10 +31,10 @@ const LabourManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch labour with site info
-  const { data: labour = [], isLoading } = useQuery({
+  const { data: labour = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-labour"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_labour")
         .select(`
           *,
@@ -45,10 +47,10 @@ const LabourManager = () => {
   });
 
   // Fetch sites for dropdown
-  const { data: sites = [] } = useQuery({
+  const { data: sites = [] } = useQuery<any[]>({
     queryKey: ["builders-sites-dropdown"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_sites")
         .select("id, site_name")
         .eq("status", "active")
@@ -59,9 +61,9 @@ const LabourManager = () => {
   });
 
   // Create labour mutation
-  const createLabourMutation = useMutation({
+  const createLabourMutation = useMutation<any, Error, any>({
     mutationFn: async (labourData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_labour")
         .insert([labourData])
         .select();
@@ -80,9 +82,9 @@ const LabourManager = () => {
   });
 
   // Update labour mutation
-  const updateLabourMutation = useMutation({
+  const updateLabourMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...labourData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_labour")
         .update(labourData)
         .eq("id", id)
@@ -102,9 +104,9 @@ const LabourManager = () => {
   });
 
   // Delete labour mutation
-  const deleteLabourMutation = useMutation({
+  const deleteLabourMutation = useMutation<any, Error, any>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_labour")
         .delete()
         .eq("id", id);

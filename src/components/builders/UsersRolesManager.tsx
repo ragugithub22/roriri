@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, User, Shield, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const UsersRolesManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -28,10 +30,10 @@ const UsersRolesManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch users
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-users"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_users")
         .select("*")
         .order("created_at", { ascending: false });
@@ -41,9 +43,9 @@ const UsersRolesManager = () => {
   });
 
   // Create user mutation
-  const createUserMutation = useMutation({
+  const createUserMutation = useMutation<any, Error, any>({
     mutationFn: async (userData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_users")
         .insert([userData])
         .select();
@@ -62,9 +64,9 @@ const UsersRolesManager = () => {
   });
 
   // Update user mutation
-  const updateUserMutation = useMutation({
+  const updateUserMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...userData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_users")
         .update(userData)
         .eq("id", id)
@@ -84,9 +86,9 @@ const UsersRolesManager = () => {
   });
 
   // Delete user mutation
-  const deleteUserMutation = useMutation({
+  const deleteUserMutation = useMutation<any, Error, any>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_users")
         .delete()
         .eq("id", id);
@@ -154,23 +156,23 @@ const UsersRolesManager = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       active: { variant: "default", label: "Active" },
       inactive: { variant: "secondary", label: "Inactive" },
       suspended: { variant: "destructive", label: "Suspended" }
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
+    const config = statusConfig[status] || statusConfig.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const getRoleBadge = (role: string) => {
-    const roleConfig = {
+    const roleConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       admin: { variant: "destructive", label: "Admin" },
       manager: { variant: "default", label: "Manager" },
       supervisor: { variant: "secondary", label: "Supervisor" },
       worker: { variant: "outline", label: "Worker" }
     };
-    const config = roleConfig[role as keyof typeof roleConfig] || { variant: "outline", label: role };
+    const config = roleConfig[role] || { variant: "outline" as const, label: role };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
