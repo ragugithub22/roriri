@@ -13,6 +13,8 @@ import { Plus, Edit, Trash2, HardHat, Phone, Mail, Star } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const ContractorsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState(null);
@@ -34,10 +36,10 @@ const ContractorsManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch contractors
-  const { data: contractors = [], isLoading } = useQuery({
+  const { data: contractors = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-contractors"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_contractors")
         .select("*")
         .order("created_at", { ascending: false });
@@ -47,9 +49,9 @@ const ContractorsManager = () => {
   });
 
   // Create contractor mutation
-  const createContractorMutation = useMutation({
+  const createContractorMutation = useMutation<any, Error, any>({
     mutationFn: async (contractorData) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_contractors")
         .insert([contractorData])
         .select();
@@ -68,9 +70,9 @@ const ContractorsManager = () => {
   });
 
   // Update contractor mutation
-  const updateContractorMutation = useMutation({
+  const updateContractorMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...contractorData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_contractors")
         .update(contractorData)
         .eq("id", id)
@@ -90,9 +92,9 @@ const ContractorsManager = () => {
   });
 
   // Delete contractor mutation
-  const deleteContractorMutation = useMutation({
+  const deleteContractorMutation = useMutation<any, Error, any>({
     mutationFn: async (id) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_contractors")
         .delete()
         .eq("id", id);
@@ -173,8 +175,8 @@ const ContractorsManager = () => {
     }));
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       active: { variant: "default", label: "Active" },
       inactive: { variant: "secondary", label: "Inactive" },
       blacklisted: { variant: "destructive", label: "Blacklisted" }

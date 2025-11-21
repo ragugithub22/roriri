@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, User, Phone, Mail, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const ClientsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -31,10 +33,10 @@ const ClientsManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch clients
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clients = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_clients")
         .select("*")
         .order("created_at", { ascending: false });
@@ -46,7 +48,7 @@ const ClientsManager = () => {
   // Create client mutation
   const createClientMutation = useMutation({
     mutationFn: async (clientData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_clients")
         .insert([clientData])
         .select();
@@ -67,7 +69,7 @@ const ClientsManager = () => {
   // Update client mutation
   const updateClientMutation = useMutation({
     mutationFn: async ({ id, ...clientData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_clients")
         .update(clientData)
         .eq("id", id)
@@ -89,7 +91,7 @@ const ClientsManager = () => {
   // Delete client mutation
   const deleteClientMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_clients")
         .delete()
         .eq("id", id);
@@ -154,12 +156,12 @@ const ClientsManager = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       active: { variant: "default", label: "Active" },
       inactive: { variant: "secondary", label: "Inactive" },
       blacklisted: { variant: "destructive", label: "Blacklisted" }
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
+    const config = statusConfig[status] || statusConfig.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 

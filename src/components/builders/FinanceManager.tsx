@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, DollarSign, TrendingUp, TrendingDown, Calendar } fr
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const FinanceManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -30,10 +32,10 @@ const FinanceManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch financial transactions
-  const { data: transactions = [], isLoading } = useQuery({
+  const { data: transactions = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-financial-transactions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_financial_transactions")
         .select(`
           *,
@@ -46,10 +48,10 @@ const FinanceManager = () => {
   });
 
   // Fetch projects for dropdown
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["builders-projects-dropdown"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .select("id, project_name")
         .order("project_name");
@@ -59,9 +61,9 @@ const FinanceManager = () => {
   });
 
   // Create transaction mutation
-  const createTransactionMutation = useMutation({
+  const createTransactionMutation = useMutation<any, Error, any>({
     mutationFn: async (transactionData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_financial_transactions")
         .insert([transactionData])
         .select();
@@ -80,9 +82,9 @@ const FinanceManager = () => {
   });
 
   // Update transaction mutation
-  const updateTransactionMutation = useMutation({
+  const updateTransactionMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...transactionData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_financial_transactions")
         .update(transactionData)
         .eq("id", id)
@@ -102,9 +104,9 @@ const FinanceManager = () => {
   });
 
   // Delete transaction mutation
-  const deleteTransactionMutation = useMutation({
+  const deleteTransactionMutation = useMutation<any, Error, any>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_financial_transactions")
         .delete()
         .eq("id", id);
@@ -171,13 +173,13 @@ const FinanceManager = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       pending: { variant: "secondary", label: "Pending" },
       completed: { variant: "default", label: "Completed" },
       cancelled: { variant: "destructive", label: "Cancelled" },
       failed: { variant: "destructive", label: "Failed" }
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status] || statusConfig.pending;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
