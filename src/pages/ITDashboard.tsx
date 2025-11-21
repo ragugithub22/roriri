@@ -36,12 +36,12 @@ const sidebarItems = [
   { id: "employee", label: "Employee", icon: User },
   { id: "attendance", label: "Attendance", icon: UserCheck },
   { id: "task-details", label: "Task Details", icon: Clock },
+  { id: "meeting-details", label: "Meeting Details", icon: Calendar },
+  { id: "internship", label: "Internship", icon: Code },
   { id: "clients", label: "Clients", icon: Users },
   { id: "enquiry-details", label: "Enquiry Details", icon: FileText },
   { id: "project-details", label: "Project Details", icon: Briefcase },
   { id: "coordinator", label: "Coordinator", icon: Target },
-  { id: "internship", label: "Internship", icon: Code },
-  { id: "meeting-details", label: "Meeting Details", icon: Calendar },
 ];
 
 const ITDashboard = () => {
