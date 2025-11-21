@@ -75,9 +75,9 @@ const FarmExpensesManager = () => {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+  const updateMutation = useMutation<any, Error, any>({
+    mutationFn: async ({ id, data }: any) => {
+      const { error } = await supabaseClient
         .from("farm_expenses")
         .update({
           ...data,
@@ -97,9 +97,9 @@ const FarmExpensesManager = () => {
     },
   });
 
-  const deleteMutation = useMutation({
+  const deleteMutation = useMutation<any, Error, string>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("farm_expenses")
         .delete()
         .eq("id", id);

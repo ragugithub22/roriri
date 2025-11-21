@@ -142,7 +142,7 @@ const SettingsManager = () => {
 
   const handleQuickUpdate = async (id: string, value: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_settings")
         .update({
           setting_value: value,
