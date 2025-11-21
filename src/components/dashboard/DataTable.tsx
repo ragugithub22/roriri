@@ -32,14 +32,16 @@ interface DataTableProps {
   columns: Column[];
   data: any[];
   emptyMessage?: string;
+  isLoading?: boolean;
 }
 
-const DataTable = ({ 
-  title, 
-  description, 
-  columns, 
-  data, 
-  emptyMessage = "No data available" 
+const DataTable = ({
+  title,
+  description,
+  columns,
+  data,
+  emptyMessage = "No data available",
+  isLoading = false
 }: DataTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,7 +113,11 @@ const DataTable = ({
         </div>
       </CardHeader>
       <CardContent>
-        {filteredData.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground">
+            Loading...
+          </div>
+        ) : filteredData.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             {data.length === 0 ? emptyMessage : "No matching records found"}
           </div>

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
 */
 
@@ -37,15 +37,15 @@ All colors MUST be HSL.
     --ring: 174 83% 25%;
 
     --radius: 0.75rem;
-    
+
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
     --info: 199 89% 48%;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(174 83% 25%), hsl(199 89% 48%));
     --gradient-secondary: linear-gradient(135deg, hsl(20 95% 48%), hsl(38 92% 50%));
     --gradient-hero: linear-gradient(135deg, hsl(174 83% 25% / 0.95), hsl(199 89% 48% / 0.95));
-    
+
     --shadow-soft: 0 2px 8px -2px hsl(174 83% 25% / 0.1);
     --shadow-medium: 0 8px 24px -8px hsl(174 83% 25% / 0.15);
     --shadow-strong: 0 16px 48px -16px hsl(174 83% 25% / 0.2);
@@ -95,7 +95,7 @@ All colors MUST be HSL.
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 174 60% 51%;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(174 60% 51%), hsl(199 89% 48%));
     --gradient-secondary: linear-gradient(135deg, hsl(20 95% 48%), hsl(38 92% 50%));
     --gradient-hero: linear-gradient(135deg, hsl(174 83% 25% / 0.95), hsl(199 89% 48% / 0.95));
@@ -118,4 +118,13 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.landing-hero {
+  background: var(--gradient-hero);
+}
+
+.auth-background {
+  background-color: #afc9c3;
+  min-height: 100vh;
 }

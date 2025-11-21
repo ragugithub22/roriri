@@ -1,178 +1,250 @@
-import { Briefcase, Users, DollarSign, TrendingUp, Plus, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { DataTable, Badge } from "@/components/dashboard/DataTable";
-import ChartCard from "@/components/dashboard/ChartCard";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import QuickActions from "@/components/dashboard/QuickActions";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { Briefcase, Users, DollarSign, TrendingUp, UserCheck, Calendar, Award } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ClientsManager from "@/components/consultancy/ClientsManager";
+import JobOpeningsManager from "@/components/consultancy/JobOpeningsManager";
+import CandidatesManager from "@/components/consultancy/CandidatesManager";
+import ShortlistingManager from "@/components/consultancy/ShortlistingManager";
+import InterviewsManager from "@/components/consultancy/InterviewsManager";
+import PlacementsManager from "@/components/consultancy/PlacementsManager";
+import PaymentsManager from "@/components/consultancy/PaymentsManager";
+import EnquiriesManager from "@/components/consultancy/EnquiriesManager";
+import DocumentsManager from "@/components/consultancy/DocumentsManager";
+import ReportsManager from "@/components/consultancy/ReportsManager";
+import SettingsManager from "@/components/consultancy/SettingsManager";
 
 const ConsultancyDashboard = () => {
-  const { data: projects = [] } = useQuery({
-    queryKey: ["consultancy-projects"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("consultancy_projects")
-        .select("*")
-        .limit(10);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("dashboard");
 
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash && ['dashboard', 'clients', 'job-openings', 'candidates', 'shortlisting', 'interviews', 'placements', 'payments', 'enquiries', 'documents', 'reports', 'settings'].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, [location.hash]);
+
+  // Fetch clients
   const { data: clients = [] } = useQuery({
     queryKey: ["consultancy-clients"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("consultancy_clients")
         .select("*")
-        .limit(10);
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      return data;
     },
   });
 
-  const { data: activities = [] } = useQuery({
-    queryKey: ["consultancy-activities"],
+  // Fetch job openings
+  const { data: jobOpenings = [] } = useQuery({
+    queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
-      const { data: entityData } = await supabase
-        .from("entities")
-        .select("id")
-        .eq("code", "consultancy")
-        .single();
-      
-      if (!entityData) return [];
-
       const { data, error } = await supabase
-        .from("activity_logs")
+        .from("consultancy_job_openings")
         .select("*")
-        .eq("entity_id", entityData.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-      
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      return data;
     },
   });
 
-  const quickActions = [
-    { label: "New Project", icon: Plus, onClick: () => {}, variant: "default" as const },
-    { label: "Add Client", icon: Users, onClick: () => {} },
-    { label: "Reports", icon: FileText, onClick: () => {} },
-    { label: "Contracts", icon: Briefcase, onClick: () => {} },
-  ];
-
-  const projectColumns = [
-    { key: "project_code", label: "Project Code" },
-    { key: "name", label: "Name" },
-    { 
-      key: "status", 
-      label: "Status",
-      render: (value: string) => (
-        <Badge variant={value === "active" ? "default" : "secondary"}>
-          {value}
-        </Badge>
-      )
+  // Fetch candidates
+  const { data: candidates = [] } = useQuery({
+    queryKey: ["consultancy-candidates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("consultancy_candidates")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
-    { 
-      key: "budget", 
-      label: "Budget",
-      render: (value: number) => `₹${value?.toLocaleString()}`
-    },
-  ];
+  });
 
-  const statusData = [
-    { name: "Planning", value: 3, color: "#3b82f6" },
-    { name: "Active", value: 7, color: "#10b981" },
-    { name: "Completed", value: 5, color: "#6366f1" },
-  ];
+  // Fetch placements
+  const { data: placements = [] } = useQuery({
+    queryKey: ["consultancy-placements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("consultancy_placements")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch payments
+  const { data: payments = [] } = useQuery({
+    queryKey: ["consultancy-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("consultancy_payments")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Calculate KPIs
+  const activeClients = clients.filter(c => c.status === 'active').length;
+  const openJobs = jobOpenings.filter(j => j.status === 'open').length;
+  const activeCandidates = candidates.filter(c => c.status === 'new' || c.status === 'shortlisted').length;
+  const totalPlacements = placements.filter(p => p.placement_status === 'joined').length;
+  const totalRevenue = payments
+    .filter(p => p.payment_status === 'paid')
+    .reduce((sum, p) => sum + (p.invoice_amount || 0), 0);
 
   return (
     <DashboardLayout
-      entityName="RIYA Consultancy"
+      entityName="RIYA Consultancy - Super Admin"
       entityIcon={Briefcase}
-      entityColor="from-purple-500 to-violet-500"
+      entityColor="from-purple-500 to-violet-600"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard
-          title="Active Projects"
-          value={projects.length}
-          subtitle="Ongoing engagements"
-          trend={22}
-          icon={Briefcase}
-          color="from-purple-500 to-violet-500"
-        />
-        <KPICard
-          title="Total Clients"
-          value={clients.length}
-          subtitle="Active partnerships"
-          trend={15}
-          icon={Users}
-          color="from-blue-500 to-cyan-500"
-        />
-        <KPICard
-          title="Revenue"
-          value="₹8.5M"
-          subtitle="This quarter"
-          trend={28}
-          icon={DollarSign}
-          color="from-green-500 to-emerald-500"
-        />
-        <KPICard
-          title="Success Rate"
-          value="96%"
-          subtitle="Project completion"
-          trend={5}
-          icon={TrendingUp}
-          color="from-orange-500 to-amber-500"
-        />
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" orientation="vertical">
+        <div className="flex gap-6">
+          <TabsList className="flex flex-col h-fit w-48 space-y-1">
+            <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
+            <TabsTrigger value="clients" className="w-full justify-start">Clients</TabsTrigger>
+            <TabsTrigger value="job-openings" className="w-full justify-start">Job Openings</TabsTrigger>
+            <TabsTrigger value="candidates" className="w-full justify-start">Candidates</TabsTrigger>
+            <TabsTrigger value="shortlisting" className="w-full justify-start">Shortlisting</TabsTrigger>
+            <TabsTrigger value="interviews" className="w-full justify-start">Interviews</TabsTrigger>
+            <TabsTrigger value="placements" className="w-full justify-start">Placements</TabsTrigger>
+            <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
+            <TabsTrigger value="enquiries" className="w-full justify-start">Enquiries</TabsTrigger>
+            <TabsTrigger value="documents" className="w-full justify-start">Documents</TabsTrigger>
+            <TabsTrigger value="reports" className="w-full justify-start">Reports</TabsTrigger>
+            <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
+          </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <ChartCard
-          title="Project Status Distribution"
-          description="Current project pipeline"
-        >
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry) => entry.name}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+          <div className="flex-1">
+            <TabsContent value="dashboard" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <KPICard
+                  title="Active Clients"
+                  value={activeClients}
+                  subtitle="Current partnerships"
+                  trend={15}
+                  icon={Users}
+                  color="from-purple-500 to-violet-500"
+                />
+                <KPICard
+                  title="Open Positions"
+                  value={openJobs}
+                  subtitle="Available jobs"
+                  trend={8}
+                  icon={Briefcase}
+                  color="from-blue-500 to-cyan-500"
+                />
+                <KPICard
+                  title="Active Candidates"
+                  value={activeCandidates}
+                  subtitle="In pipeline"
+                  trend={12}
+                  icon={UserCheck}
+                  color="from-green-500 to-emerald-500"
+                />
+                <KPICard
+                  title="Successful Placements"
+                  value={totalPlacements}
+                  subtitle="This year"
+                  trend={25}
+                  icon={Award}
+                  color="from-orange-500 to-amber-500"
+                />
+              </div>
 
-        <QuickActions actions={quickActions} />
-      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPICard
+                  title="Revenue Generated"
+                  value={`₹${totalRevenue.toLocaleString()}`}
+                  subtitle="Total earnings"
+                  trend={18}
+                  icon={DollarSign}
+                  color="from-emerald-500 to-teal-500"
+                />
+                <KPICard
+                  title="Interview Success Rate"
+                  value="78%"
+                  subtitle="Conversion rate"
+                  trend={5}
+                  icon={Calendar}
+                  color="from-indigo-500 to-purple-500"
+                />
+                <KPICard
+                  title="Client Satisfaction"
+                  value="94%"
+                  subtitle="Average rating"
+                  trend={3}
+                  icon={TrendingUp}
+                  color="from-pink-500 to-rose-500"
+                />
+                <KPICard
+                  title="Time to Hire"
+                  value="18 days"
+                  subtitle="Average duration"
+                  trend={-8}
+                  icon={Briefcase}
+                  color="from-cyan-500 to-blue-500"
+                />
+              </div>
+            </TabsContent>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <DataTable
-            title="Active Projects"
-            description="Current consultancy engagements"
-            columns={projectColumns}
-            data={projects}
-            emptyMessage="No projects found"
-          />
+            <TabsContent value="clients" className="mt-0">
+              <ClientsManager />
+            </TabsContent>
+
+            <TabsContent value="job-openings" className="mt-0">
+              <JobOpeningsManager />
+            </TabsContent>
+
+            <TabsContent value="candidates" className="mt-0">
+              <CandidatesManager />
+            </TabsContent>
+
+            <TabsContent value="shortlisting" className="mt-0">
+              <ShortlistingManager />
+            </TabsContent>
+
+            <TabsContent value="interviews" className="mt-0">
+              <InterviewsManager />
+            </TabsContent>
+
+            <TabsContent value="placements" className="mt-0">
+              <PlacementsManager />
+            </TabsContent>
+
+            <TabsContent value="payments" className="mt-0">
+              <PaymentsManager />
+            </TabsContent>
+
+            <TabsContent value="enquiries" className="mt-0">
+              <EnquiriesManager />
+            </TabsContent>
+
+            <TabsContent value="documents" className="mt-0">
+              <DocumentsManager />
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-0">
+              <ReportsManager />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0">
+              <SettingsManager />
+            </TabsContent>
+          </div>
         </div>
-        
-        <ActivityFeed activities={activities} />
-      </div>
+      </Tabs>
     </DashboardLayout>
   );
 };

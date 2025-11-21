@@ -147,101 +147,112 @@ export default function MOUManagement() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+           
             <h1 className="text-2xl font-bold">MOU Management</h1>
           </div>
-          <Button onClick={() => setIsUploadDialogOpen(true)}>
-            <Upload className="mr-2 h-4 w-4" />
-            Upload MOU
-          </Button>
         </div>
       </header>
 
       <main className="container mx-auto max-w-7xl py-8 px-6">
         <Card>
-          <CardHeader>
-            <CardTitle>MOU Documents</CardTitle>
-            <CardDescription>Manage Memorandum of Understanding documents</CardDescription>
-          </CardHeader>
+         
           <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
+            <div className="flex justify-between items-center mb-4">
+              <div></div>
+              <Button onClick={() => setIsUploadDialogOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload MOU
+              </Button>
+            </div>
+
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>File Name</TableHead>
+                    <TableHead>Upload Date</TableHead>
+                    <TableHead>File Size</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
                     <TableRow>
-                      <TableHead>File Name</TableHead>
-                      <TableHead>Upload Date</TableHead>
-                      <TableHead>File Size</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        Loading MOU documents...
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {documents?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((doc) => (
+                  ) : documents && documents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        No MOU documents found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    documents?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((doc) => (
                       <TableRow key={doc.id}>
                         <TableCell className="font-medium">{doc.name}</TableCell>
                         <TableCell>{format(new Date(doc.created_at), 'MMM dd, yyyy')}</TableCell>
                         <TableCell>{(doc.file_size / 1024).toFixed(2)} KB</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDownload(doc)}
-                            title="Download"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteMutation.mutate(doc)}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDownload(doc)}
+                              title="Download"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteMutation.mutate(doc)}
+                              title="Delete"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {documents && documents.length > itemsPerPage && (
+              <div className="flex justify-center mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: Math.ceil(documents.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
                     ))}
-                  </TableBody>
-                </Table>
-                
-                {documents && documents.length > itemsPerPage && (
-                  <div className="mt-4">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                        
-                        {Array.from({ length: Math.ceil(documents.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(page)}
-                              isActive={currentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                        
-                        <PaginationItem>
-                          <PaginationNext
-                            onClick={() => currentPage < Math.ceil(documents.length / itemsPerPage) && setCurrentPage(currentPage + 1)}
-                            className={currentPage === Math.ceil(documents.length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </div>
-                )}
-              </>
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => currentPage < Math.ceil(documents.length / itemsPerPage) && setCurrentPage(currentPage + 1)}
+                        className={currentPage === Math.ceil(documents.length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             )}
           </CardContent>
         </Card>

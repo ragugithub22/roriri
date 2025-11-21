@@ -12,7 +12,7 @@ export default function PaymentsManager() {
       const { data: paymentsData, error } = await supabase
         .from("academy_payments" as any)
         .select("*")
-        .in("status", ["completed", "paid"])
+        .eq("status", "paid")
         .order("created_at", { ascending: false });
       if (error) throw error;
       const paymentsArray = (paymentsData as any[]) || [];

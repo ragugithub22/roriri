@@ -188,9 +188,7 @@ export default function EntitiesManagement() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            
             <div className="flex items-center gap-2">
               <Building2 className="h-6 w-6 text-primary" />
               <h1 className="text-xl font-bold">Entities Management</h1>

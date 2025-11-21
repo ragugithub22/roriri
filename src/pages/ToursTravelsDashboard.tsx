@@ -1,133 +1,286 @@
-import { Plane, Users, MapPin, Calendar, PlusCircle, Package, Eye, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import ChartCard from "@/components/dashboard/ChartCard";
-import { DataTable } from "@/components/dashboard/DataTable";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import QuickActions from "@/components/dashboard/QuickActions";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { MapPin, Users, Car, DollarSign, Calendar, TrendingUp } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Import all the manager components
+import TourPackagesManager from "@/components/tours-travels/TourPackagesManager";
+import CustomersManager from "@/components/tours-travels/CustomersManager";
+import EnquiriesManager from "@/components/tours-travels/EnquiriesManager";
+import BookingsManager from "@/components/tours-travels/BookingsManager";
+import TripManagementManager from "@/components/tours-travels/TripManagementManager";
+import VehicleManagementManager from "@/components/tours-travels/VehicleManagementManager";
+import DriverManagementManager from "@/components/tours-travels/DriverManagementManager";
+import QuotationsManager from "@/components/tours-travels/QuotationsManager";
+import PaymentsManager from "@/components/tours-travels/PaymentsManager";
+import ExpensesManager from "@/components/tours-travels/ExpensesManager";
+import ReportsManager from "@/components/tours-travels/ReportsManager";
+import SettingsManager from "@/components/tours-travels/SettingsManager";
 
 const ToursTravelsDashboard = () => {
-  // Fetch activity logs
-  const { data: activityLogs = [] } = useQuery({
-    queryKey: ["activity-logs-tours"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("activity_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      
-      if (error) throw error;
-      return data || [];
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash && ['dashboard', 'packages', 'customers', 'enquiries', 'bookings', 'trips', 'vehicles', 'drivers', 'quotations', 'payments', 'expenses', 'reports', 'settings'].includes(hash)) {
+      setActiveTab(hash);
     }
+  }, [location.hash]);
+
+  // Fetch dashboard statistics
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["tours-dashboard-stats"],
+    queryFn: async () => {
+      const [
+        { count: totalBookings },
+        { count: totalCustomers },
+        { count: totalVehicles },
+        { count: activeTrips },
+        { data: revenue }
+      ] = await Promise.all([
+        supabase.from("tours_bookings").select("*", { count: 'exact', head: true }),
+        supabase.from("tours_customers").select("*", { count: 'exact', head: true }),
+        supabase.from("tours_vehicles").select("*", { count: 'exact', head: true }),
+        supabase.from("tours_trip_management").select("*", { count: 'exact', head: true }).eq("trip_status", "ongoing"),
+        supabase.from("tours_payments").select("amount").eq("payment_status", "completed")
+      ]);
+
+      const totalRevenue = revenue?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+
+      return {
+        totalBookings,
+        totalCustomers,
+        totalVehicles,
+        activeTrips,
+        totalRevenue
+      };
+    },
   });
 
-  const kpis = [
-    {
-      title: "Total Bookings",
-      value: "523",
-      change: "+16%",
-      trend: 16,
-      icon: Calendar,
-    },
-    {
-      title: "Active Tours",
-      value: "28",
-      change: "+12%",
-      trend: 12,
-      icon: MapPin,
-    },
-    {
-      title: "Customers",
-      value: "1,247",
-      change: "+8%",
-      trend: 8,
-      icon: Users,
-    },
-    {
-      title: "Revenue",
-      value: "₹12.5M",
-      change: "+22%",
-      trend: 22,
-      icon: Plane,
-    },
-  ];
+  // Fetch recent bookings for dashboard
+  const { data: recentBookings = [] } = useQuery({
+    queryKey: ["tours-recent-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tours_bookings")
+        .select(`
+          *,
+          tours_customers!inner(customer_name),
+          tours_packages!inner(package_name)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(5);
 
-  const bookingData = [
-    { month: "Jan", bookings: 42 },
-    { month: "Feb", bookings: 38 },
-    { month: "Mar", bookings: 52 },
-    { month: "Apr", bookings: 61 },
-    { month: "May", bookings: 75 },
-    { month: "Jun", bookings: 68 },
-  ];
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  const tourColumns = [
-    { key: "name", label: "Tour Package" },
-    { key: "destination", label: "Destination" },
-    { key: "duration", label: "Duration" },
-    { key: "price", label: "Price" },
-    { key: "status", label: "Status" },
-  ];
+  // Fetch active trips for dashboard
+  const { data: activeTrips = [] } = useQuery({
+    queryKey: ["tours-active-trips"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tours_trip_management")
+        .select(`
+          *,
+          tours_vehicles!inner(vehicle_number),
+          tours_drivers!inner(driver_name)
+        `)
+        .eq("trip_status", "ongoing")
+        .order("start_date", { ascending: false })
+        .limit(5);
 
-  const tourData = [
-    { id: "1", name: "Kerala Backwaters Tour", destination: "Kerala", duration: "5 Days", price: "₹25,000", status: "Active" },
-    { id: "2", name: "Himalayan Adventure", destination: "Himachal Pradesh", duration: "7 Days", price: "₹35,000", status: "Active" },
-    { id: "3", name: "Goa Beach Holiday", destination: "Goa", duration: "4 Days", price: "₹20,000", status: "Active" },
-  ];
-
-  const quickActions = [
-    { label: "New Booking", icon: PlusCircle, onClick: () => console.log("New Booking") },
-    { label: "Add Tour Package", icon: Package, onClick: () => console.log("Add Tour Package") },
-    { label: "View Customers", icon: Eye, onClick: () => console.log("View Customers") },
-    { label: "Generate Report", icon: FileText, onClick: () => console.log("Generate Report") },
-  ];
+      if (error) throw error;
+      return data;
+    },
+  });
 
   return (
     <DashboardLayout
-      entityName="Rithish Tours and Travels"
-      entityIcon={Plane}
-      entityColor="from-sky-400 to-blue-600"
+      entityName="RITHISH Tours & Travels - Super Admin"
+      entityIcon={MapPin}
+      entityColor="from-green-500 to-emerald-600"
     >
-      <div className="space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {kpis.map((kpi) => (
-            <KPICard key={kpi.title} {...kpi} />
-          ))}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" orientation="vertical">
+        <div className="flex gap-6">
+          <TabsList className="flex flex-col h-fit w-48 space-y-1">
+            <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
+            <TabsTrigger value="packages" className="w-full justify-start">Tour Packages</TabsTrigger>
+            <TabsTrigger value="customers" className="w-full justify-start">Customers</TabsTrigger>
+            <TabsTrigger value="enquiries" className="w-full justify-start">Enquiries</TabsTrigger>
+            <TabsTrigger value="bookings" className="w-full justify-start">Bookings</TabsTrigger>
+            <TabsTrigger value="trips" className="w-full justify-start">Trip Management</TabsTrigger>
+            <TabsTrigger value="vehicles" className="w-full justify-start">Vehicles</TabsTrigger>
+            <TabsTrigger value="drivers" className="w-full justify-start">Drivers</TabsTrigger>
+            <TabsTrigger value="quotations" className="w-full justify-start">Quotations</TabsTrigger>
+            <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
+            <TabsTrigger value="expenses" className="w-full justify-start">Expenses</TabsTrigger>
+            <TabsTrigger value="reports" className="w-full justify-start">Reports</TabsTrigger>
+            <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1">
+            <TabsContent value="dashboard" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <KPICard
+                  title="Total Bookings"
+                  value={stats?.totalBookings || 0}
+                  subtitle="All time bookings"
+                  icon={Calendar}
+                  color="from-blue-500 to-indigo-600"
+                />
+                <KPICard
+                  title="Active Customers"
+                  value={stats?.totalCustomers || 0}
+                  subtitle="Registered customers"
+                  icon={Users}
+                  color="from-green-500 to-emerald-600"
+                />
+                <KPICard
+                  title="Fleet Size"
+                  value={stats?.totalVehicles || 0}
+                  subtitle="Available vehicles"
+                  icon={Car}
+                  color="from-purple-500 to-violet-600"
+                />
+                <KPICard
+                  title="Active Trips"
+                  value={stats?.activeTrips || 0}
+                  subtitle="Currently running"
+                  icon={MapPin}
+                  color="from-orange-500 to-amber-600"
+                />
+                <KPICard
+                  title="Total Revenue"
+                  value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
+                  subtitle="Completed payments"
+                  icon={DollarSign}
+                  color="from-teal-500 to-cyan-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Bookings</CardTitle>
+                      <CardDescription>Latest booking activities</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {recentBookings.length > 0 ? (
+                          recentBookings.map((booking: any) => (
+                            <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div>
+                                <p className="font-medium">{booking.tours_customers.customer_name}</p>
+                                <p className="text-sm text-muted-foreground">{booking.tours_packages.package_name}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium">₹{booking.total_amount?.toLocaleString()}</p>
+                                <p className="text-sm text-muted-foreground">{new Date(booking.created_at).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center text-muted-foreground py-8">
+                            No recent bookings
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Active Trips</CardTitle>
+                      <CardDescription>Currently running trips</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {activeTrips.length > 0 ? (
+                          activeTrips.map((trip: any) => (
+                            <div key={trip.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div>
+                                <p className="font-medium">{trip.tours_vehicles.vehicle_number}</p>
+                                <p className="text-sm text-muted-foreground">{trip.tours_drivers.driver_name}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium">{trip.trip_status}</p>
+                                <p className="text-sm text-muted-foreground">{new Date(trip.start_date).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center text-muted-foreground py-8">
+                            No active trips
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="packages" className="mt-0">
+              <TourPackagesManager />
+            </TabsContent>
+
+            <TabsContent value="customers" className="mt-0">
+              <CustomersManager />
+            </TabsContent>
+
+            <TabsContent value="enquiries" className="mt-0">
+              <EnquiriesManager />
+            </TabsContent>
+
+            <TabsContent value="bookings" className="mt-0">
+              <BookingsManager />
+            </TabsContent>
+
+            <TabsContent value="trips" className="mt-0">
+              <TripManagementManager />
+            </TabsContent>
+
+            <TabsContent value="vehicles" className="mt-0">
+              <VehicleManagementManager />
+            </TabsContent>
+
+            <TabsContent value="drivers" className="mt-0">
+              <DriverManagementManager />
+            </TabsContent>
+
+            <TabsContent value="quotations" className="mt-0">
+              <QuotationsManager />
+            </TabsContent>
+
+            <TabsContent value="payments" className="mt-0">
+              <PaymentsManager />
+            </TabsContent>
+
+            <TabsContent value="expenses" className="mt-0">
+              <ExpensesManager />
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-0">
+              <ReportsManager />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0">
+              <SettingsManager />
+            </TabsContent>
+          </div>
         </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Monthly Bookings" description="Booking trends over the last 6 months">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={bookingData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="bookings" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
-          <ActivityFeed activities={activityLogs} />
-        </div>
-
-        {/* Data Table */}
-        <DataTable
-          title="Tour Packages"
-          description="Manage all tour packages and destinations"
-          columns={tourColumns}
-          data={tourData}
-        />
-
-        {/* Quick Actions */}
-        <QuickActions actions={quickActions} />
-      </div>
+      </Tabs>
     </DashboardLayout>
   );
 };

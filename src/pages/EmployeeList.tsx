@@ -19,7 +19,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Constants } from '@/integrations/supabase/types';
+
 
 export default function EmployeeList() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export default function EmployeeList() {
     hire_date: ''
   });
 
-  const itemsPerPage = 7;
+  const itemsPerPage = 10;
 
   const { data: employees, isLoading, error: employeesError } = useQuery({
     queryKey: ['employees'],
@@ -73,6 +73,13 @@ export default function EmployeeList() {
       return data;
     },
   });
+
+  const paginatedEmployees = employees?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  ) || [];
+
+  const totalPages = Math.ceil((employees?.length || 0) / itemsPerPage);
 
   const { data: entities } = useQuery({
     queryKey: ['entities'],
@@ -109,6 +116,20 @@ export default function EmployeeList() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: userEntities } = useQuery({
+    queryKey: ['user-entities', editingEmployee?.profile_id],
+    queryFn: async () => {
+      if (!editingEmployee?.profile_id) return [];
+      const { data, error } = await supabase
+        .from('user_entities' as any)
+        .select('entity_id')
+        .eq('user_id', editingEmployee.profile_id);
+      if (error) throw error;
+      return data.map((item: any) => item.entity_id);
+    },
+    enabled: !!editingEmployee?.profile_id,
   });
 
   const createMutation = useMutation({
@@ -204,7 +225,7 @@ export default function EmployeeList() {
       // Only assign role here if user already existed (didn't go through edge function)
       if (data.selectedRole && existingProfile?.id) {
         const normalizedRole = (data.selectedRole || '').toLowerCase();
-        const allowed = Constants.public.Enums.app_role as unknown as string[];
+        const allowed = ['admin', 'manager', 'employee', 'trainee'];
         if (allowed.includes(normalizedRole)) {
           // Check if role already exists to avoid duplicates
           const { data: existingRole } = await supabase
@@ -283,7 +304,7 @@ export default function EmployeeList() {
       // Upsert role assignment if a role is selected
       if (data.selectedRole) {
         const normalizedRole = (data.selectedRole || '').toLowerCase();
-        const allowed = Constants.public.Enums.app_role as unknown as string[];
+        const allowed = ['admin', 'manager', 'employee', 'trainee'];
         if (!allowed.includes(normalizedRole)) {
           // Skip invalid roles
           return { success: true };
@@ -318,6 +339,33 @@ export default function EmployeeList() {
             });
           if (insertRoleError) throw insertRoleError;
         }
+      }
+
+      // Update user entities
+      if (data.selectedEntities && data.selectedEntities.length > 0) {
+        // First, delete existing user entities for this user
+        await supabase
+          .from('user_entities' as any)
+          .delete()
+          .eq('user_id', editingEmployee.profile_id);
+
+        // Then insert the new selected entities
+        const userEntitiesToInsert = data.selectedEntities.map(entityId => ({
+          user_id: editingEmployee.profile_id,
+          entity_id: entityId
+        }));
+
+        const { error: userEntitiesError } = await supabase
+          .from('user_entities' as any)
+          .insert(userEntitiesToInsert);
+
+        if (userEntitiesError) throw userEntitiesError;
+      } else {
+        // If no entities selected, delete all existing user entities
+        await supabase
+          .from('user_entities' as any)
+          .delete()
+          .eq('user_id', editingEmployee.profile_id);
       }
 
       return { success: true };
@@ -372,7 +420,7 @@ export default function EmployeeList() {
         status: employee.status || 'active',
         residence_type: employee.residence_type || '',
         selectedRole: '',
-        selectedEntities: []
+        selectedEntities: userEntities || []
       });
     } else {
       setEditingEmployee(null);
@@ -406,6 +454,7 @@ export default function EmployeeList() {
       selectedRole: '',
       hire_date: ''
     });
+    setCurrentPage(1);
   };
 
   const validateForm = (): boolean => {
@@ -466,34 +515,19 @@ export default function EmployeeList() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Employee Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <div></div>
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Employee
             </Button>
-            <div className="flex items-center gap-2">
-              <Users className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Employee Management</h1>
-            </div>
           </div>
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Employee
-          </Button>
-        </div>
-      </header>
-
-      <section className="py-8 px-6">
-        <div className="container mx-auto max-w-7xl space-y-6">
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Employee Directory</CardTitle>
-            <CardDescription>View and manage all employees</CardDescription>
-          </CardHeader>
-          <CardContent>
             {employeesError && (
               <div className="text-center py-8 text-destructive">
                 Error loading employees: {employeesError.message}
@@ -517,7 +551,7 @@ export default function EmployeeList() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {employees?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((employee: any) => (
+                    {paginatedEmployees.map((employee: any) => (
                       <TableRow key={employee.id}>
                         <TableCell className="font-medium">
                           {employee.profiles?.full_name || 'N/A'}
@@ -554,18 +588,17 @@ export default function EmployeeList() {
                   </TableBody>
                 </Table>
                 
-                {employees.length > itemsPerPage && (
-                  <div className="mt-4">
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-4">
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
                           <PaginationPrevious
-                            onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
-                        
-                        {Array.from({ length: Math.ceil(employees.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                           <PaginationItem key={page}>
                             <PaginationLink
                               onClick={() => setCurrentPage(page)}
@@ -576,11 +609,10 @@ export default function EmployeeList() {
                             </PaginationLink>
                           </PaginationItem>
                         ))}
-                        
                         <PaginationItem>
                           <PaginationNext
-                            onClick={() => currentPage < Math.ceil(employees.length / itemsPerPage) && setCurrentPage(currentPage + 1)}
-                            className={currentPage === Math.ceil(employees.length / itemsPerPage) ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -591,8 +623,6 @@ export default function EmployeeList() {
             )}
           </CardContent>
         </Card>
-        </div>
-      </section>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -794,7 +824,7 @@ export default function EmployeeList() {
                     <SelectValue placeholder="Choose an additional entity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {entities?.map((entity) => (
                       <SelectItem key={entity.id} value={entity.id}>
                         {entity.name}
