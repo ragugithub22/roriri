@@ -40,7 +40,6 @@ const sidebarItems = [
   { id: "project-details", label: "Project Details", icon: Briefcase },
   { id: "coordinator", label: "Coordinator", icon: Target },
   { id: "internship", label: "Internship", icon: Code },
-  { id: "mou", label: "MOU", icon: Handshake },
   { id: "task-details", label: "Task Details", icon: Clock },
   { id: "meeting-details", label: "Meeting Details", icon: Calendar },
 ];
