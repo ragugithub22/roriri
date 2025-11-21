@@ -42,7 +42,7 @@ const SettingsManager = () => {
   const { data: settings = [], isLoading } = useQuery({
     queryKey: ["consultancy-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_settings")
         .select("*")
         .order("category", { ascending: true });
@@ -427,13 +427,12 @@ const SettingsManager = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <DataTable
-              columns={columns}
-              data={categorySettings}
-              emptyMessage={`No ${category} settings found`}
-              isLoading={isLoading}
-              showPagination={false}
-            />
+              <DataTable
+                columns={columns}
+                data={categorySettings}
+                emptyMessage={`No ${category} settings found`}
+                isLoading={isLoading}
+              />
           </CardContent>
         </Card>
       ))}

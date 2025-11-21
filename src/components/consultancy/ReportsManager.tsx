@@ -19,7 +19,7 @@ const ReportsManager = () => {
   const { data: clients = [] } = useQuery({
     queryKey: ["consultancy-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_clients")
         .select("*");
       if (error) throw error;
@@ -28,10 +28,10 @@ const ReportsManager = () => {
   });
 
   // Fetch job openings
-  const { data: jobOpenings = [] } = useQuery({
+  const { data: jobOpenings = [] } = useQuery<any[]>({
     queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_job_openings")
         .select("*");
       if (error) throw error;
@@ -40,10 +40,10 @@ const ReportsManager = () => {
   });
 
   // Fetch candidates
-  const { data: candidates = [] } = useQuery({
+  const { data: candidates = [] } = useQuery<any[]>({
     queryKey: ["consultancy-candidates"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_candidates")
         .select("*");
       if (error) throw error;
@@ -52,10 +52,10 @@ const ReportsManager = () => {
   });
 
   // Fetch placements
-  const { data: placements = [] } = useQuery({
+  const { data: placements = [] } = useQuery<any[]>({
     queryKey: ["consultancy-placements"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_placements")
         .select("*");
       if (error) throw error;
@@ -64,10 +64,10 @@ const ReportsManager = () => {
   });
 
   // Fetch payments
-  const { data: payments = [] } = useQuery({
+  const { data: payments = [] } = useQuery<any[]>({
     queryKey: ["consultancy-payments"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_payments")
         .select("*");
       if (error) throw error;
@@ -76,10 +76,10 @@ const ReportsManager = () => {
   });
 
   // Fetch interviews
-  const { data: interviews = [] } = useQuery({
+  const { data: interviews = [] } = useQuery<any[]>({
     queryKey: ["consultancy-interviews"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_interviews")
         .select("*");
       if (error) throw error;
