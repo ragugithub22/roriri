@@ -39,10 +39,10 @@ const ClientEnquiry = () => {
   const queryClient = useQueryClient();
 
   const { data: enquiries = [], isLoading } = useQuery({
-    queryKey: ["it-client-enquiries"],
+    queryKey: ["roriri-project-enquiries"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("it_client_enquiries")
+        .from("roriri_project_enquiry")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -53,12 +53,12 @@ const ClientEnquiry = () => {
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
-        .from("it_client_enquiries")
+        .from("roriri_project_enquiry")
         .insert([data]);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["it-client-enquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["roriri-project-enquiries"] });
       toast.success("Enquiry created successfully");
       resetForm();
       setIsDialogOpen(false);
@@ -71,13 +71,13 @@ const ClientEnquiry = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
       const { error } = await supabase
-        .from("it_client_enquiries")
+        .from("roriri_project_enquiry")
         .update(data)
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["it-client-enquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["roriri-project-enquiries"] });
       toast.success("Enquiry updated successfully");
       resetForm();
       setIsDialogOpen(false);
@@ -91,13 +91,13 @@ const ClientEnquiry = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("it_client_enquiries")
+        .from("roriri_project_enquiry")
         .delete()
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["it-client-enquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["roriri-project-enquiries"] });
       toast.success("Enquiry deleted successfully");
     },
     onError: (error) => {

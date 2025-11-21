@@ -2901,6 +2901,45 @@ export type Database = {
         }
         Relationships: []
       }
+      roriri_project_enquiry: {
+        Row: {
+          client_name: string
+          company: string | null
+          created_at: string | null
+          date: string
+          enquiry_code: string
+          enquiry_for: string
+          id: string
+          phone: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_name: string
+          company?: string | null
+          created_at?: string | null
+          date?: string
+          enquiry_code: string
+          enquiry_for: string
+          id?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_name?: string
+          company?: string | null
+          created_at?: string | null
+          date?: string
+          enquiry_code?: string
+          enquiry_for?: string
+          id?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sales_orders: {
         Row: {
           created_at: string | null
