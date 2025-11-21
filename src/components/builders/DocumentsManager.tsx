@@ -12,6 +12,8 @@ import { Plus, Edit, Trash2, FileText, Download, Eye, Calendar } from "lucide-re
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const DocumentsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
@@ -28,10 +30,10 @@ const DocumentsManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch documents
-  const { data: documents = [], isLoading } = useQuery({
+  const { data: documents = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-documents"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_documents")
         .select(`
           *,
@@ -44,10 +46,10 @@ const DocumentsManager = () => {
   });
 
   // Fetch projects for dropdown
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["builders-projects-dropdown"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .select("id, project_name")
         .order("project_name");
@@ -57,9 +59,9 @@ const DocumentsManager = () => {
   });
 
   // Create document mutation
-  const createDocumentMutation = useMutation({
+  const createDocumentMutation = useMutation<any, Error, any>({
     mutationFn: async (documentData: any) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_documents")
         .insert([documentData])
         .select();
@@ -78,9 +80,9 @@ const DocumentsManager = () => {
   });
 
   // Update document mutation
-  const updateDocumentMutation = useMutation({
+  const updateDocumentMutation = useMutation<any, Error, any>({
     mutationFn: async ({ id, ...documentData }: { id: string; [key: string]: any }) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_documents")
         .update(documentData)
         .eq("id", id)
@@ -100,9 +102,9 @@ const DocumentsManager = () => {
   });
 
   // Delete document mutation
-  const deleteDocumentMutation = useMutation({
+  const deleteDocumentMutation = useMutation<any, Error, any>({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("builders_documents")
         .delete()
         .eq("id", id);
@@ -171,12 +173,12 @@ const DocumentsManager = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       active: { variant: "default", label: "Active" },
       expired: { variant: "destructive", label: "Expired" },
       archived: { variant: "secondary", label: "Archived" }
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
+    const config = statusConfig[status] || statusConfig.active;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
