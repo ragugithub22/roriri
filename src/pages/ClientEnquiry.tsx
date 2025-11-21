@@ -105,10 +105,16 @@ const ClientEnquiry = () => {
     },
   });
 
+  const generateEnquiryCode = () => {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `ENQ-${timestamp}-${random}`;
+  };
+
   const resetForm = () => {
     setFormData({
-      enquiry_code: '',
-      date: '',
+      enquiry_code: generateEnquiryCode(),
+      date: new Date().toISOString().split('T')[0],
       client_name: '',
       company: '',
       enquiry_for: '',
@@ -165,7 +171,7 @@ const ClientEnquiry = () => {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setEditingEnquiry(null); }}>
+            <Button onClick={() => { resetForm(); setEditingEnquiry(null); setIsDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-2" />
               Add Enquiry
             </Button>

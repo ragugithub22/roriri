@@ -1,14 +1,9 @@
 import { useState } from "react";
-import { Laptop, Users, Code, TrendingUp, Plus, Bug, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock } from "lucide-react";
+import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { DataTable, Badge } from "@/components/dashboard/DataTable";
-import ChartCard from "@/components/dashboard/ChartCard";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import QuickActions from "@/components/dashboard/QuickActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Sidebar,
   SidebarContent,
@@ -138,7 +133,7 @@ const ITDashboard = () => {
   );
 };
 
-const DashboardContent = () => {
+const DashboardContent: React.FC = () => {
   const { data: totalRoles = 0 } = useQuery({
     queryKey: ["total-roles"],
     queryFn: async () => {
@@ -172,8 +167,53 @@ const DashboardContent = () => {
     },
   });
 
+  const { data: totalClients = 0 } = useQuery({
+    queryKey: ["total-it-clients"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("it_clients")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: totalProjects = 0 } = useQuery({
+    queryKey: ["total-it-projects"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("it_projects")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: projectEnquiries = 0 } = useQuery({
+    queryKey: ["total-it-enquiries"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("it_client_enquiries")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: completedProjects = 0 } = useQuery({
+    queryKey: ["completed-it-projects"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("it_projects")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "completed");
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   const { data: monthlyRevenue = 0 } = useQuery({
-    queryKey: ["monthly-revenue"],
+    queryKey: ["monthly-it-revenue"],
     queryFn: async () => {
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
       const { data, error } = await supabase
@@ -198,101 +238,11 @@ const DashboardContent = () => {
     },
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["it-projects"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("it_projects")
-        .select("*")
-        .limit(10);
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["it-clients"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("it_clients")
-        .select("*")
-        .limit(10);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: activities = [] } = useQuery({
-    queryKey: ["it-activities"],
-    queryFn: async () => {
-      const { data: entityData } = await supabase
-        .from("entities")
-        .select("id")
-        .eq("code", "it_company")
-        .single();
-
-      if (!entityData) return [];
-
-      const { data, error } = await supabase
-        .from("activity_logs")
-        .select("*")
-        .eq("entity_id", entityData.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const quickActions = [
-    { label: "New Project", icon: Plus, onClick: () => {}, variant: "default" as const },
-    { label: "Add Client", icon: Users, onClick: () => {} },
-    { label: "Track Bugs", icon: Bug, onClick: () => {} },
-    { label: "Code Review", icon: Code, onClick: () => {} },
-  ];
-
-  const projectColumns = [
-    { key: "project_code", label: "Project Code" },
-    { key: "name", label: "Name" },
-    {
-      key: "status",
-      label: "Status",
-      render: (value: string) => (
-        <Badge variant={value === "active" ? "default" : "secondary"}>
-          {value}
-        </Badge>
-      )
-    },
-    { key: "technology_stack", label: "Tech Stack" },
-  ];
-
-  const projectStatusData = [
-    { status: "Planning", count: 4 },
-    { status: "Development", count: 12 },
-    { status: "Testing", count: 6 },
-    { status: "Deployed", count: 12 },
-  ];
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard
-          title="Total Roles"
-          value={totalRoles}
-          subtitle="System roles"
-          trend={5}
-          icon={Shield}
-          color="from-indigo-500 to-blue-500"
-        />
-        <KPICard
-          title="Total Departments"
-          value={totalDepartments}
-          subtitle="Active departments"
-          trend={12}
-          icon={Building2}
-          color="from-purple-500 to-violet-500"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <KPICard
           title="Total Employees"
           value={totalEmployees}
@@ -302,47 +252,48 @@ const DashboardContent = () => {
           color="from-green-500 to-emerald-500"
         />
         <KPICard
-          title="Revenue This Month"
+          title="Total Clients"
+          value={totalClients}
+          subtitle="Active clients"
+          trend={12}
+          icon={User}
+          color="from-blue-500 to-indigo-500"
+        />
+        <KPICard
+          title="Total Projects"
+          value={totalProjects}
+          subtitle="All projects"
+          trend={15}
+          icon={Briefcase}
+          color="from-purple-500 to-violet-500"
+        />
+        <KPICard
+          title="Project Enquiries"
+          value={projectEnquiries}
+          subtitle="Client enquiries"
+          trend={10}
+          icon={FileText}
+          color="from-orange-500 to-red-500"
+        />
+        <KPICard
+          title="Completed Projects"
+          value={completedProjects}
+          subtitle="Finished projects"
+          trend={20}
+          icon={CheckCircle}
+          color="from-teal-500 to-cyan-500"
+        />
+        <KPICard
+          title="Monthly Revenue"
           value={`₹${monthlyRevenue.toLocaleString()}`}
           subtitle="Monthly earnings"
           trend={15}
           icon={DollarSign}
-          color="from-cyan-500 to-blue-500"
+          color="from-yellow-500 to-orange-500"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <ChartCard
-          title="Project Pipeline"
-          description="Projects by development stage"
-        >
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={projectStatusData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="status" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="hsl(var(--primary))" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
 
-        <QuickActions actions={quickActions} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <DataTable
-            title="Active Projects"
-            description="Current software development projects"
-            columns={projectColumns}
-            data={projects}
-            emptyMessage="No projects found"
-          />
-        </div>
-
-        <ActivityFeed activities={activities} />
-      </div>
     </>
   );
 };
