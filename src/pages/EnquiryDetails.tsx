@@ -27,8 +27,8 @@ const EnquiryDetails = ({ onNavigate }: EnquiryDetailsProps) => {
           <CardDescription>View and manage all types of enquiries.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>All enquiry management coming soon...</p>
-          <Button onClick={() => alert('All Enquiry page coming soon')} className="mt-4">
+          <p>View and manage all types of enquiries.</p>
+          <Button onClick={() => onNavigate('all-enquiries')} className="mt-4">
             Open
           </Button>
         </CardContent>

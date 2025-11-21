@@ -28,6 +28,7 @@ import MOU from "./MOU";
 import Coordinator from "./Coordinator";
 import TaskDetails from "./TaskDetails";
 import ClientEnquiry from "./ClientEnquiry";
+import AllEnquiries from "./AllEnquiries";
 import EmployeeDetail from "./EmployeeDetail";
 
 const sidebarItems = [
@@ -56,6 +57,8 @@ const ITDashboard = () => {
         return <EnquiryDetails onNavigate={setActiveItem} />;
       case "project-enquiry":
         return <ClientEnquiry />;
+      case "all-enquiries":
+        return <AllEnquiries />;
       case "employee":
         return <Employee onViewEmployee={(id) => {
           setSelectedEmployeeId(id);
