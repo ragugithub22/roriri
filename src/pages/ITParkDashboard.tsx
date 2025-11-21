@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,8 @@ import AssetManagement from "@/pages/AssetManagement";
 import EntitiesManagement from "@/pages/EntitiesManagement";
 import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
+import KPICard from "@/components/dashboard/KPICard";
+import { Users, Shield, DollarSign, Building2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -146,19 +147,7 @@ export default function ITParkDashboard() {
         {ActiveComponent ? (
           <ActiveComponent />
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>{activeItem?.label ?? "IT Park Overview"}</CardTitle>
-              <CardDescription>
-                Select a sidebar item to load its module inside the IT Park workspace.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center py-12 text-muted-foreground">
-                IT Park dashboard features coming soon...
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardContent />
         )}
       </div>
     </DashboardLayout>
@@ -167,3 +156,107 @@ export default function ITParkDashboard() {
     </SidebarProvider>
   );
 }
+
+const DashboardContent = () => {
+  const { data: totalRoles = 0 } = useQuery({
+    queryKey: ["total-roles"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("roles")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: totalDepartments = 0 } = useQuery({
+    queryKey: ["total-departments"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("departments")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: totalEmployees = 0 } = useQuery({
+    queryKey: ["total-employees"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("employees")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: monthlyRevenue = 0 } = useQuery({
+    queryKey: ["monthly-revenue"],
+    queryFn: async () => {
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+      const { data, error } = await supabase
+        .from("academy_payments")
+        .select("amount")
+        .gte("payment_date", `${currentMonth}-01`)
+        .lt("payment_date", `${currentMonth}-32`);
+      if (error) throw error;
+
+      const academyRevenue = data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
+
+      // Add revenue from other entities if needed
+      const { data: foundationData } = await supabase
+        .from("foundation_donations")
+        .select("amount")
+        .gte("donation_date", `${currentMonth}-01`)
+        .lt("donation_date", `${currentMonth}-32`);
+
+      const foundationRevenue = foundationData?.reduce((sum, donation) => sum + (donation.amount || 0), 0) || 0;
+
+      return academyRevenue + foundationRevenue;
+    },
+  });
+
+
+
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <KPICard
+          title="Total Roles"
+          value={totalRoles}
+          subtitle="System roles"
+          trend={5}
+          icon={Shield}
+          color="from-indigo-500 to-blue-500"
+        />
+        <KPICard
+          title="Total Departments"
+          value={totalDepartments}
+          subtitle="Active departments"
+          trend={12}
+          icon={Building2}
+          color="from-purple-500 to-violet-500"
+        />
+        <KPICard
+          title="Total Employees"
+          value={totalEmployees}
+          subtitle="Staff members"
+          trend={8}
+          icon={Users}
+          color="from-green-500 to-emerald-500"
+        />
+        <KPICard
+          title="Revenue This Month"
+          value={`₹${monthlyRevenue.toLocaleString()}`}
+          subtitle="Monthly earnings"
+          trend={15}
+          icon={DollarSign}
+          color="from-cyan-500 to-blue-500"
+        />
+      </div>
+
+
+    </>
+  );
+};
