@@ -37,11 +37,12 @@ const ShortlistingManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: candidates = [] } = useQuery({
+  const { data: candidates = [] } = useQuery<any[]>({
     queryKey: ["consultancy-candidates"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_candidates")
         .select("id, first_name, last_name, email")
         .eq("status", "new");
@@ -50,10 +51,10 @@ const ShortlistingManager = () => {
     },
   });
 
-  const { data: jobOpenings = [] } = useQuery({
+  const { data: jobOpenings = [] } = useQuery<any[]>({
     queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_job_openings")
         .select("id, position, consultancy_clients(company_name)")
         .eq("status", "open");
@@ -62,10 +63,10 @@ const ShortlistingManager = () => {
     },
   });
 
-  const { data: shortlistings = [], isLoading } = useQuery({
+  const { data: shortlistings = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-shortlistings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_shortlistings")
         .select(`
           *,
@@ -89,7 +90,7 @@ const ShortlistingManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_shortlistings")
         .insert([{
           ...data,
@@ -114,7 +115,7 @@ const ShortlistingManager = () => {
         ...data,
         reviewed_at: data.status !== "pending" ? new Date().toISOString() : null
       };
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_shortlistings")
         .update(updateData)
         .eq("id", id);

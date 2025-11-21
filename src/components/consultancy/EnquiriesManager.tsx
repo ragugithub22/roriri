@@ -47,11 +47,12 @@ const EnquiriesManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: enquiries = [], isLoading } = useQuery({
+  const { data: enquiries = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-enquiries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_enquiries")
         .select("*")
         .order("created_at", { ascending: false });
@@ -62,7 +63,7 @@ const EnquiriesManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_enquiries")
         .insert([data]);
       if (error) throw error;
@@ -80,7 +81,7 @@ const EnquiriesManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_enquiries")
         .update({ ...data, updated_at: new Date().toISOString() })
         .eq("id", id);
@@ -99,7 +100,7 @@ const EnquiriesManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_enquiries")
         .delete()
         .eq("id", id);

@@ -50,11 +50,12 @@ const InterviewsManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: candidates = [] } = useQuery({
+  const { data: candidates = [] } = useQuery<any[]>({
     queryKey: ["consultancy-candidates"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_candidates")
         .select("id, first_name, last_name, email")
         .in("status", ["shortlisted", "interviewed"]);
@@ -63,10 +64,10 @@ const InterviewsManager = () => {
     },
   });
 
-  const { data: jobOpenings = [] } = useQuery({
+  const { data: jobOpenings = [] } = useQuery<any[]>({
     queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_job_openings")
         .select("id, position, consultancy_clients(company_name)")
         .eq("status", "open");
@@ -75,10 +76,10 @@ const InterviewsManager = () => {
     },
   });
 
-  const { data: interviews = [], isLoading } = useQuery({
+  const { data: interviews = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-interviews"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_interviews")
         .select(`
           *,
@@ -102,7 +103,7 @@ const InterviewsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_interviews")
         .insert([data]);
       if (error) throw error;
@@ -120,7 +121,7 @@ const InterviewsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_interviews")
         .update(data)
         .eq("id", id);
@@ -139,7 +140,7 @@ const InterviewsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_interviews")
         .delete()
         .eq("id", id);

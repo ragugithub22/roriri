@@ -41,12 +41,13 @@ const SettingsManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
   // Fetch current settings
-  const { data: settings = [], isLoading } = useQuery({
+  const { data: settings = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_settings")
         .select("*")
         .order("created_at", { ascending: false });
