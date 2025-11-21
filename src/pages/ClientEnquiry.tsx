@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, ArrowLeft } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface ClientEnquiry {
   id: string;
@@ -24,6 +25,7 @@ interface ClientEnquiry {
 }
 
 const ClientEnquiry = () => {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEnquiry, setEditingEnquiry] = useState<ClientEnquiry | null>(null);
   const [formData, setFormData] = useState({
@@ -164,6 +166,17 @@ const ClientEnquiry = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="h-8 w-8"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1" />
+      </div>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Client Enquiry</h1>
