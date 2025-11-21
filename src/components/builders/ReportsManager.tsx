@@ -8,15 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Download, FileText, TrendingUp, Users, Building2, DollarSign, Package, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
+const supabaseClient = supabase as any;
+
 const ReportsManager = () => {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState("30");
 
   // Fetch projects
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["builders-projects"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .select("*")
         .order("project_name");
@@ -26,10 +28,10 @@ const ReportsManager = () => {
   });
 
   // Fetch sites
-  const { data: sites = [] } = useQuery({
+  const { data: sites = [] } = useQuery<any[]>({
     queryKey: ["builders-sites"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_sites")
         .select("*");
       if (error) throw error;
@@ -38,10 +40,10 @@ const ReportsManager = () => {
   });
 
   // Fetch contractors
-  const { data: contractors = [] } = useQuery({
+  const { data: contractors = [] } = useQuery<any[]>({
     queryKey: ["builders-contractors"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_contractors")
         .select("*");
       if (error) throw error;
@@ -50,10 +52,10 @@ const ReportsManager = () => {
   });
 
   // Fetch labour
-  const { data: labour = [] } = useQuery({
+  const { data: labour = [] } = useQuery<any[]>({
     queryKey: ["builders-labour"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_labour")
         .select("*");
       if (error) throw error;
@@ -62,10 +64,10 @@ const ReportsManager = () => {
   });
 
   // Fetch materials
-  const { data: materials = [] } = useQuery({
+  const { data: materials = [] } = useQuery<any[]>({
     queryKey: ["builders-materials"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_materials")
         .select("*");
       if (error) throw error;
@@ -74,10 +76,10 @@ const ReportsManager = () => {
   });
 
   // Fetch financial transactions
-  const { data: transactions = [] } = useQuery({
+  const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["builders-financial-transactions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_financial_transactions")
         .select("*");
       if (error) throw error;
@@ -86,10 +88,10 @@ const ReportsManager = () => {
   });
 
   // Fetch clients
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<any[]>({
     queryKey: ["builders-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_clients")
         .select("*");
       if (error) throw error;

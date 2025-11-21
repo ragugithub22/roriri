@@ -13,6 +13,8 @@ import { Plus, Edit, Trash2, Building2, MapPin, Calendar, DollarSign } from "luc
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
 
+const supabaseClient = supabase as any;
+
 const ProjectsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -39,10 +41,10 @@ const ProjectsManager = () => {
   const queryClient = useQueryClient();
 
   // Fetch projects
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: projects = [], isLoading } = useQuery<any[]>({
     queryKey: ["builders-projects"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .select("*")
         .order("created_at", { ascending: false });
@@ -52,9 +54,9 @@ const ProjectsManager = () => {
   });
 
   // Create project mutation
-  const createProjectMutation = useMutation({
+  const createProjectMutation = useMutation<any, Error, any>({
     mutationFn: async (projectData) => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .insert([projectData])
         .select();
@@ -73,9 +75,9 @@ const ProjectsManager = () => {
   });
 
   // Update project mutation
-  const updateProjectMutation = useMutation({
-    mutationFn: async ({ id, ...projectData }) => {
-      const { data, error } = await supabase
+  const updateProjectMutation = useMutation<any, Error, any>({
+    mutationFn: async ({ id, ...projectData }: { id: string; [key: string]: any }) => {
+      const { data, error } = await supabaseClient
         .from("builders_projects")
         .update(projectData)
         .eq("id", id)
@@ -95,9 +97,9 @@ const ProjectsManager = () => {
   });
 
   // Delete project mutation
-  const deleteProjectMutation = useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase
+  const deleteProjectMutation = useMutation<any, Error, any>({
+    mutationFn: async (id: string) => {
+      const { error } = await supabaseClient
         .from("builders_projects")
         .delete()
         .eq("id", id);
