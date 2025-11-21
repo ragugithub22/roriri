@@ -28,7 +28,7 @@ interface ConsultancySetting {
 const SettingsManager = () => {
   const supabaseClient = supabase as any;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingSet, setEditingSetting] = useState<ConsultancySetting | null>(null);
+  const [editingSetting, setEditingSetting] = useState<ConsultancySetting | null>(null);
   const [formData, setFormData] = useState({
     setting_key: "",
     setting_value: "",
