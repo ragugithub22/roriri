@@ -5,8 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const Employee = ({ onViewEmployee }: { onViewEmployee: (id: string) => void }) => {
+const Employee = () => {
+  const navigate = useNavigate();
   // First, get the IT company entity ID
   const { data: itCompanyEntity } = useQuery({
     queryKey: ["it-company-entity"],
@@ -121,7 +123,7 @@ const Employee = ({ onViewEmployee }: { onViewEmployee: (id: string) => void }) 
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onViewEmployee(employee.id)}
+                      onClick={() => navigate(`/employees/${employee.id}`)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View
