@@ -33,10 +33,10 @@ import EmployeeDetail from "./EmployeeDetail";
 
 const sidebarItems = [
   { id: "dashboard", label: "Dashboard", icon: Laptop },
-  { id: "enquiry-details", label: "Enquiry Details", icon: FileText },
   { id: "employee", label: "Employee", icon: User },
   { id: "attendance", label: "Attendance", icon: UserCheck },
   { id: "clients", label: "Clients", icon: Users },
+  { id: "enquiry-details", label: "Enquiry Details", icon: FileText },
   { id: "project-details", label: "Project Details", icon: Briefcase },
   { id: "coordinator", label: "Coordinator", icon: Target },
   { id: "internship", label: "Internship", icon: Code },
