@@ -45,11 +45,12 @@ const PaymentsManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<any[]>({
     queryKey: ["consultancy-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_clients")
         .select("id, company_name")
         .eq("status", "active");
@@ -58,10 +59,10 @@ const PaymentsManager = () => {
     },
   });
 
-  const { data: payments = [], isLoading } = useQuery({
+  const { data: payments = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-payments"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_payments")
         .select(`
           *,
@@ -77,7 +78,7 @@ const PaymentsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_payments")
         .insert([data]);
       if (error) throw error;
@@ -95,7 +96,7 @@ const PaymentsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_payments")
         .update(data)
         .eq("id", id);
@@ -114,7 +115,7 @@ const PaymentsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_payments")
         .delete()
         .eq("id", id);

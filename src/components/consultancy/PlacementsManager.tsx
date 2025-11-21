@@ -40,11 +40,12 @@ const PlacementsManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: candidates = [] } = useQuery({
+  const { data: candidates = [] } = useQuery<any[]>({
     queryKey: ["consultancy-candidates"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_candidates")
         .select("id, first_name, last_name, email")
         .in("status", ["selected", "interviewed"]);
@@ -53,10 +54,10 @@ const PlacementsManager = () => {
     },
   });
 
-  const { data: jobOpenings = [] } = useQuery({
+  const { data: jobOpenings = [] } = useQuery<any[]>({
     queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_job_openings")
         .select("id, position, consultancy_clients(company_name)")
         .eq("status", "open");
@@ -65,10 +66,10 @@ const PlacementsManager = () => {
     },
   });
 
-  const { data: placements = [], isLoading } = useQuery({
+  const { data: placements = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-placements"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_placements")
         .select(`
           *,
@@ -84,7 +85,7 @@ const PlacementsManager = () => {
             )
           )
         `)
-        .order("placement_date", { ascending: false });
+        .order("placement_date", { ascending: false});
       if (error) throw error;
       return data as Placement[];
     },
@@ -92,7 +93,7 @@ const PlacementsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_placements")
         .insert([data]);
       if (error) throw error;
@@ -110,7 +111,7 @@ const PlacementsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_placements")
         .update(data)
         .eq("id", id);
@@ -129,7 +130,7 @@ const PlacementsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_placements")
         .delete()
         .eq("id", id);

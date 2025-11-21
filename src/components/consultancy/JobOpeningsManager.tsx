@@ -47,11 +47,12 @@ const JobOpeningsManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [] } = useQuery<any[]>({
     queryKey: ["consultancy-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_clients")
         .select("id, company_name")
         .eq("status", "active");
@@ -60,10 +61,10 @@ const JobOpeningsManager = () => {
     },
   });
 
-  const { data: jobOpenings = [], isLoading } = useQuery({
+  const { data: jobOpenings = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_job_openings")
         .select(`
           *,
@@ -79,7 +80,7 @@ const JobOpeningsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_job_openings")
         .insert([data]);
       if (error) throw error;
@@ -97,7 +98,7 @@ const JobOpeningsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_job_openings")
         .update(data)
         .eq("id", id);
@@ -116,7 +117,7 @@ const JobOpeningsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_job_openings")
         .delete()
         .eq("id", id);

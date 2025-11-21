@@ -46,11 +46,12 @@ const DocumentsManager = () => {
   });
 
   const queryClient = useQueryClient();
+  const supabaseClient = supabase as any;
 
-  const { data: documents = [], isLoading } = useQuery({
+  const { data: documents = [], isLoading } = useQuery<any[]>({
     queryKey: ["consultancy-documents"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("consultancy_documents")
         .select("*")
         .order("created_at", { ascending: false });
@@ -61,7 +62,7 @@ const DocumentsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_documents")
         .insert([data]);
       if (error) throw error;
@@ -79,7 +80,7 @@ const DocumentsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_documents")
         .update(data)
         .eq("id", id);
@@ -98,7 +99,7 @@ const DocumentsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("consultancy_documents")
         .delete()
         .eq("id", id);

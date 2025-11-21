@@ -57,9 +57,10 @@ const ClientsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const clientCode = `CL${Date.now().toString().slice(-6)}`;
       const { error } = await supabase
         .from("consultancy_clients")
-        .insert([data]);
+        .insert([{ ...data, client_code: clientCode, status: data.status as any }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -77,7 +78,7 @@ const ClientsManager = () => {
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
       const { error } = await supabase
         .from("consultancy_clients")
-        .update(data)
+        .update({ ...data, status: data.status as any })
         .eq("id", id);
       if (error) throw error;
     },
