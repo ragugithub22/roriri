@@ -1916,6 +1916,39 @@ export type Database = {
           },
         ]
       }
+      industrial_visit_enquiries: {
+        Row: {
+          college_name: string
+          created_at: string | null
+          date: string
+          description: string | null
+          email: string
+          id: string
+          phone: string
+          updated_at: string | null
+        }
+        Insert: {
+          college_name: string
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          email: string
+          id?: string
+          phone: string
+          updated_at?: string | null
+        }
+        Update: {
+          college_name?: string
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          email?: string
+          id?: string
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       internship_candidates: {
         Row: {
           address: string | null
