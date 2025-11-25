@@ -56,42 +56,44 @@ const Internship = () => {
   };
 
   return (
-    <div className="flex h-full w-full">
-      <Sidebar className="border-l">
-        <SidebarHeader>
-          <div className="px-2">
-            <h2 className="text-lg font-semibold">Internship</h2>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel></SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {internshipItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        onClick={() => setActiveItem(item.id)}
-                        className="w-full"
-                        isActive={activeItem === item.id}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-      <div className="flex-1 p-6">
-        {renderActiveComponent()}
+    <SidebarProvider>
+      <div className="flex h-full w-full">
+        <Sidebar className="border-l">
+          <SidebarHeader>
+            <div className="px-2">
+              <h2 className="text-lg font-semibold">Internship</h2>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel></SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {internshipItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          onClick={() => setActiveItem(item.id)}
+                          className="w-full"
+                          isActive={activeItem === item.id}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+        <div className="flex-1 p-6">
+          {renderActiveComponent()}
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
