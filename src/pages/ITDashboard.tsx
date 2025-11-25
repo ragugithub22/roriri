@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
@@ -44,6 +45,7 @@ const sidebarItems = [
 ];
 
 const ITDashboard = () => {
+  const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("dashboard");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
@@ -72,8 +74,6 @@ const ITDashboard = () => {
         return <ProjectDetails />;
       case "coordinator":
         return <Coordinator />;
-      case "internship":
-        return <Internship />;
       case "mou":
         return <MOU />;
       case "meeting-details":
@@ -103,7 +103,13 @@ const ITDashboard = () => {
                     return (
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
-                          onClick={() => setActiveItem(item.id)}
+                          onClick={() => {
+                            if (item.id === "internship") {
+                              navigate("/internship");
+                            } else {
+                              setActiveItem(item.id);
+                            }
+                          }}
                           className="w-full"
                           isActive={activeItem === item.id}
                         >
