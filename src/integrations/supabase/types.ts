@@ -1997,6 +1997,63 @@ export type Database = {
           },
         ]
       }
+      internship_enquiries: {
+        Row: {
+          address: string | null
+          college_name: string | null
+          comments: string | null
+          created_at: string | null
+          department: string | null
+          description: string | null
+          email: string | null
+          enquiry_date: string
+          follow_status: string | null
+          follow_up_date: string | null
+          id: string
+          mode_status: string | null
+          name: string
+          passout_year: string | null
+          phone: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          college_name?: string | null
+          comments?: string | null
+          created_at?: string | null
+          department?: string | null
+          description?: string | null
+          email?: string | null
+          enquiry_date?: string
+          follow_status?: string | null
+          follow_up_date?: string | null
+          id?: string
+          mode_status?: string | null
+          name: string
+          passout_year?: string | null
+          phone: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          college_name?: string | null
+          comments?: string | null
+          created_at?: string | null
+          department?: string | null
+          description?: string | null
+          email?: string | null
+          enquiry_date?: string
+          follow_status?: string | null
+          follow_up_date?: string | null
+          id?: string
+          mode_status?: string | null
+          name?: string
+          passout_year?: string | null
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       internship_payments: {
         Row: {
           candidate_id: string | null
