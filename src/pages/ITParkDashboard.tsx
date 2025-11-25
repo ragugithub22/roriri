@@ -119,8 +119,10 @@ export default function ITParkDashboard() {
                           onClick={() => {
                             if (item.isLogout) {
                               handleLogout();
-                            } else {
+                            } else if (pageComponents[item.path]) {
                               setActiveItem(item);
+                            } else {
+                              navigate(item.path);
                             }
                           }}
                           className="w-full"
