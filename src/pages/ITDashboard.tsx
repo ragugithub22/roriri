@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle } from "lucide-react";
+import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
 import { useQuery } from "@tanstack/react-query";
@@ -120,6 +119,45 @@ const ITDashboard = () => {
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
+        
+        {activeItem === "internship" && (
+          <Sidebar className="border-l">
+            <SidebarHeader>
+              <div className="px-2">
+                <h2 className="text-lg font-semibold">Internship</h2>
+              </div>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel></SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {[
+                      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+                      { id: "candidate", label: "Candidate", icon: Users },
+                      { id: "enquiry", label: "Enquiry", icon: MessageSquare },
+                      { id: "course", label: "Course", icon: BookOpen },
+                      { id: "payment-report", label: "Payment Report", icon: CreditCard },
+                      { id: "id-card", label: "ID Card Details", icon: FileText },
+                      { id: "chat", label: "Chat Box", icon: MessageCircle },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <SidebarMenuItem key={item.id}>
+                          <SidebarMenuButton className="w-full">
+                            <Icon className="h-4 w-4" />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </Sidebar>
+        )}
+        
         <SidebarInset>
           <DashboardLayout
             entityName="RORIRI IT Company"
