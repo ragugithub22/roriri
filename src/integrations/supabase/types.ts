@@ -2054,6 +2054,38 @@ export type Database = {
         }
         Relationships: []
       }
+      internship_id_cards: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          id: string
+          id_card_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          id?: string
+          id_card_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          id?: string
+          id_card_number?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internship_id_cards_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "internship_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internship_payments: {
         Row: {
           candidate_id: string | null
