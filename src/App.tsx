@@ -83,6 +83,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/industrial-visit/registration" element={<IndustrialVisitRegistration />} />
             <Route path="/" element={<Index />} />
             <Route path="/academy" element={<ProtectedRoute><AcademyDashboard /></ProtectedRoute>} />
             <Route path="/it-academy" element={<ProtectedRoute><ITAcademyDashboard /></ProtectedRoute>} />
