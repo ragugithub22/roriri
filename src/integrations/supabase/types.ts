@@ -2368,6 +2368,36 @@ export type Database = {
           },
         ]
       }
+      meeting_details: {
+        Row: {
+          created_at: string | null
+          date: string
+          hours: number
+          id: string
+          meeting_for: string
+          participants: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          hours: number
+          id?: string
+          meeting_for: string
+          participants: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          hours?: number
+          id?: string
+          meeting_for?: string
+          participants?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
