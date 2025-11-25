@@ -2372,7 +2372,7 @@ export type Database = {
         Row: {
           created_at: string | null
           date: string
-          hours: number
+          hours: string
           id: string
           meeting_for: string
           participants: string
@@ -2381,7 +2381,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           date: string
-          hours: number
+          hours: string
           id?: string
           meeting_for: string
           participants: string
@@ -2390,7 +2390,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           date?: string
-          hours?: number
+          hours?: string
           id?: string
           meeting_for?: string
           participants?: string
