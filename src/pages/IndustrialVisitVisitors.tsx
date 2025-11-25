@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,15 +21,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar, FileDown, Edit, Trash2 } from "lucide-react";
+import { Calendar, Edit, Trash2, Eye, Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 interface Visitor {
   id: string;
@@ -43,7 +46,10 @@ export default function IndustrialVisitVisitors() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     college_name: "",
@@ -62,6 +68,19 @@ export default function IndustrialVisitVisitors() {
       
       if (error) throw error;
       return data as Visitor[];
+    },
+  });
+
+  const { data: sliderImages = [] } = useQuery({
+    queryKey: ["industrial-visit-slider"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("industrial_visit_slider_images")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -150,6 +169,43 @@ export default function IndustrialVisitVisitors() {
     });
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('industrial-visit-slider')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('industrial-visit-slider')
+        .getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase
+        .from('industrial_visit_slider_images')
+        .insert([{ image_url: publicUrl }]);
+
+      if (dbError) throw dbError;
+
+      queryClient.invalidateQueries({ queryKey: ["industrial-visit-slider"] });
+      toast.success("Image uploaded successfully");
+      setIsUploadOpen(false);
+    } catch (error) {
+      toast.error("Failed to upload image");
+      console.error(error);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const filteredVisitors = visitors.filter((visitor) =>
     visitor.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     visitor.department.toLowerCase().includes(searchTerm.toLowerCase())
@@ -174,6 +230,7 @@ export default function IndustrialVisitVisitors() {
           <TableHeader>
             <TableRow>
               <TableHead>S. No</TableHead>
+              <TableHead>QR Code</TableHead>
               <TableHead>College Name</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Department</TableHead>
@@ -189,33 +246,48 @@ export default function IndustrialVisitVisitors() {
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((visitor, index) => (
-                <TableRow key={visitor.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{visitor.college_name}</TableCell>
-                  <TableCell>{new Date(visitor.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{visitor.department}</TableCell>
-                  <TableCell>₹{visitor.amount}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(visitor)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(visitor.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              data.map((visitor, index) => {
+                const registrationUrl = `${window.location.origin}/industrial-visit-registration/${visitor.id}`;
+                return (
+                  <TableRow key={visitor.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      <div className="p-2 bg-white rounded">
+                        <QRCodeSVG value={registrationUrl} size={64} />
+                      </div>
+                    </TableCell>
+                    <TableCell>{visitor.college_name}</TableCell>
+                    <TableCell>{new Date(visitor.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{visitor.department}</TableCell>
+                    <TableCell>₹{visitor.amount}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/industrial-visit-visitor-details/${visitor.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(visitor)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(visitor.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -233,18 +305,71 @@ export default function IndustrialVisitVisitors() {
 
   return (
     <div className="p-6 space-y-6">
+      {sliderImages.length > 0 && (
+        <div className="mb-8">
+          <Carousel
+            opts={{ align: "start", loop: true }}
+            plugins={[Autoplay({ delay: 3000 })]}
+            className="w-full"
+          >
+            <CarouselContent>
+              {sliderImages.map((image) => (
+                <CarouselItem key={image.id}>
+                  <div className="aspect-[21/9] relative rounded-lg overflow-hidden">
+                    <img
+                      src={image.image_url}
+                      alt="Industrial visit"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Industrial Visit Visitors</h1>
           <p className="text-muted-foreground mt-2">Manage upcoming and completed visits</p>
         </div>
-        <Dialog open={isAddOpen || !!editingVisitor} onOpenChange={(open) => {
-          setIsAddOpen(open);
-          if (!open) {
-            setEditingVisitor(null);
-            resetForm();
-          }
-        }}>
+        <div className="flex gap-2">
+          <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Slider Image
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Upload Slider Image</DialogTitle>
+                <DialogDescription>
+                  Select an image to add to the slider
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage && <p className="text-sm text-muted-foreground">Uploading...</p>}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isAddOpen || !!editingVisitor} onOpenChange={(open) => {
+            setIsAddOpen(open);
+            if (!open) {
+              setEditingVisitor(null);
+              resetForm();
+            }
+          }}>
           <DialogTrigger asChild>
             <Button onClick={() => setIsAddOpen(true)}>
               <Calendar className="h-4 w-4 mr-2" />
@@ -319,6 +444,7 @@ export default function IndustrialVisitVisitors() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <VisitorTable data={filteredVisitors} />
