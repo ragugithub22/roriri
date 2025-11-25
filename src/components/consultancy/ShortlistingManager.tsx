@@ -135,7 +135,7 @@ const ShortlistingManager = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("consultancy_shortlistings")
+        .from("consultancy_shortlistings" as any)
         .delete()
         .eq("id", id);
       if (error) throw error;
