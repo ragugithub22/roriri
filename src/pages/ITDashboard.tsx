@@ -85,12 +85,12 @@ const ITDashboard = () => {
   };
 
   return (
-    <SidebarProvider defaultOpen={activeItem !== "internship"}>
+    <SidebarProvider open={activeItem !== "internship"}>
       <div className="flex min-h-screen w-full">
-        <Sidebar collapsible="icon" className={activeItem === "internship" ? "w-16" : ""}>
-          <SidebarHeader>
+        <Sidebar collapsible="icon" className="data-[state=collapsed]:w-16">
+          <SidebarHeader className={activeItem === "internship" ? "px-2" : ""}>
             <div className="flex items-center gap-2 px-2">
-              <Laptop className="h-6 w-6 text-primary" />
+              <Laptop className="h-6 w-6 text-primary shrink-0" />
               {activeItem !== "internship" && <h1 className="text-xl font-bold">IT Company</h1>}
             </div>
           </SidebarHeader>
@@ -109,7 +109,7 @@ const ITDashboard = () => {
                           isActive={activeItem === item.id}
                           tooltip={activeItem === "internship" ? item.label : undefined}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-4 w-4 shrink-0" />
                           {activeItem !== "internship" && <span>{item.label}</span>}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
