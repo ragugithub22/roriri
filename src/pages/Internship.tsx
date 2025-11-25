@@ -1,18 +1,5 @@
 import { useState } from "react";
 import { LayoutDashboard, Users, MessageSquare, BookOpen, CreditCard, FileText, MessageCircle } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import CandidatePage from "./internship/CandidatePage";
 import EnquiryPage from "./internship/EnquiryPage";
 import CoursePage from "./internship/CoursePage";
@@ -20,6 +7,7 @@ import PaymentReportPage from "./internship/PaymentReportPage";
 import IDCardPage from "./internship/IDCardPage";
 import ChatBoxPage from "./internship/ChatBoxPage";
 import InternshipDashboard from "./internship/InternshipDashboard";
+import { cn } from "@/lib/utils";
 
 const internshipItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -56,44 +44,36 @@ const Internship = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex h-full w-full">
-        <Sidebar className="border-l">
-          <SidebarHeader>
-            <div className="px-2">
-              <h2 className="text-lg font-semibold">Internship</h2>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel></SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {internshipItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton
-                          onClick={() => setActiveItem(item.id)}
-                          className="w-full"
-                          isActive={activeItem === item.id}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-        <div className="flex-1 p-6">
-          {renderActiveComponent()}
+    <div className="flex h-full w-full">
+      <aside className="w-64 border-r border-border bg-background">
+        <div className="p-4 border-b border-border">
+          <h2 className="text-lg font-semibold">Internship</h2>
         </div>
+        <nav className="p-2">
+          {internshipItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveItem(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                  activeItem === item.id
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "hover:bg-accent/50 text-muted-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+      <div className="flex-1 p-6 overflow-auto">
+        {renderActiveComponent()}
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 

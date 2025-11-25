@@ -84,13 +84,13 @@ const ITDashboard = () => {
   };
 
   return (
-    <SidebarProvider open={activeItem !== "internship"}>
+    <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar collapsible="icon" className="data-[state=collapsed]:w-16">
-          <SidebarHeader className={activeItem === "internship" ? "px-2" : ""}>
+        <Sidebar collapsible="icon">
+          <SidebarHeader>
             <div className="flex items-center gap-2 px-2">
               <Laptop className="h-6 w-6 text-primary shrink-0" />
-              {activeItem !== "internship" && <h1 className="text-xl font-bold">IT Company</h1>}
+              <h1 className="text-xl font-bold">IT Company</h1>
             </div>
           </SidebarHeader>
           <SidebarContent>
