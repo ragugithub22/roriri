@@ -47,7 +47,7 @@ const FarmFoodOrdersManager = () => {
     queryKey: ["farm-food-orders"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("farm_food_orders")
+        .from("farm_food_orders" as any)
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -58,7 +58,7 @@ const FarmFoodOrdersManager = () => {
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
-        .from("farm_food_orders")
+        .from("farm_food_orders" as any)
         .insert([{
           ...data,
           total_amount: parseFloat(data.total_amount)
@@ -79,7 +79,7 @@ const FarmFoodOrdersManager = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
       const { error } = await supabase
-        .from("farm_food_orders")
+        .from("farm_food_orders" as any)
         .update({
           ...data,
           total_amount: parseFloat(data.total_amount)
@@ -101,7 +101,7 @@ const FarmFoodOrdersManager = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("farm_food_orders")
+        .from("farm_food_orders" as any)
         .delete()
         .eq("id", id);
       if (error) throw error;

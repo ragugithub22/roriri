@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Upload, Download, Eye, Trash2, ArrowLeft } from "lucide-react";
+import { Upload, Download, Eye, Trash2, ArrowLeft, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import MOUGenerator from "@/components/mou/MOUGenerator";
 
 interface MOUDocument {
   id: string;
@@ -154,16 +156,32 @@ export default function MOUManagement() {
       </header>
 
       <main className="container mx-auto max-w-7xl py-8 px-6">
-        <Card>
-         
-          <CardContent>
-            <div className="flex justify-between items-center mb-4">
-              <div></div>
-              <Button onClick={() => setIsUploadDialogOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload MOU
-              </Button>
-            </div>
+        <Tabs defaultValue="generate" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="generate">
+              <FileText className="h-4 w-4 mr-2" />
+              Generate MOU
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+              <Upload className="h-4 w-4 mr-2" />
+              Uploaded Documents
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="generate" className="mt-6">
+            <MOUGenerator onClose={() => {}} />
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div></div>
+                  <Button onClick={() => setIsUploadDialogOpen(true)}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload MOU
+                  </Button>
+                </div>
 
             <div className="rounded-md border">
               <Table>
@@ -253,9 +271,11 @@ export default function MOUManagement() {
                   </PaginationContent>
                 </Pagination>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>

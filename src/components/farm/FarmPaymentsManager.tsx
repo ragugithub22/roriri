@@ -48,7 +48,7 @@ const FarmPaymentsManager = () => {
     queryKey: ["farm-payments"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("farm_payments")
+        .from("farm_payments" as any)
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -59,7 +59,7 @@ const FarmPaymentsManager = () => {
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
-        .from("farm_payments")
+        .from("farm_payments" as any)
         .insert([{
           ...data,
           amount: parseFloat(data.amount)
@@ -80,7 +80,7 @@ const FarmPaymentsManager = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
       const { error } = await supabase
-        .from("farm_payments")
+        .from("farm_payments" as any)
         .update({
           ...data,
           amount: parseFloat(data.amount)
@@ -102,7 +102,7 @@ const FarmPaymentsManager = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("farm_payments")
+        .from("farm_payments" as any)
         .delete()
         .eq("id", id);
       if (error) throw error;
