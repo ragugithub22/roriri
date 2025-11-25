@@ -18,6 +18,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import IndustrialVisit from "@/pages/IndustrialVisit";
 import IndustrialVisitEnquiry from "@/pages/IndustrialVisitEnquiry";
+import IndustrialVisitVisitors from "@/pages/IndustrialVisitVisitors";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2 } from "lucide-react";
 import {
@@ -44,6 +45,7 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/entities": EntitiesManagement,
   "/industrial-visit": IndustrialVisit,
   "/industrial-visit/enquiry": IndustrialVisitEnquiry,
+  "/industrial-visit/visitors": IndustrialVisitVisitors,
   "/reports": ReportsPage,
   "/settings": SettingsPage,
 };
