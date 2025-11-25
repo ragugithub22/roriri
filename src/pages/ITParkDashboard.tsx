@@ -16,6 +16,7 @@ import AssetManagement from "@/pages/AssetManagement";
 import EntitiesManagement from "@/pages/EntitiesManagement";
 import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
+import IndustrialVisit from "@/pages/IndustrialVisit";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2 } from "lucide-react";
 import {
@@ -40,6 +41,7 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/hostel": HostelManagement,
   "/asset-management": AssetManagement,
   "/entities": EntitiesManagement,
+  "/industrial-visit": IndustrialVisit,
   "/reports": ReportsPage,
   "/settings": SettingsPage,
 };
@@ -119,10 +121,8 @@ export default function ITParkDashboard() {
                           onClick={() => {
                             if (item.isLogout) {
                               handleLogout();
-                            } else if (pageComponents[item.path]) {
-                              setActiveItem(item);
                             } else {
-                              navigate(item.path);
+                              setActiveItem(item);
                             }
                           }}
                           className="w-full"
