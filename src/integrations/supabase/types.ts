@@ -1795,6 +1795,51 @@ export type Database = {
           },
         ]
       }
+      hostel_payments: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_mode: string | null
+          pending_amount: number
+          received_amount: number
+          received_by: string | null
+          resident_id: string
+          resident_type: string
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_mode?: string | null
+          pending_amount: number
+          received_amount: number
+          received_by?: string | null
+          resident_id: string
+          resident_type: string
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_mode?: string | null
+          pending_amount?: number
+          received_amount?: number
+          received_by?: string | null
+          resident_id?: string
+          resident_type?: string
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       impact_metrics: {
         Row: {
           created_at: string | null

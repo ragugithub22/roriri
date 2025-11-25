@@ -50,6 +50,7 @@ import ITParkDashboard from "./pages/ITParkDashboard";
 import RolesList from "./pages/RolesList";
 import MOUManagement from "./pages/MOUManagement";
 import HostelManagement from "./pages/HostelManagement";
+import HostelResidentDetail from "./pages/HostelResidentDetail";
 import AssetManagement from "./pages/AssetManagement";
 import EntitiesManagement from "./pages/EntitiesManagement";
 import SyllabusDetails from "./pages/SyllabusDetails";
@@ -121,6 +122,7 @@ const App = () => (
             <Route path="/roles" element={<ProtectedRoute><RolesList /></ProtectedRoute>} />
             <Route path="/mou" element={<ProtectedRoute><MOUManagement /></ProtectedRoute>} />
             <Route path="/hostel" element={<ProtectedRoute><HostelManagement /></ProtectedRoute>} />
+            <Route path="/hostel/:type/:id" element={<ProtectedRoute><HostelResidentDetail /></ProtectedRoute>} />
             <Route path="/asset-management" element={<ProtectedRoute><AssetManagement /></ProtectedRoute>} />
             <Route path="/entities" element={<ProtectedRoute><EntitiesManagement /></ProtectedRoute>} />
             <Route path="/syllabus/:subjectId" element={<ProtectedRoute><SyllabusDetails /></ProtectedRoute>} />
