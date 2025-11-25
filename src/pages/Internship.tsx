@@ -35,18 +35,24 @@ const Internship = () => {
   const [activeItem, setActiveItem] = useState("dashboard");
 
   const renderActiveComponent = () => {
-    return (
-      <Routes>
-        <Route index element={<InternshipDashboard />} />
-        <Route path="candidate" element={<CandidatePage />} />
-        <Route path="candidate/:id" element={<InternDetails />} />
-        <Route path="enquiry" element={<EnquiryPage />} />
-        <Route path="course" element={<CoursePage />} />
-        <Route path="payment-report" element={<PaymentReportPage />} />
-        <Route path="id-card" element={<IDCardPage />} />
-        <Route path="chat" element={<ChatBoxPage />} />
-      </Routes>
-    );
+    switch (activeItem) {
+      case "dashboard":
+        return <InternshipDashboard />;
+      case "candidate":
+        return <CandidatePage />;
+      case "enquiry":
+        return <EnquiryPage />;
+      case "course":
+        return <CoursePage />;
+      case "payment-report":
+        return <PaymentReportPage />;
+      case "id-card":
+        return <IDCardPage />;
+      case "chat":
+        return <ChatBoxPage />;
+      default:
+        return <InternshipDashboard />;
+    }
   };
 
   return (
