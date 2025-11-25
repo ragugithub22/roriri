@@ -32,10 +32,10 @@ const ReportsManager = () => {
     queryKey: ["consultancy-job-openings"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("consultancy_job_openings")
+        .from("consultancy_job_openings" as any)
         .select("*");
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -44,10 +44,10 @@ const ReportsManager = () => {
     queryKey: ["consultancy-candidates"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("consultancy_candidates")
+        .from("consultancy_candidates" as any)
         .select("*");
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -56,10 +56,10 @@ const ReportsManager = () => {
     queryKey: ["consultancy-placements"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("consultancy_placements")
+        .from("consultancy_placements" as any)
         .select("*");
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -68,10 +68,10 @@ const ReportsManager = () => {
     queryKey: ["consultancy-payments"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("consultancy_payments")
+        .from("consultancy_payments" as any)
         .select("*");
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -80,10 +80,10 @@ const ReportsManager = () => {
     queryKey: ["consultancy-interviews"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("consultancy_interviews")
+        .from("consultancy_interviews" as any)
         .select("*");
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 

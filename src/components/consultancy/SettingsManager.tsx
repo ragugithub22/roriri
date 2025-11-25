@@ -43,7 +43,7 @@ const SettingsManager = () => {
     queryKey: ["consultancy-settings"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("consultancy_settings")
+        .from("consultancy_settings" as any)
         .select("*")
         .order("category", { ascending: true });
       if (error) throw error;
@@ -54,7 +54,7 @@ const SettingsManager = () => {
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
-        .from("consultancy_settings")
+        .from("consultancy_settings" as any)
         .insert([data]);
       if (error) throw error;
     },
@@ -72,7 +72,7 @@ const SettingsManager = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
       const { error } = await supabase
-        .from("consultancy_settings")
+        .from("consultancy_settings" as any)
         .update({ ...data, updated_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
@@ -91,7 +91,7 @@ const SettingsManager = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("consultancy_settings")
+        .from("consultancy_settings" as any)
         .delete()
         .eq("id", id);
       if (error) throw error;
@@ -142,7 +142,7 @@ const SettingsManager = () => {
   const handleQuickUpdate = async (id: string, value: string) => {
     try {
       const { error } = await supabase
-        .from("consultancy_settings")
+        .from("consultancy_settings" as any)
         .update({
           setting_value: value,
           updated_at: new Date().toISOString()
