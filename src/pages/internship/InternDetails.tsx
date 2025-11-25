@@ -410,9 +410,7 @@ export default function InternDetails() {
                       <TableCell>{payment.received_by || "N/A"}</TableCell>
                       <TableCell className="capitalize">{payment.payment_mode || "N/A"}</TableCell>
                       <TableCell>
-                        <Badge variant={Number(payment.pending_amount) === 0 ? "default" : "secondary"}>
-                          {Number(payment.pending_amount) === 0 ? "Paid" : "Pending"}
-                        </Badge>
+                        <Badge variant="default">Paid</Badge>
                       </TableCell>
                       <TableCell>
                         <Button
