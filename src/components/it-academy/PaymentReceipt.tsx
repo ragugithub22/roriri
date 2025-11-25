@@ -4,11 +4,15 @@ import { Download } from "lucide-react";
 
 interface PaymentReceiptProps {
   receiptData: {
-    payment_code: string;
+    payment_code?: string;
+    receipt_id?: string;
     payment_date: string;
-    amount: number;
-    payment_method: string;
-    studentName: string;
+    amount?: number;
+    paid_amount?: number;
+    payment_method?: string;
+    payment_mode?: string;
+    studentName?: string;
+    candidateName?: string;
     courseName: string;
     totalFees: number;
     balance: number;
@@ -20,10 +24,15 @@ export function PaymentReceipt({ receiptData }: PaymentReceiptProps) {
     window.print();
   };
 
+  const receiptId = receiptData.payment_code || receiptData.receipt_id || 'N/A';
+  const paidAmount = receiptData.amount || receiptData.paid_amount || 0;
+  const paymentMethod = receiptData.payment_method || receiptData.payment_mode || 'N/A';
+  const studentName = receiptData.studentName || receiptData.candidateName || 'N/A';
+
   useEffect(() => {
     // Set page title for the receipt
-    document.title = `Receipt - ${receiptData.payment_code}`;
-  }, [receiptData.payment_code]);
+    document.title = `Receipt - ${receiptId}`;
+  }, [receiptId]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -69,7 +78,7 @@ export function PaymentReceipt({ receiptData }: PaymentReceiptProps) {
           </div>
           <div className="md:text-right">
             <p className="mb-2 text-sm md:text-base">
-              <span className="font-semibold">Student Name :</span> {receiptData.studentName}
+              <span className="font-semibold">Student Name :</span> {studentName}
             </p>
           </div>
           <div>
@@ -98,10 +107,10 @@ export function PaymentReceipt({ receiptData }: PaymentReceiptProps) {
               <tr>
                 <td className="py-3 px-3 md:px-4 text-sm md:text-base">Fees</td>
                 <td className="py-3 px-3 md:px-4 text-center border-l border-black capitalize text-sm md:text-base">
-                  {receiptData.payment_method}
+                  {paymentMethod}
                 </td>
                 <td className="py-3 px-3 md:px-4 text-right border-l border-black text-sm md:text-base">
-                  Rs. {Number(receiptData.amount).toFixed(2)}
+                  Rs. {Number(paidAmount).toFixed(2)}
                 </td>
               </tr>
             </tbody>
@@ -113,7 +122,7 @@ export function PaymentReceipt({ receiptData }: PaymentReceiptProps) {
           <div className="w-full md:w-64 space-y-2">
             <div className="flex justify-between py-2 border-t border-black text-sm md:text-base">
               <span className="font-semibold">Total</span>
-              <span className="font-semibold">Rs. {Number(receiptData.amount).toFixed(2)}</span>
+              <span className="font-semibold">Rs. {Number(paidAmount).toFixed(2)}</span>
             </div>
             <div className="flex justify-between py-2 text-sm md:text-base">
               <span className="font-semibold">Balance</span>
