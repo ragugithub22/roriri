@@ -56,6 +56,14 @@ import EntitiesManagement from "./pages/EntitiesManagement";
 import SyllabusDetails from "./pages/SyllabusDetails";
 import ReceiptPage from "./pages/ReceiptPage";
 import CertificatePage from "./pages/CertificatePage";
+import InternshipLayout from "./components/internship/InternshipLayout";
+import InternshipDashboard from "./pages/internship/InternshipDashboard";
+import CandidatePage from "./pages/internship/CandidatePage";
+import EnquiryPage from "./pages/internship/EnquiryPage";
+import CoursePage from "./pages/internship/CoursePage";
+import PaymentReportPage from "./pages/internship/PaymentReportPage";
+import IDCardPage from "./pages/internship/IDCardPage";
+import ChatBoxPage from "./pages/internship/ChatBoxPage";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +136,18 @@ const App = () => (
             <Route path="/syllabus/:subjectId" element={<ProtectedRoute><SyllabusDetails /></ProtectedRoute>} />
             <Route path="/receipt" element={<ReceiptPage />} />
             <Route path="/certificate" element={<CertificatePage />} />
+            
+            {/* Internship Routes with Nested Sidebar */}
+            <Route path="/internship" element={<ProtectedRoute><InternshipLayout /></ProtectedRoute>}>
+              <Route index element={<InternshipDashboard />} />
+              <Route path="candidate" element={<CandidatePage />} />
+              <Route path="enquiry" element={<EnquiryPage />} />
+              <Route path="course" element={<CoursePage />} />
+              <Route path="payment-report" element={<PaymentReportPage />} />
+              <Route path="id-card" element={<IDCardPage />} />
+              <Route path="chat" element={<ChatBoxPage />} />
+            </Route>
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
