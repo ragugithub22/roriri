@@ -4,32 +4,35 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Send } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Contact {
-  id: number;
+interface Candidate {
+  id: string;
   name: string;
-  avatar?: string;
+  image_url: string | null;
 }
 
-const contacts: Contact[] = [
-  { id: 1, name: "Admin" },
-  { id: 2, name: "Demo" },
-  { id: 3, name: "Demo" },
-  { id: 4, name: "Durga devi S" },
-  { id: 5, name: "Rajeswari A" },
-  { id: 6, name: "Ayira Lakshmi Gayathri S" },
-  { id: 7, name: "Magdaline Jully J" },
-  { id: 8, name: "Nambi Rajan S" },
-  { id: 9, name: "ABDUL WAJIDH R K S" },
-];
-
 export default function ChatBoxPage() {
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Candidate | null>(null);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data: candidates = [], isLoading } = useQuery({
+    queryKey: ["internship-candidates-chat"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("internship_candidates")
+        .select("id, name, image_url")
+        .order("name");
+
+      if (error) throw error;
+      return data as Candidate[];
+    },
+  });
+
+  const filteredContacts = candidates.filter((candidate) =>
+    candidate.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSendMessage = () => {
@@ -67,22 +70,32 @@ export default function ChatBoxPage() {
         {/* Contact List */}
         <ScrollArea className="flex-1">
           <div className="p-2">
-            {filteredContacts.map((contact) => (
-              <button
-                key={contact.id}
-                onClick={() => setSelectedContact(contact)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors ${
-                  selectedContact?.id === contact.id ? "bg-accent" : ""
-                }`}
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-muted text-muted-foreground">
-                    {contact.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="font-medium text-foreground text-left">{contact.name}</span>
-              </button>
-            ))}
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4 text-muted-foreground">
+                Loading candidates...
+              </div>
+            ) : filteredContacts.length === 0 ? (
+              <div className="flex items-center justify-center p-4 text-muted-foreground">
+                No candidates found
+              </div>
+            ) : (
+              filteredContacts.map((candidate) => (
+                <button
+                  key={candidate.id}
+                  onClick={() => setSelectedContact(candidate)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors ${
+                    selectedContact?.id === candidate.id ? "bg-accent" : ""
+                  }`}
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-muted text-muted-foreground">
+                      {candidate.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-foreground text-left">{candidate.name}</span>
+                </button>
+              ))
+            )}
           </div>
         </ScrollArea>
       </div>
