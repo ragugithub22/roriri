@@ -45,7 +45,6 @@ const sidebarItems = [
 ];
 
 const ITDashboard = () => {
-  const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("dashboard");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
@@ -74,6 +73,8 @@ const ITDashboard = () => {
         return <ProjectDetails />;
       case "coordinator":
         return <Coordinator />;
+      case "internship":
+        return <Internship />;
       case "mou":
         return <MOU />;
       case "meeting-details":
@@ -84,13 +85,13 @@ const ITDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={activeItem !== "internship"}>
       <div className="flex min-h-screen w-full">
-        <Sidebar>
+        <Sidebar collapsible="icon" className={activeItem === "internship" ? "w-16" : ""}>
           <SidebarHeader>
             <div className="flex items-center gap-2 px-2">
               <Laptop className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">IT Company</h1>
+              {activeItem !== "internship" && <h1 className="text-xl font-bold">IT Company</h1>}
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -103,18 +104,13 @@ const ITDashboard = () => {
                     return (
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
-                          onClick={() => {
-                            if (item.id === "internship") {
-                              navigate("/internship");
-                            } else {
-                              setActiveItem(item.id);
-                            }
-                          }}
+                          onClick={() => setActiveItem(item.id)}
                           className="w-full"
                           isActive={activeItem === item.id}
+                          tooltip={activeItem === "internship" ? item.label : undefined}
                         >
                           <Icon className="h-4 w-4" />
-                          <span>{item.label}</span>
+                          {activeItem !== "internship" && <span>{item.label}</span>}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
