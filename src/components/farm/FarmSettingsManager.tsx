@@ -60,11 +60,11 @@ const FarmSettingsManager = () => {
     queryKey: ["farm-settings"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("farm_settings")
+        .from("farm_settings" as any)
         .select("*")
         .single();
       if (error && error.code !== 'PGRST116') throw error;
-      return data as FarmSettings;
+      return (data as unknown) as FarmSettings;
     },
   });
 
@@ -72,7 +72,7 @@ const FarmSettingsManager = () => {
     mutationFn: async (data: Partial<FarmSettings>) => {
       const { id, ...updateData } = data;
       const { error } = await supabase
-        .from("farm_settings")
+        .from("farm_settings" as any)
         .upsert([{
           ...updateData,
           updated_at: new Date().toISOString()
