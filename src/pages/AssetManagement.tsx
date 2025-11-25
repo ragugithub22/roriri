@@ -39,15 +39,15 @@ export default function AssetManagement() {
 
   const itemsPerPage = 7;
 
-  // Fetch entities for dropdown
-  const { data: entities } = useQuery({
-    queryKey: ['entities-for-assets'],
+  // Fetch IT Park entity
+  const { data: itParkEntity } = useQuery({
+    queryKey: ['it-park-entity'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('entities')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name');
+        .select('id')
+        .eq('code', 'it_park')
+        .single();
       
       if (error) throw error;
       return data;
@@ -69,8 +69,8 @@ export default function AssetManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      if (!data.entity_id) {
-        throw new Error("Please select an entity");
+      if (!itParkEntity?.id) {
+        throw new Error("IT Park entity not found");
       }
       const assetCode = `AST-${Date.now()}`;
       const { error } = await supabase
@@ -80,7 +80,7 @@ export default function AssetManagement() {
           name: data.name,
           category: data.category,
           current_value: parseInt(data.count),
-          entity_id: data.entity_id,
+          entity_id: itParkEntity.id,
           status: 'active'
         });
       if (error) throw error;
@@ -280,25 +280,6 @@ export default function AssetManagement() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="entity">Entity</Label>
-                <Select
-                  value={formData.entity_id}
-                  onValueChange={(value) => setFormData({ ...formData, entity_id: value })}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select entity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {entities?.map((entity) => (
-                      <SelectItem key={entity.id} value={entity.id}>
-                        {entity.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
                 <Select
