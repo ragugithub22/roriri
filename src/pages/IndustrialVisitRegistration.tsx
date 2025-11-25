@@ -31,6 +31,7 @@ export default function IndustrialVisitRegistration() {
   const { data: visitorRecord } = useQuery({
     queryKey: ["visitor-record", visitorId],
     queryFn: async () => {
+      if (!visitorId) return null;
       const { data, error } = await supabase
         .from("industrial_visit_visitors")
         .select("*")
@@ -47,7 +48,7 @@ export default function IndustrialVisitRegistration() {
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from("industrial_visit_registrations")
-        .insert([{ ...data, visitor_record_id: visitorId }]);
+        .insert([{ ...data, visitor_record_id: visitorId || null }]);
       if (error) throw error;
     },
     onSuccess: () => {

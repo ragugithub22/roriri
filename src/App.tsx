@@ -147,6 +147,7 @@ const App = () => (
             <Route path="/industrial-visit/enquiry" element={<ProtectedRoute><IndustrialVisitEnquiry /></ProtectedRoute>} />
             <Route path="/industrial-visit/visitors" element={<ProtectedRoute><IndustrialVisitVisitors /></ProtectedRoute>} />
             <Route path="/industrial-visit/payment-report" element={<ProtectedRoute><IndustrialVisitPaymentReport /></ProtectedRoute>} />
+            <Route path="/industrial-visit/registration" element={<IndustrialVisitRegistration />} />
             <Route path="/industrial-visit-registration/:visitorId" element={<IndustrialVisitRegistration />} />
             <Route path="/industrial-visit-visitor-details/:visitorId" element={<ProtectedRoute><IndustrialVisitVisitorDetails /></ProtectedRoute>} />
             
