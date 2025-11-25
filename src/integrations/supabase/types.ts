@@ -958,6 +958,44 @@ export type Database = {
           },
         ]
       }
+      coordinators: {
+        Row: {
+          category_name: string
+          coordinator_name: string
+          created_at: string | null
+          description: string | null
+          entity_id: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_name: string
+          coordinator_name: string
+          created_at?: string | null
+          description?: string | null
+          entity_id: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_name?: string
+          coordinator_name?: string
+          created_at?: string | null
+          description?: string | null
+          entity_id?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordinators_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           certification_available: boolean | null
