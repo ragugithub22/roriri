@@ -3047,6 +3047,60 @@ export type Database = {
         }
         Relationships: []
       }
+      roriri_project_details: {
+        Row: {
+          assigned_by: string | null
+          assigned_to: string | null
+          created_at: string | null
+          description: string | null
+          duration_unit: string
+          duration_value: number
+          id: string
+          project_name: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_unit: string
+          duration_value: number
+          id?: string
+          project_name: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_unit?: string
+          duration_value?: number
+          id?: string
+          project_name?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roriri_project_details_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roriri_project_details_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roriri_project_enquiry: {
         Row: {
           client_name: string
