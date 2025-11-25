@@ -144,7 +144,7 @@ export default function InternDetails() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Header with Back Button */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate("/internship/candidate")} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
