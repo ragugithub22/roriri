@@ -3,8 +3,20 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Users, FileText, DollarSign } from "lucide-react";
 
-const IndustrialVisit = () => {
+interface IndustrialVisitProps {
+  onNavigate?: (path: string) => void;
+}
+
+const IndustrialVisit = ({ onNavigate }: IndustrialVisitProps) => {
   const navigate = useNavigate();
+  
+  const handleCardClick = (path: string) => {
+    if (onNavigate) {
+      onNavigate(path);
+    } else {
+      navigate(path);
+    }
+  };
 
   const cards = [
     {
@@ -56,7 +68,7 @@ const IndustrialVisit = () => {
               </CardHeader>
               <CardContent>
                 <Button 
-                  onClick={() => navigate(card.path)}
+                  onClick={() => handleCardClick(card.path)}
                   className="w-full"
                 >
                   Open
