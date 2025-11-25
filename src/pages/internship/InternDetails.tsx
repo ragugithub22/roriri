@@ -389,7 +389,6 @@ export default function InternDetails() {
                 <TableRow>
                   <TableHead>S. No</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Total Amount</TableHead>
                   <TableHead>Paid Amount</TableHead>
                   <TableHead>Received By</TableHead>
                   <TableHead>Payment Mode</TableHead>
@@ -400,14 +399,13 @@ export default function InternDetails() {
               <TableBody>
                 {payments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center">No payment records found</TableCell>
+                    <TableCell colSpan={7} className="text-center">No payment records found</TableCell>
                   </TableRow>
                 ) : (
                   payments.map((payment, index) => (
                     <TableRow key={payment.id}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
-                      <TableCell>₹{Number(payment.total_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-green-600">₹{Number(payment.paid_amount).toFixed(2)}</TableCell>
                       <TableCell>{payment.received_by || "N/A"}</TableCell>
                       <TableCell className="capitalize">{payment.payment_mode || "N/A"}</TableCell>
