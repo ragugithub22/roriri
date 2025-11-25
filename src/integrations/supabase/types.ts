@@ -1916,6 +1916,137 @@ export type Database = {
           },
         ]
       }
+      internship_candidates: {
+        Row: {
+          address: string | null
+          course_id: string | null
+          created_at: string | null
+          duration_unit: string | null
+          duration_value: number | null
+          email: string | null
+          fees: number | null
+          gender: string | null
+          id: string
+          image_url: string | null
+          incharge_person_id: string | null
+          joining_date: string | null
+          mode: string | null
+          name: string
+          password: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          address?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          duration_unit?: string | null
+          duration_value?: number | null
+          email?: string | null
+          fees?: number | null
+          gender?: string | null
+          id?: string
+          image_url?: string | null
+          incharge_person_id?: string | null
+          joining_date?: string | null
+          mode?: string | null
+          name: string
+          password?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          address?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          duration_unit?: string | null
+          duration_value?: number | null
+          email?: string | null
+          fees?: number | null
+          gender?: string | null
+          id?: string
+          image_url?: string | null
+          incharge_person_id?: string | null
+          joining_date?: string | null
+          mode?: string | null
+          name?: string
+          password?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internship_candidates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internship_candidates_incharge_person_id_fkey"
+            columns: ["incharge_person_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internship_payments: {
+        Row: {
+          candidate_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          paid_amount: number
+          payment_date: string
+          payment_mode: string | null
+          pending_amount: number
+          receipt_id: string
+          received_by: string | null
+          total_amount: number
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paid_amount: number
+          payment_date?: string
+          payment_mode?: string | null
+          pending_amount: number
+          receipt_id: string
+          received_by?: string | null
+          total_amount: number
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          payment_date?: string
+          payment_mode?: string | null
+          pending_amount?: number
+          receipt_id?: string
+          received_by?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internship_payments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "internship_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           category: string
