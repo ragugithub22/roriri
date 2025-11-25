@@ -33,7 +33,7 @@ const FarmReportsManager = () => {
     queryFn: async () => {
       // Get visitor entries
       const { data: visitors, error: visitorsError } = await supabase
-        .from("farm_visitors")
+        .from("farm_visitors" as any)
         .select("*")
         .gte("entry_time", dateRange.start)
         .lte("entry_time", dateRange.end);
@@ -42,7 +42,7 @@ const FarmReportsManager = () => {
 
       // Get payments
       const { data: payments, error: paymentsError } = await supabase
-        .from("farm_payments")
+        .from("farm_payments" as any)
         .select("*")
         .gte("payment_date", dateRange.start)
         .lte("payment_date", dateRange.end);
@@ -51,14 +51,14 @@ const FarmReportsManager = () => {
 
       // Get events
       const { data: events, error: eventsError } = await supabase
-        .from("farm_events")
+        .from("farm_events" as any)
         .select("*");
 
       if (eventsError) throw eventsError;
 
       // Get bookings
       const { data: bookings, error: bookingsError } = await supabase
-        .from("farm_bookings")
+        .from("farm_bookings" as any)
         .select("*")
         .gte("booking_date", dateRange.start)
         .lte("booking_date", dateRange.end);
@@ -66,13 +66,13 @@ const FarmReportsManager = () => {
       if (bookingsError) throw bookingsError;
 
       // Calculate stats
-      const totalVisitors = visitors?.length || 0;
-      const totalRevenue = payments?.reduce((sum, p) => sum + ((p as any).amount || 0), 0) || 0;
-      const totalEvents = events?.length || 0;
-      const totalBookings = bookings?.length || 0;
+      const totalVisitors = (visitors as any)?.length || 0;
+      const totalRevenue = (payments as any)?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0;
+      const totalEvents = (events as any)?.length || 0;
+      const totalBookings = (bookings as any)?.length || 0;
 
       // Group by date for daily stats
-      const dailyStats = visitors?.reduce((acc: any, visitor) => {
+      const dailyStats = (visitors as any)?.reduce((acc: any, visitor: any) => {
         const date = new Date(visitor.entry_time).toISOString().split('T')[0];
         if (!acc[date]) {
           acc[date] = { date, visitors: 0, revenue: 0 };
@@ -138,33 +138,33 @@ const FarmReportsManager = () => {
   const columns = [
     {
       key: "ticket_number",
-      header: "Ticket Number",
+      label: "Ticket Number",
       render: (value: string) => <Badge variant="outline">{value}</Badge>
     },
     {
       key: "visitor_name",
-      header: "Visitor Name"
+      label: "Visitor Name"
     },
     {
       key: "mobile",
-      header: "Mobile"
+      label: "Mobile"
     },
     {
       key: "adults_count",
-      header: "Adults"
+      label: "Adults"
     },
     {
       key: "kids_count",
-      header: "Kids"
+      label: "Kids"
     },
     {
       key: "entry_time",
-      header: "Entry Time",
+      label: "Entry Time",
       render: (value: string) => new Date(value).toLocaleString()
     },
     {
       key: "ticket_price",
-      header: "Amount",
+      label: "Amount",
       render: (value: number) => `₹${value}`
     }
   ];

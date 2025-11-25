@@ -47,7 +47,7 @@ const SettingsManager = () => {
         .select("*")
         .order("category", { ascending: true });
       if (error) throw error;
-      return data as ConsultancySetting[];
+      return (data as unknown) as ConsultancySetting[];
     },
   });
 
@@ -428,11 +428,11 @@ const SettingsManager = () => {
           </CardHeader>
           <CardContent>
             <DataTable
+              title={`${category} Settings`}
               columns={columns}
               data={categorySettings}
               emptyMessage={`No ${category} settings found`}
               isLoading={isLoading}
-              showPagination={false}
             />
           </CardContent>
         </Card>
