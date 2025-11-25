@@ -66,6 +66,9 @@ import PaymentReportPage from "./pages/internship/PaymentReportPage";
 import IDCardPage from "./pages/internship/IDCardPage";
 import ChatBoxPage from "./pages/internship/ChatBoxPage";
 import IndustrialVisit from "./pages/IndustrialVisit";
+import IndustrialVisitEnquiry from "./pages/IndustrialVisitEnquiry";
+import IndustrialVisitVisitors from "./pages/IndustrialVisitVisitors";
+import IndustrialVisitPaymentReport from "./pages/IndustrialVisitPaymentReport";
 
 const queryClient = new QueryClient();
 
@@ -139,6 +142,9 @@ const App = () => (
             <Route path="/receipt" element={<ReceiptPage />} />
             <Route path="/certificate" element={<CertificatePage />} />
             <Route path="/industrial-visit" element={<ProtectedRoute><IndustrialVisit /></ProtectedRoute>} />
+            <Route path="/industrial-visit/enquiry" element={<ProtectedRoute><IndustrialVisitEnquiry /></ProtectedRoute>} />
+            <Route path="/industrial-visit/visitors" element={<ProtectedRoute><IndustrialVisitVisitors /></ProtectedRoute>} />
+            <Route path="/industrial-visit/payment-report" element={<ProtectedRoute><IndustrialVisitPaymentReport /></ProtectedRoute>} />
             
             {/* Internship Routes with Nested Sidebar */}
             <Route path="/internship" element={<ProtectedRoute><InternshipLayout /></ProtectedRoute>}>
