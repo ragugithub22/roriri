@@ -1949,6 +1949,71 @@ export type Database = {
         }
         Relationships: []
       }
+      industrial_visit_registrations: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          mobile: string
+          purpose_of_visit: string
+          updated_at: string | null
+          visitor_record_id: string | null
+          visitor_type: string
+          whom_to_see: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          mobile: string
+          purpose_of_visit: string
+          updated_at?: string | null
+          visitor_record_id?: string | null
+          visitor_type: string
+          whom_to_see?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          mobile?: string
+          purpose_of_visit?: string
+          updated_at?: string | null
+          visitor_record_id?: string | null
+          visitor_type?: string
+          whom_to_see?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "industrial_visit_registrations_visitor_record_id_fkey"
+            columns: ["visitor_record_id"]
+            isOneToOne: false
+            referencedRelation: "industrial_visit_visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      industrial_visit_slider_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string
+        }
+        Relationships: []
+      }
       industrial_visit_visitors: {
         Row: {
           college_name: string
