@@ -35,7 +35,6 @@ const sidebarItems = [
   { id: "dashboard", label: "Dashboard", icon: Laptop },
   { id: "employee", label: "Employee", icon: User },
   { id: "attendance", label: "Attendance", icon: UserCheck },
-  { id: "task-details", label: "Task Details", icon: Clock },
   { id: "meeting-details", label: "Meeting Details", icon: Calendar },
   { id: "project-details", label: "Project Details", icon: Briefcase },
   { id: "clients", label: "Clients", icon: Users },
@@ -77,8 +76,6 @@ const ITDashboard = () => {
         return <Internship />;
       case "mou":
         return <MOU />;
-      case "task-details":
-        return <TaskDetails />;
       case "meeting-details":
         return <MeetingDetails />;
       default:
