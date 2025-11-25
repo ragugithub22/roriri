@@ -84,7 +84,16 @@ const ITDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider 
+      defaultOpen={true}
+      open={activeItem === "internship" ? true : undefined}
+      onOpenChange={(open) => {
+        // Prevent closing when Internship is active
+        if (activeItem === "internship" && !open) {
+          return;
+        }
+      }}
+    >
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="icon">
           <SidebarHeader>
