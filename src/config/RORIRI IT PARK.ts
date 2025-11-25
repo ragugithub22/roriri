@@ -87,14 +87,9 @@ export const navigationItems: NavigationItem[] = [
     icon: Factory
   },
   {
-    label: "Reports",
-    path: "/reports",
-    icon: BarChart3
-  },
-  {
-    label: "Settings",
-    path: "/settings",
-    icon: Settings
+    label: "Industrial Visit",
+    path: "/industrial-visit",
+    icon: Briefcase
   },
   {
     label: "Logout",
