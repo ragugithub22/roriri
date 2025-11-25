@@ -17,6 +17,7 @@ import EntitiesManagement from "@/pages/EntitiesManagement";
 import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import IndustrialVisit from "@/pages/IndustrialVisit";
+import IndustrialVisitEnquiry from "@/pages/IndustrialVisitEnquiry";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2 } from "lucide-react";
 import {
@@ -42,6 +43,7 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/asset-management": AssetManagement,
   "/entities": EntitiesManagement,
   "/industrial-visit": IndustrialVisit,
+  "/industrial-visit/enquiry": IndustrialVisitEnquiry,
   "/reports": ReportsPage,
   "/settings": SettingsPage,
 };
@@ -147,7 +149,11 @@ export default function ITParkDashboard() {
     >
       <div className="space-y-6">
         {ActiveComponent ? (
-          <ActiveComponent />
+          ActiveComponent === IndustrialVisit ? (
+            <IndustrialVisit onNavigate={(path) => setActiveItem({ path } as NavigationItem)} />
+          ) : (
+            <ActiveComponent />
+          )
         ) : (
           <DashboardContent />
         )}
