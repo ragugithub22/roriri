@@ -192,12 +192,10 @@ const MeetingDetails = () => {
                 <Label htmlFor="hours">Hours</Label>
                 <Input
                   id="hours"
-                  type="number"
-                  step="0.5"
-                  min="0"
+                  type="text"
                   value={formData.hours}
                   onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                  placeholder="e.g., 2.5"
+                  placeholder="e.g., 2.5 or 2-3 hours"
                   required
                 />
               </div>
