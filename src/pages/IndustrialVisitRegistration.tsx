@@ -14,11 +14,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function IndustrialVisitRegistration() {
   const { visitorId } = useParams();
   const navigate = useNavigate();
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     mobile: "",
@@ -53,6 +54,7 @@ export default function IndustrialVisitRegistration() {
     },
     onSuccess: () => {
       toast.success("Registration submitted successfully!");
+      setIsSubmitted(true);
       setFormData({
         full_name: "",
         mobile: "",
@@ -73,20 +75,40 @@ export default function IndustrialVisitRegistration() {
     registerMutation.mutate(formData);
   };
 
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center">
+          <div className="bg-card rounded-lg shadow-lg p-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-green-600" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Registration Successful!</h1>
+            <p className="text-muted-foreground mb-6">
+              Thank you for registering. Your information has been submitted successfully.
+            </p>
+            <Button
+              onClick={() => setIsSubmitted(false)}
+              className="w-full"
+            >
+              Register Another Visitor
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-2xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-
         <div className="bg-card rounded-lg shadow-lg p-6">
           <h1 className="text-2xl font-bold mb-2">Industrial Visit Registration</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Please fill in your details to register for the industrial visit
+          </p>
           {visitorRecord && (
             <div className="mb-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">College: <span className="font-semibold text-foreground">{visitorRecord.college_name}</span></p>
