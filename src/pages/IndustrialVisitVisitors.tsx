@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, FileDown, FileSpreadsheet, Copy, Printer, Edit, Trash2 } from "lucide-react";
+import { Calendar, FileDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Visitor {
@@ -194,29 +194,7 @@ export default function IndustrialVisitVisitors() {
 
   const VisitorTable = ({ data }: { data: Visitor[] }) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => {
-            const text = data.map((v, i) => `${i + 1}\t${v.college_name}\t${v.date}\t${v.department}\t${v.students_count}\t${v.staff_count}\t${v.status}`).join("\n");
-            navigator.clipboard.writeText(text);
-            toast.success("Copied to clipboard");
-          }}>
-            <Copy className="h-4 w-4 mr-2" />
-            Copy
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => exportToCSV(data)}>
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Excel
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => exportToCSV(data)}>
-            <FileDown className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Search:</span>
           <Input
