@@ -120,36 +120,6 @@ const ITDashboard = () => {
           </SidebarContent>
         </Sidebar>
         
-        {activeItem === "internship" && (
-          <aside className="w-64 border-l border-border bg-card flex flex-col">
-            <div className="p-4 border-b border-border">
-              <h2 className="text-lg font-semibold">Internship</h2>
-            </div>
-            <nav className="flex-1 p-2 space-y-1">
-              {[
-                { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-                { id: "candidate", label: "Candidate", icon: Users },
-                { id: "enquiry", label: "Enquiry", icon: MessageSquare },
-                { id: "course", label: "Course", icon: BookOpen },
-                { id: "payment-report", label: "Payment Report", icon: CreditCard },
-                { id: "id-card", label: "ID Card Details", icon: FileText },
-                { id: "chat", label: "Chat Box", icon: MessageCircle },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </aside>
-        )}
-        
         <SidebarInset>
           <DashboardLayout
             entityName="RORIRI IT Company"
