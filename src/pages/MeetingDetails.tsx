@@ -15,7 +15,7 @@ interface MeetingDetail {
   date: string;
   meeting_for: string;
   participants: string;
-  hours: number;
+  hours: string;
   created_at: string;
   updated_at: string;
 }
@@ -50,7 +50,7 @@ const MeetingDetails = () => {
         date: data.date,
         meeting_for: data.meeting_for,
         participants: data.participants,
-        hours: parseFloat(data.hours),
+        hours: data.hours,
       });
 
       if (error) throw error;
@@ -74,7 +74,7 @@ const MeetingDetails = () => {
           date: data.date,
           meeting_for: data.meeting_for,
           participants: data.participants,
-          hours: parseFloat(data.hours),
+          hours: data.hours,
         })
         .eq("id", data.id);
 
@@ -130,7 +130,7 @@ const MeetingDetails = () => {
       date: meeting.date,
       meeting_for: meeting.meeting_for,
       participants: meeting.participants,
-      hours: meeting.hours.toString(),
+      hours: meeting.hours,
     });
     setIsDialogOpen(true);
   };
