@@ -1949,6 +1949,42 @@ export type Database = {
         }
         Relationships: []
       }
+      industrial_visit_visitors: {
+        Row: {
+          college_name: string
+          created_at: string | null
+          date: string
+          department: string
+          id: string
+          staff_count: number
+          status: string
+          students_count: number
+          updated_at: string | null
+        }
+        Insert: {
+          college_name: string
+          created_at?: string | null
+          date: string
+          department: string
+          id?: string
+          staff_count?: number
+          status: string
+          students_count?: number
+          updated_at?: string | null
+        }
+        Update: {
+          college_name?: string
+          created_at?: string | null
+          date?: string
+          department?: string
+          id?: string
+          staff_count?: number
+          status?: string
+          students_count?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       internship_candidates: {
         Row: {
           address: string | null
