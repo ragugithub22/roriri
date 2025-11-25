@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, FileDown, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -163,34 +162,6 @@ export default function IndustrialVisitVisitors() {
     visitor.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     visitor.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const upcomingVisitors = filteredVisitors.filter((v) => v.status === "upcoming");
-  const completedVisitors = filteredVisitors.filter((v) => v.status === "completed");
-
-  const exportToCSV = (data: Visitor[]) => {
-    const headers = ["S. No", "College Name", "Date", "Department", "Students Count", "Staff Count", "Status"];
-    const rows = data.map((visitor, index) => [
-      index + 1,
-      visitor.college_name,
-      visitor.date,
-      visitor.department,
-      visitor.students_count,
-      visitor.staff_count,
-      visitor.status,
-    ]);
-    
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(row => row.join(","))
-    ].join("\n");
-    
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "visitors.csv";
-    a.click();
-  };
 
   const VisitorTable = ({ data }: { data: Visitor[] }) => (
     <div className="space-y-4">
@@ -394,26 +365,7 @@ export default function IndustrialVisitVisitors() {
         </Dialog>
       </div>
 
-      <Tabs defaultValue="upcoming" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="upcoming">
-            <Calendar className="h-4 w-4 mr-2" />
-            Upcoming Visits
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            <FileDown className="h-4 w-4 mr-2" />
-            Completed Visits
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="upcoming">
-          <VisitorTable data={upcomingVisitors} />
-        </TabsContent>
-        
-        <TabsContent value="completed">
-          <VisitorTable data={completedVisitors} />
-        </TabsContent>
-      </Tabs>
+      <VisitorTable data={filteredVisitors} />
     </div>
   );
 }
