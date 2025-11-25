@@ -35,9 +35,7 @@ interface Visitor {
   college_name: string;
   date: string;
   department: string;
-  students_count: number;
-  staff_count: number;
-  status: string;
+  amount: number;
   created_at: string;
 }
 
@@ -51,9 +49,7 @@ export default function IndustrialVisitVisitors() {
     college_name: "",
     date: "",
     department: "",
-    students_count: 0,
-    staff_count: 0,
-    status: "upcoming",
+    amount: 0,
   });
 
   const { data: visitors = [] } = useQuery({
@@ -131,9 +127,7 @@ export default function IndustrialVisitVisitors() {
       college_name: "",
       date: "",
       department: "",
-      students_count: 0,
-      staff_count: 0,
-      status: "upcoming",
+      amount: 0,
     });
   };
 
@@ -152,9 +146,7 @@ export default function IndustrialVisitVisitors() {
       college_name: visitor.college_name,
       date: visitor.date,
       department: visitor.department,
-      students_count: visitor.students_count,
-      staff_count: visitor.staff_count,
-      status: visitor.status,
+      amount: visitor.amount,
     });
   };
 
@@ -185,9 +177,7 @@ export default function IndustrialVisitVisitors() {
               <TableHead>College Name</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Department</TableHead>
-              <TableHead>Students Count</TableHead>
-              <TableHead>Staff Count</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -205,15 +195,7 @@ export default function IndustrialVisitVisitors() {
                   <TableCell>{visitor.college_name}</TableCell>
                   <TableCell>{new Date(visitor.date).toLocaleDateString()}</TableCell>
                   <TableCell>{visitor.department}</TableCell>
-                  <TableCell>{visitor.students_count}</TableCell>
-                  <TableCell>{visitor.staff_count}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      visitor.status === "completed" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
-                    }`}>
-                      {visitor.status}
-                    </span>
-                  </TableCell>
+                  <TableCell>₹{visitor.amount}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
@@ -307,24 +289,13 @@ export default function IndustrialVisitVisitors() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="students_count">Students Count *</Label>
+                  <Label htmlFor="amount">Amount *</Label>
                   <Input
-                    id="students_count"
+                    id="amount"
                     type="number"
                     min="0"
-                    value={formData.students_count}
-                    onChange={(e) => setFormData({ ...formData, students_count: parseInt(e.target.value) || 0 })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="staff_count">Staff Count *</Label>
-                  <Input
-                    id="staff_count"
-                    type="number"
-                    min="0"
-                    value={formData.staff_count}
-                    onChange={(e) => setFormData({ ...formData, staff_count: parseInt(e.target.value) || 0 })}
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
                     required
                   />
                 </div>
