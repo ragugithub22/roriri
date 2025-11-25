@@ -37,7 +37,9 @@ interface Candidate {
 
 export default function CandidatePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+  const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     incharge_person_id: "",
@@ -302,7 +304,10 @@ export default function CandidatePage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/internship/candidate/${candidate.id}`)}
+                        onClick={() => {
+                          setViewingCandidate(candidate);
+                          setIsViewDialogOpen(true);
+                        }}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -546,6 +551,103 @@ export default function CandidatePage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Candidate Details</DialogTitle>
+          </DialogHeader>
+          {viewingCandidate && (
+            <div className="space-y-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Personal Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Name</Label>
+                    <p className="font-medium">{viewingCandidate.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Gender</Label>
+                    <p className="font-medium">{viewingCandidate.gender || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Email</Label>
+                    <p className="font-medium">{viewingCandidate.email || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Phone</Label>
+                    <p className="font-medium">{viewingCandidate.phone || "N/A"}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Address</Label>
+                    <p className="font-medium">{viewingCandidate.address || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Course Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Course Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Course</Label>
+                    <p className="font-medium">
+                      {courses.find(c => c.id === viewingCandidate.course_id)?.name || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Fees</Label>
+                    <p className="font-medium">₹{viewingCandidate.fees || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Duration</Label>
+                    <p className="font-medium">
+                      {viewingCandidate.duration_value} {viewingCandidate.duration_unit || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Mode</Label>
+                    <p className="font-medium capitalize">{viewingCandidate.mode || "N/A"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Other Details */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Other Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Incharge Person</Label>
+                    <p className="font-medium">
+                      {employees.find((emp: any) => emp.id === viewingCandidate.incharge_person_id)?.profiles?.full_name || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Joining Date</Label>
+                    <p className="font-medium">
+                      {viewingCandidate.joining_date 
+                        ? new Date(viewingCandidate.joining_date).toLocaleDateString() 
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Username</Label>
+                    <p className="font-medium">{viewingCandidate.username || "N/A"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Status</Label>
+                    <Badge variant={viewingCandidate.status === "active" ? "default" : "secondary"}>
+                      {viewingCandidate.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
