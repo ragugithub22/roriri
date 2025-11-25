@@ -1,11 +1,78 @@
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+interface HostelResident {
+  id: string;
+  name: string;
+  type: "employee" | "trainee";
+  entity_type: string;
+  join_date: string;
+}
 
 export default function HostelManagement() {
   const navigate = useNavigate();
+
+  // Fetch employees with hostel residence
+  const { data: employees = [] } = useQuery({
+    queryKey: ["hostel-employees"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select(`
+          id,
+          hire_date,
+          residence_type,
+          profiles:profile_id (
+            full_name
+          ),
+          entities:entity_id (
+            name
+          )
+        `)
+        .ilike("residence_type", "%hostel%");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch trainees with hostel residence
+  const { data: trainees = [] } = useQuery({
+    queryKey: ["hostel-trainees"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("id, full_name, enrollment_date, residence_type")
+        .ilike("residence_type", "%hostel%");
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Combine and format residents
+  const residents: HostelResident[] = [
+    ...employees.map((emp: any) => ({
+      id: emp.id,
+      name: emp.profiles?.full_name || "Unknown",
+      type: "employee" as const,
+      entity_type: emp.entities?.name || "Unknown",
+      join_date: emp.hire_date,
+    })),
+    ...trainees.map((trainee: any) => ({
+      id: trainee.id,
+      name: trainee.full_name,
+      type: "trainee" as const,
+      entity_type: "IT Academy",
+      join_date: trainee.enrollment_date,
+    })),
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,13 +90,48 @@ export default function HostelManagement() {
       <main className="container mx-auto max-w-7xl py-8 px-6">
         <Card>
           <CardHeader>
-            <CardTitle>Hostel Management System</CardTitle>
-            <CardDescription>Manage hostel rooms, residents, and facilities</CardDescription>
+            <CardTitle>Hostel Residents</CardTitle>
+            <CardDescription>All employees and trainees staying in the hostel</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-12 text-muted-foreground">
-              Hostel management features coming soon...
-            </div>
+            {residents.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No hostel residents found</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Entity Type</TableHead>
+                    <TableHead>Join Date</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {residents.map((resident) => (
+                    <TableRow key={`${resident.type}-${resident.id}`}>
+                      <TableCell className="font-medium">{resident.name}</TableCell>
+                      <TableCell>
+                        <Badge variant={resident.type === "employee" ? "default" : "secondary"}>
+                          {resident.type === "employee" ? "Employee" : "Trainee"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{resident.entity_type}</TableCell>
+                      <TableCell>{new Date(resident.join_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/hostel/${resident.type}/${resident.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </main>

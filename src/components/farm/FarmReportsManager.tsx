@@ -67,7 +67,7 @@ const FarmReportsManager = () => {
 
       // Calculate stats
       const totalVisitors = visitors?.length || 0;
-      const totalRevenue = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+      const totalRevenue = payments?.reduce((sum, p) => sum + ((p as any).amount || 0), 0) || 0;
       const totalEvents = events?.length || 0;
       const totalBookings = bookings?.length || 0;
 
