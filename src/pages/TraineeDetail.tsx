@@ -235,7 +235,7 @@ export default function TraineeDetail() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Header with Back Button and Assign Course Button */}
         <div className="mb-6 flex justify-between items-center">
-          <Button variant="ghost" onClick={() => navigate("/it-academy#trainees")} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
