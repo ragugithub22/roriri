@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export default function InternDetails() {
@@ -391,15 +391,16 @@ export default function InternDetails() {
                   <TableHead>Date</TableHead>
                   <TableHead>Total Amount</TableHead>
                   <TableHead>Paid Amount</TableHead>
-                  <TableHead>Pending Amount</TableHead>
                   <TableHead>Received By</TableHead>
                   <TableHead>Payment Mode</TableHead>
+                  <TableHead>Payment Status</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {payments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center">No payment records found</TableCell>
+                    <TableCell colSpan={8} className="text-center">No payment records found</TableCell>
                   </TableRow>
                 ) : (
                   payments.map((payment, index) => (
@@ -408,9 +409,44 @@ export default function InternDetails() {
                       <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
                       <TableCell>₹{Number(payment.total_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-green-600">₹{Number(payment.paid_amount).toFixed(2)}</TableCell>
-                      <TableCell className="text-red-600">₹{Number(payment.pending_amount).toFixed(2)}</TableCell>
                       <TableCell>{payment.received_by || "N/A"}</TableCell>
                       <TableCell className="capitalize">{payment.payment_mode || "N/A"}</TableCell>
+                      <TableCell>
+                        <Badge variant={Number(payment.pending_amount) === 0 ? "default" : "secondary"}>
+                          {Number(payment.pending_amount) === 0 ? "Paid" : "Pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => {
+                            const receiptInfo = {
+                              receipt_id: payment.receipt_id,
+                              payment_date: payment.payment_date,
+                              paid_amount: payment.paid_amount,
+                              payment_mode: payment.payment_mode,
+                              candidateName: intern.name,
+                              courseName: courseDetails?.name || "N/A",
+                              totalFees,
+                              balance: Number(payment.pending_amount),
+                            };
+                            
+                            // Store receipt data in localStorage
+                            localStorage.setItem('receiptData', JSON.stringify(receiptInfo));
+                            
+                            // Open receipt in new tab
+                            const receiptWindow = window.open('/receipt', '_blank');
+                            if (!receiptWindow) {
+                              toast.error('Please allow pop-ups to view receipt');
+                            }
+                          }}
+                        >
+                          <FileText className="h-4 w-4" />
+                          Bill PDF
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
