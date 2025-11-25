@@ -33,10 +33,26 @@ export default function AssetManagement() {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    count: "1"
+    count: "1",
+    entity_id: ""
   });
 
   const itemsPerPage = 7;
+
+  // Fetch entities for dropdown
+  const { data: entities } = useQuery({
+    queryKey: ['entities-for-assets'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('entities')
+        .select('id, name')
+        .eq('status', 'active')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const { data: assets, isLoading } = useQuery({
     queryKey: ['assets-management'],
@@ -53,6 +69,9 @@ export default function AssetManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      if (!data.entity_id) {
+        throw new Error("Please select an entity");
+      }
       const assetCode = `AST-${Date.now()}`;
       const { error } = await supabase
         .from('assets')
@@ -61,7 +80,7 @@ export default function AssetManagement() {
           name: data.name,
           category: data.category,
           current_value: parseInt(data.count),
-          entity_id: '00000000-0000-0000-0000-000000000000', // placeholder
+          entity_id: data.entity_id,
           status: 'active'
         });
       if (error) throw error;
@@ -121,11 +140,12 @@ export default function AssetManagement() {
       setFormData({
         name: asset.name,
         category: asset.category,
-        count: asset.current_value.toString()
+        count: asset.current_value.toString(),
+        entity_id: (asset as any).entity_id || ""
       });
     } else {
       setEditingAsset(null);
-      setFormData({ name: "", category: "", count: "1" });
+      setFormData({ name: "", category: "", count: "1", entity_id: "" });
     }
     setIsDialogOpen(true);
   };
@@ -133,7 +153,7 @@ export default function AssetManagement() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingAsset(null);
-    setFormData({ name: "", category: "", count: "1" });
+    setFormData({ name: "", category: "", count: "1", entity_id: "" });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -260,6 +280,25 @@ export default function AssetManagement() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="entity">Entity</Label>
+                <Select
+                  value={formData.entity_id}
+                  onValueChange={(value) => setFormData({ ...formData, entity_id: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select entity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entities?.map((entity) => (
+                      <SelectItem key={entity.id} value={entity.id}>
+                        {entity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
                 <Select
