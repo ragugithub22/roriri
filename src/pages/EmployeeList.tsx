@@ -215,7 +215,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
-          additional_entity_id: data.additional_entity_id || null,
+          additional_entity_id: data.additional_entity_id && data.additional_entity_id !== "" ? data.additional_entity_id : null,
           department_id: data.department_id || null,
           status: data.status,
           residence_type: data.residence_type || null
@@ -293,7 +293,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
-          additional_entity_id: data.additional_entity_id || null,
+          additional_entity_id: data.additional_entity_id && data.additional_entity_id !== "" ? data.additional_entity_id : null,
           department_id: data.department_id || null,
           status: data.status,
           residence_type: data.residence_type || null
@@ -827,8 +827,8 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
               <div className="space-y-2">
                 <Label htmlFor="additional_entity">Additional Entity (Optional)</Label>
                 <Select
-                  value={formData.additional_entity_id}
-                  onValueChange={(value) => setFormData({ ...formData, additional_entity_id: value })}
+                  value={formData.additional_entity_id || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, additional_entity_id: value === "none" ? "" : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose an additional entity" />
