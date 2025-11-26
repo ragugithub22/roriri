@@ -256,6 +256,62 @@ export default function CandidatePage() {
     }
   };
 
+  // Send letter mutation
+  const sendLetterMutation = useMutation({
+    mutationFn: async ({ candidate, type, startDate, endDate }: { 
+      candidate: Candidate; 
+      type: "completion" | "bonafide";
+      startDate?: string;
+      endDate?: string;
+    }) => {
+      const course = courses.find(c => c.id === candidate.course_id);
+      
+      const { data, error } = await supabase.functions.invoke('send-internship-letter', {
+        body: {
+          recipientEmail: candidate.email,
+          recipientName: candidate.name,
+          letterType: type,
+          courseName: course?.name || '',
+          startDate: startDate || candidate.joining_date,
+          endDate: endDate,
+          subject: type === "completion" 
+            ? "Internship Completion Letter - Roriri Software Solutions"
+            : "Bonafide Internship Certificate - Roriri Software Solutions",
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || "Failed to send letter");
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      toast.success(`${letterType === "completion" ? "Completion Letter" : "Bonafide Certificate"} sent successfully!`);
+      setLetterType(null);
+      setSelectedCandidate(null);
+    },
+    onError: (error: any) => {
+      toast.error("Failed to send letter: " + error.message);
+    },
+  });
+
+  const handleLetterGenerate = (startDate: string, endDate?: string) => {
+    if (selectedCandidate && letterType) {
+      sendLetterMutation.mutate({ 
+        candidate: selectedCandidate, 
+        type: letterType,
+        startDate,
+        endDate 
+      });
+    }
+  };
+
+  const handleSendClick = (candidate: Candidate, type: "completion" | "bonafide") => {
+    setSelectedCandidate(candidate);
+    setLetterType(type);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -318,6 +374,24 @@ export default function CandidatePage() {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleSendClick(candidate, "completion")}>
+                            Completion Letter
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSendClick(candidate, "bonafide")}>
+                            Bonafide Letter
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button
                         variant="ghost"
                         size="sm"
