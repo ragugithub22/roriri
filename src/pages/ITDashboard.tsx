@@ -121,7 +121,7 @@ const ITDashboardContent = ({
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2">
             <Laptop className="h-6 w-6 text-primary shrink-0" />
-            <h1 className="text-xl font-bold">IT Company</h1>
+            {sidebar.open && <h1 className="text-xl font-bold">IT Company</h1>}
           </div>
         </SidebarHeader>
         <SidebarContent>
