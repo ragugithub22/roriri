@@ -414,7 +414,7 @@ const FarmVisitorEntryManager = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">No Event</SelectItem>
-                    {events.map((event) => (
+                    {(events as any[]).map((event: any) => (
                       <SelectItem key={event.id} value={event.id}>
                         {event.title} - {new Date(event.event_date).toLocaleDateString()}
                       </SelectItem>
