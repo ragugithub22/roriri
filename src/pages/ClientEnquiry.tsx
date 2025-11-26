@@ -24,7 +24,11 @@ interface ClientEnquiry {
   status: string;
 }
 
-const ClientEnquiry = () => {
+interface ClientEnquiryProps {
+  onBack?: () => void;
+}
+
+const ClientEnquiry = ({ onBack }: ClientEnquiryProps) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEnquiry, setEditingEnquiry] = useState<ClientEnquiry | null>(null);
@@ -170,7 +174,7 @@ const ClientEnquiry = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={onBack || (() => navigate(-1))}
           className="h-8 w-8"
         >
           <ArrowLeft className="h-5 w-5" />
