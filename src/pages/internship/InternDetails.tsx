@@ -73,12 +73,12 @@ export default function InternDetails({ candidateId, onBack }: InternDetailsProp
 
   // Fetch payment history
   const { data: payments = [] } = useQuery({
-    queryKey: ["intern-payments", id],
+    queryKey: ["intern-payments", candidateId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("internship_payments")
         .select("*")
-        .eq("candidate_id", id)
+        .eq("candidate_id", candidateId)
         .order("payment_date", { ascending: false });
       if (error) throw error;
       return data;
@@ -95,7 +95,7 @@ export default function InternDetails({ candidateId, onBack }: InternDetailsProp
     mutationFn: async (formData: FormData) => {
       const paidAmount = Number(formData.get("paid_amount"));
       const paymentData = {
-        candidate_id: id,
+        candidate_id: candidateId,
         receipt_id: formData.get("receipt_id") as string,
         total_amount: totalFees,
         paid_amount: paidAmount,
@@ -117,7 +117,7 @@ export default function InternDetails({ candidateId, onBack }: InternDetailsProp
     },
     onSuccess: () => {
       toast.success("Payment recorded successfully");
-      queryClient.invalidateQueries({ queryKey: ["intern-payments", id] });
+      queryClient.invalidateQueries({ queryKey: ["intern-payments", candidateId] });
       setIsPaymentDialogOpen(false);
     },
     onError: () => {
