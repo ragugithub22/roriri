@@ -37,8 +37,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { generateOfferLetterHTML } from "@/components/internship/OfferLetter";
-import { generateBonafideLetterHTML } from "@/components/internship/BonafideLetter";
+import { generateOfferLetterHTML, OfferLetter } from "@/components/internship/OfferLetter";
+import { generateBonafideLetterHTML, BonafideLetter } from "@/components/internship/BonafideLetter";
+import { DialogFooter } from "@/components/ui/dialog";
 
 interface InternshipEnquiry {
   id: string;
@@ -66,6 +67,7 @@ export default function EnquiryPage() {
   const [viewingEnquiry, setViewingEnquiry] = useState<InternshipEnquiry | null>(null);
   const [selectedEnquiry, setSelectedEnquiry] = useState<InternshipEnquiry | null>(null);
   const [letterType, setLetterType] = useState<"offer" | "bonafide">("offer");
+  const [showPreview, setShowPreview] = useState(false);
   const [letterData, setLetterData] = useState({
     position: "",
     joiningDate: format(new Date(), "yyyy-MM-dd"),
@@ -204,6 +206,7 @@ export default function EnquiryPage() {
   const handleSendLetter = (enquiry: InternshipEnquiry, type: "offer" | "bonafide") => {
     setSelectedEnquiry(enquiry);
     setLetterType(type);
+    setShowPreview(false);
     setLetterData({
       position: "",
       joiningDate: format(new Date(), "yyyy-MM-dd"),
@@ -211,6 +214,22 @@ export default function EnquiryPage() {
       endDate: format(new Date(), "yyyy-MM-dd"),
     });
     setIsLetterDialogOpen(true);
+  };
+
+  const handleGenerateLetter = () => {
+    if (!letterData.position) {
+      toast.error("Please enter position");
+      return;
+    }
+    if (letterType === "offer" && !letterData.duration) {
+      toast.error("Please enter duration");
+      return;
+    }
+    if (letterType === "bonafide" && !letterData.endDate) {
+      toast.error("Please select end date");
+      return;
+    }
+    setShowPreview(true);
   };
 
   const sendLetterMutation = useMutation({
@@ -653,88 +672,125 @@ export default function EnquiryPage() {
 
       {/* Send Letter Dialog */}
       <Dialog open={isLetterDialogOpen} onOpenChange={setIsLetterDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Send {letterType === "offer" ? "Offer Letter" : "Bonafide Certificate"}
             </DialogTitle>
           </DialogHeader>
           {selectedEnquiry && (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-muted-foreground">Candidate Name</Label>
-                <p className="font-medium">{selectedEnquiry.name}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">Email</Label>
-                <p className="font-medium">{selectedEnquiry.email || "No email provided"}</p>
-              </div>
+            <>
+              {!showPreview ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-muted-foreground">Candidate Name</Label>
+                    <p className="font-medium">{selectedEnquiry.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Email</Label>
+                    <p className="font-medium">{selectedEnquiry.email || "No email provided"}</p>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="position">Position *</Label>
-                <Input
-                  id="position"
-                  value={letterData.position}
-                  onChange={(e) => setLetterData({ ...letterData, position: e.target.value })}
-                  placeholder="e.g., FullStack Developer"
-                  required
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="position">Position *</Label>
+                    <Input
+                      id="position"
+                      value={letterData.position}
+                      onChange={(e) => setLetterData({ ...letterData, position: e.target.value })}
+                      placeholder="e.g., FullStack Developer"
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="joiningDate">
-                    {letterType === "offer" ? "Joining Date *" : "Start Date *"}
-                  </Label>
-                  <Input
-                    id="joiningDate"
-                    type="date"
-                    value={letterData.joiningDate}
-                    onChange={(e) => setLetterData({ ...letterData, joiningDate: e.target.value })}
-                    required
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="joiningDate">
+                        {letterType === "offer" ? "Joining Date *" : "Start Date *"}
+                      </Label>
+                      <Input
+                        id="joiningDate"
+                        type="date"
+                        value={letterData.joiningDate}
+                        onChange={(e) => setLetterData({ ...letterData, joiningDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                    {letterType === "offer" ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="duration">Duration *</Label>
+                        <Input
+                          id="duration"
+                          value={letterData.duration}
+                          onChange={(e) => setLetterData({ ...letterData, duration: e.target.value })}
+                          placeholder="e.g., 1 Month, 3 Months"
+                          required
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="endDate">End Date *</Label>
+                        <Input
+                          id="endDate"
+                          type="date"
+                          value={letterData.endDate}
+                          onChange={(e) => setLetterData({ ...letterData, endDate: e.target.value })}
+                          required
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <DialogFooter className="gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsLetterDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleGenerateLetter}>
+                      Generate
+                    </Button>
+                  </DialogFooter>
                 </div>
-                {letterType === "offer" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Duration *</Label>
-                    <Input
-                      id="duration"
-                      value={letterData.duration}
-                      onChange={(e) => setLetterData({ ...letterData, duration: e.target.value })}
-                      placeholder="e.g., 1 Month, 3 Months"
-                      required
-                    />
+              ) : (
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-6 bg-white">
+                    {letterType === "offer" ? (
+                      <OfferLetter
+                        candidateName={selectedEnquiry.name}
+                        position={letterData.position}
+                        joiningDate={letterData.joiningDate}
+                        duration={letterData.duration}
+                      />
+                    ) : (
+                      <BonafideLetter
+                        candidateName={selectedEnquiry.name}
+                        position={letterData.position}
+                        startDate={letterData.joiningDate}
+                        endDate={letterData.endDate}
+                      />
+                    )}
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date *</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={letterData.endDate}
-                      onChange={(e) => setLetterData({ ...letterData, endDate: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
 
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsLetterDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => sendLetterMutation.mutate()}
-                  disabled={sendLetterMutation.isPending || !selectedEnquiry.email || !letterData.position}
-                >
-                  {sendLetterMutation.isPending ? "Sending..." : "Send Letter"}
-                </Button>
-              </div>
-            </div>
+                  <DialogFooter className="gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowPreview(false)}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      onClick={() => sendLetterMutation.mutate()}
+                      disabled={sendLetterMutation.isPending || !selectedEnquiry.email}
+                    >
+                      {sendLetterMutation.isPending ? "Sending..." : "Send"}
+                    </Button>
+                  </DialogFooter>
+                </div>
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
