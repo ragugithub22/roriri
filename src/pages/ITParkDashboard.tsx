@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +52,7 @@ const pageComponents: Record<string, ComponentType | null> = {
 
 export default function ITParkDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut } = useAuth();
   const [activeItem, setActiveItem] = useState<NavigationItem | null>(null);
 
@@ -92,13 +93,24 @@ export default function ITParkDashboard() {
   }, [isAdmin]);
 
   useEffect(() => {
+    // Check if we should show entities page (coming from entity dashboard)
+    if (location.state?.showEntities) {
+      const entitiesItem = filteredNavItems.find(item => item.path === "/entities");
+      if (entitiesItem) {
+        setActiveItem(entitiesItem);
+        // Clear the state to prevent it from persisting
+        navigate("/it-park", { replace: true, state: {} });
+        return;
+      }
+    }
+    
     if (!activeItem) {
       const firstItem = filteredNavItems.find(item => !item.isLogout);
       if (firstItem) {
         setActiveItem(firstItem);
       }
     }
-  }, [filteredNavItems, activeItem]);
+  }, [filteredNavItems, activeItem, location.state, navigate]);
 
   const ActiveComponent = activeItem ? pageComponents[activeItem.path] ?? null : null;
 
