@@ -56,14 +56,6 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2">
               <Button 
                 variant="ghost"
-                onClick={() => navigate("/")}
-                className="text-primary-foreground hover:bg-primary-foreground/20"
-              >
-                <Home className="mr-2 h-4 w-4" />
-                All Entities
-              </Button>
-              <Button 
-                variant="ghost"
                 onClick={handleLogout}
                 className="text-primary-foreground hover:bg-primary-foreground/20"
               >
