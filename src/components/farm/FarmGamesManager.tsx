@@ -46,8 +46,8 @@ const FarmGamesManager = () => {
   const { data: games = [], isLoading } = useQuery({
     queryKey: ["farm-games"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_games" as any)
+      const { data, error } = await (supabase as any)
+        .from("farm_games")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -57,8 +57,8 @@ const FarmGamesManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from("farm_games" as any)
+      const { error } = await (supabase as any)
+        .from("farm_games")
         .insert([{
           ...data,
           duration_minutes: parseInt(data.duration_minutes),
@@ -81,8 +81,8 @@ const FarmGamesManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
-        .from("farm_games" as any)
+      const { error } = await (supabase as any)
+        .from("farm_games")
         .update({
           ...data,
           duration_minutes: parseInt(data.duration_minutes),
@@ -106,8 +106,8 @@ const FarmGamesManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("farm_games" as any)
+      const { error } = await (supabase as any)
+        .from("farm_games")
         .delete()
         .eq("id", id);
       if (error) throw error;
