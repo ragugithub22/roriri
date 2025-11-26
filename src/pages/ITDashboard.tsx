@@ -104,20 +104,16 @@ const ITDashboardContent = ({
   setActiveItem: (item: string) => void;
   renderActiveComponent: () => React.ReactNode;
 }) => {
-  // When internship is active, render without main sidebar
-  if (activeItem === "internship") {
-    return (
-      <div className="flex min-h-screen w-full">
-        <DashboardLayout
-          entityName="RORIRI IT Company"
-          entityIcon={Laptop}
-          entityColor="from-indigo-500 to-blue-500"
-        >
-          {renderActiveComponent()}
-        </DashboardLayout>
-      </div>
-    );
-  }
+  const sidebar = useSidebar();
+  
+  // Collapse sidebar to icons when Internship is active
+  useEffect(() => {
+    if (activeItem === "internship") {
+      sidebar.setOpen(false);
+    } else if (!sidebar.open && activeItem !== "internship") {
+      sidebar.setOpen(true);
+    }
+  }, [activeItem, sidebar]);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -141,6 +137,7 @@ const ITDashboardContent = ({
                         onClick={() => setActiveItem(item.id)}
                         className="w-full"
                         isActive={activeItem === item.id}
+                        tooltip={item.label}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span>{item.label}</span>
