@@ -252,32 +252,23 @@ export default function EnquiryPage() {
             endDate: letterData.endDate,
           });
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-internship-letter`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            recipientEmail: selectedEnquiry.email,
-            recipientName: selectedEnquiry.name,
-            letterType: letterType,
-            letterHTML: letterHTML,
-            subject: letterType === "offer" 
-              ? "Internship Offer Letter - Roriri Software Solutions"
-              : "Bonafide Internship Certificate - Roriri Software Solutions",
-          }),
+      const { data, error } = await supabase.functions.invoke('send-internship-letter', {
+        body: {
+          recipientEmail: selectedEnquiry.email,
+          recipientName: selectedEnquiry.name,
+          letterType: letterType,
+          letterHTML: letterHTML,
+          subject: letterType === "offer" 
+            ? "Internship Offer Letter - Roriri Software Solutions"
+            : "Bonafide Internship Certificate - Roriri Software Solutions",
         }
-      );
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to send letter");
+      if (error) {
+        throw new Error(error.message || "Failed to send letter");
       }
 
-      return response.json();
+      return data;
     },
     onSuccess: () => {
       toast.success(`${letterType === "offer" ? "Offer Letter" : "Bonafide Certificate"} sent successfully!`);
