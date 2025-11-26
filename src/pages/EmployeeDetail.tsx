@@ -13,7 +13,7 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
   const employeeIdToUse = employeeId || id;
 
   const { data: employee, isLoading } = useQuery({
-    queryKey: ['employee', id],
+    queryKey: ['employee', employeeIdToUse],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
@@ -24,7 +24,7 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
           additional_entity:entities!additional_entity_id (name, color, icon),
           departments:department_id (name)
         `)
-        .eq('id', id)
+        .eq('id', employeeIdToUse)
         .single();
       if (error) throw error;
       return data;
@@ -62,7 +62,9 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
   });
 
   if (isLoading) {
-    return (
+    return employeeId ? (
+      <div className="text-center py-12">Loading...</div>
+    ) : (
       <DashboardLayout entityName="Employee Details" entityIcon={Users} entityColor="blue">
         <div className="text-center py-12">Loading...</div>
       </DashboardLayout>
@@ -70,22 +72,23 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
   }
 
   if (!employee) {
-    return (
+    return employeeId ? (
+      <div className="text-center py-12">Employee not found</div>
+    ) : (
       <DashboardLayout entityName="Employee Details" entityIcon={Users} entityColor="blue">
         <div className="text-center py-12">Employee not found</div>
       </DashboardLayout>
     );
   }
 
-  return (
-    <DashboardLayout entityName="Employee Details" entityIcon={Users} entityColor="blue">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={onBack || (() => navigate('/it'))}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Employees
-          </Button>
-        </div>
+  const content = (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <Button variant="outline" onClick={onBack || (() => navigate('/it'))}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Employees
+        </Button>
+      </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -302,6 +305,11 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
           </CardContent>
         </Card>
       </div>
+  );
+
+  return employeeId ? content : (
+    <DashboardLayout entityName="Employee Details" entityIcon={Users} entityColor="blue">
+      {content}
     </DashboardLayout>
   );
 }

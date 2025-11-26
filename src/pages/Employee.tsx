@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const Employee = () => {
+const Employee = ({ onViewEmployee }: { onViewEmployee?: (id: string) => void }) => {
   const navigate = useNavigate();
   // First, get the IT company entity ID
   const { data: itCompanyEntity } = useQuery({
@@ -123,7 +123,13 @@ const Employee = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/employees/${employee.id}`)}
+                      onClick={() => {
+                        if (onViewEmployee) {
+                          onViewEmployee(employee.id);
+                        } else {
+                          navigate(`/employees/${employee.id}`);
+                        }
+                      }}
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       View
