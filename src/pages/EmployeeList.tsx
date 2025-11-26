@@ -21,7 +21,11 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 
-export default function EmployeeList() {
+interface EmployeeListProps {
+  onViewEmployee?: (id: string) => void;
+}
+
+export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -563,7 +567,13 @@ export default function EmployeeList() {
                             <Button
                               size="icon"
                               variant="ghost"
-                              onClick={() => navigate(`/employees/${employee.id}`)}
+                              onClick={() => {
+                                if (onViewEmployee) {
+                                  onViewEmployee(employee.id);
+                                } else {
+                                  navigate(`/employees/${employee.id}`);
+                                }
+                              }}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
