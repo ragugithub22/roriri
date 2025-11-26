@@ -14,8 +14,7 @@ const EnquiryDetails = ({ onNavigate }: EnquiryDetailsProps) => {
           <CardDescription>Manage project-related enquiries and responses.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Project enquiry management coming soon...</p>
-          <Button onClick={() => onNavigate('project-enquiry')} className="mt-4">
+          <Button onClick={() => onNavigate("project-enquiry")} className="mt-4">
             Open
           </Button>
         </CardContent>
@@ -27,8 +26,7 @@ const EnquiryDetails = ({ onNavigate }: EnquiryDetailsProps) => {
           <CardDescription>View and manage all types of enquiries.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>View and manage all types of enquiries.</p>
-          <Button onClick={() => onNavigate('all-enquiries')} className="mt-4">
+          <Button onClick={() => onNavigate("all-enquiries")} className="mt-4">
             Open
           </Button>
         </CardContent>
