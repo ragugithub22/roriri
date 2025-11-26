@@ -12,6 +12,7 @@ import DepartmentList from "@/pages/DepartmentList";
 import EmployeeList from "@/pages/EmployeeList";
 import MOUManagement from "@/pages/MOUManagement";
 import HostelManagement from "@/pages/HostelManagement";
+import HostelResidentDetail from "@/pages/HostelResidentDetail";
 import AssetManagement from "@/pages/AssetManagement";
 import EntitiesManagement from "@/pages/EntitiesManagement";
 import ReportsPage from "@/pages/ReportsPage";
@@ -40,7 +41,6 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/departments": DepartmentList,
   "/employees": EmployeeList,
   "/mou": MOUManagement,
-  "/hostel": HostelManagement,
   "/asset-management": AssetManagement,
   "/entities": EntitiesManagement,
   "/industrial-visit": IndustrialVisit,
@@ -55,6 +55,8 @@ export default function ITParkDashboard() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [activeItem, setActiveItem] = useState<NavigationItem | null>(null);
+  const [selectedResidentId, setSelectedResidentId] = useState<string | null>(null);
+  const [selectedResidentType, setSelectedResidentType] = useState<string | null>(null);
 
   const { data: isAdmin } = useQuery({
     queryKey: ['is-admin', user?.id],
@@ -162,7 +164,25 @@ export default function ITParkDashboard() {
       entityColor="from-blue-600 to-indigo-600"
     >
       <div className="space-y-6">
-        {ActiveComponent ? (
+        {activeItem?.path === "/hostel" ? (
+          selectedResidentId && selectedResidentType ? (
+            <HostelResidentDetail
+              residentId={selectedResidentId}
+              residentType={selectedResidentType}
+              onBack={() => {
+                setSelectedResidentId(null);
+                setSelectedResidentType(null);
+              }}
+            />
+          ) : (
+            <HostelManagement
+              onViewResident={(id, type) => {
+                setSelectedResidentId(id);
+                setSelectedResidentType(type);
+              }}
+            />
+          )
+        ) : ActiveComponent ? (
           ActiveComponent === IndustrialVisit ? (
             <IndustrialVisit onNavigate={(path) => setActiveItem({ path } as NavigationItem)} />
           ) : (

@@ -22,11 +22,20 @@ interface HostelPayment {
   payment_mode: string | null;
 }
 
-export default function HostelResidentDetail() {
-  const { id, type } = useParams<{ id: string; type: string }>();
+interface HostelResidentDetailProps {
+  residentId?: string;
+  residentType?: string;
+  onBack?: () => void;
+}
+
+export default function HostelResidentDetail({ residentId, residentType, onBack }: HostelResidentDetailProps) {
+  const { id: paramId, type: paramType } = useParams<{ id: string; type: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  
+  const id = residentId || paramId;
+  const type = residentType || paramType;
 
   // Fetch resident details
   const { data: resident, isLoading: residentLoading } = useQuery({
@@ -84,8 +93,8 @@ export default function HostelResidentDetail() {
   const addPaymentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const paymentData = {
-        resident_id: id,
-        resident_type: type,
+        resident_id: id!,
+        resident_type: type!,
         payment_date: formData.get("payment_date") as string,
         total_amount: parseFloat(formData.get("total_amount") as string),
         received_amount: parseFloat(formData.get("received_amount") as string),
@@ -152,7 +161,7 @@ export default function HostelResidentDetail() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/hostel")}>
+            <Button variant="ghost" size="icon" onClick={onBack || (() => navigate(-1))}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-2xl font-bold">Hostel Resident Details</h1>

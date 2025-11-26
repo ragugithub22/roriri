@@ -15,7 +15,11 @@ interface HostelResident {
   join_date: string;
 }
 
-export default function HostelManagement() {
+interface HostelManagementProps {
+  onViewResident?: (id: string, type: string) => void;
+}
+
+export default function HostelManagement({ onViewResident }: HostelManagementProps) {
   const navigate = useNavigate();
 
   // Fetch employees with hostel residence
@@ -122,7 +126,13 @@ export default function HostelManagement() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/hostel/${resident.type}/${resident.id}`)}
+                          onClick={() => {
+                            if (onViewResident) {
+                              onViewResident(resident.id, resident.type);
+                            } else {
+                              navigate(`/hostel/${resident.type}/${resident.id}`);
+                            }
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
