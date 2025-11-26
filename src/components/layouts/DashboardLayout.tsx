@@ -36,7 +36,7 @@ export default function DashboardLayout({
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/it-park", { state: { showEntities: true } })}
                 className="text-primary-foreground hover:bg-primary-foreground/20"
               >
                 <ArrowLeft className="h-5 w-5" />
