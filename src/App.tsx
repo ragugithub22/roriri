@@ -59,7 +59,7 @@ import CertificatePage from "./pages/CertificatePage";
 import InternshipLayout from "./components/internship/InternshipLayout";
 import InternshipDashboard from "./pages/internship/InternshipDashboard";
 import CandidatePage from "./pages/internship/CandidatePage";
-import InternDetails from "./pages/internship/InternDetails";
+import InternDetailsWrapper from "./pages/internship/InternDetailsWrapper";
 import EnquiryPage from "./pages/internship/EnquiryPage";
 import CoursePage from "./pages/internship/CoursePage";
 import PaymentReportPage from "./pages/internship/PaymentReportPage";
@@ -156,7 +156,7 @@ const App = () => (
             <Route path="/internship" element={<ProtectedRoute><InternshipLayout /></ProtectedRoute>}>
               <Route index element={<InternshipDashboard />} />
               <Route path="candidate" element={<CandidatePage />} />
-              <Route path="candidate/:id" element={<InternDetails />} />
+              <Route path="candidate/:id" element={<InternDetailsWrapper />} />
               <Route path="enquiry" element={<EnquiryPage />} />
               <Route path="course" element={<CoursePage />} />
               <Route path="payment-report" element={<PaymentReportPage />} />
