@@ -11,8 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Send } from "lucide-react";
 import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import CompletionLetter from "@/components/internship/CompletionLetter";
+import BonafideLetter from "@/components/internship/BonafideLetter";
 
 interface Candidate {
   id: string;
@@ -38,6 +41,8 @@ interface Candidate {
 export default function CandidatePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [letterType, setLetterType] = useState<"completion" | "bonafide" | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     incharge_person_id: "",
