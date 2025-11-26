@@ -39,12 +39,12 @@ const ReportsManager = () => {
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("foundation_reports")
         .select("*")
         .order("generated_at", { ascending: false });
       if (error) throw error;
-      return data as Report[];
+      return (data || []) as any;
     },
   });
 
@@ -53,7 +53,7 @@ const ReportsManager = () => {
       // Simulate report generation
       const reportData = await generateReportData(data.report_type, data.parameters);
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_reports")
         .insert([{
           ...data,
@@ -77,7 +77,7 @@ const ReportsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_reports")
         .delete()
         .eq("id", id);

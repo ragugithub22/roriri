@@ -42,12 +42,12 @@ const CertificatesManager = () => {
   const { data: certificates = [], isLoading } = useQuery({
     queryKey: ["certificates"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("foundation_certificates")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Certificate[];
+      return (data || []) as any;
     },
   });
 
@@ -65,7 +65,7 @@ const CertificatesManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_certificates")
         .insert([data]);
       if (error) throw error;
@@ -83,7 +83,7 @@ const CertificatesManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_certificates")
         .update(data)
         .eq("id", id);
@@ -102,7 +102,7 @@ const CertificatesManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_certificates")
         .delete()
         .eq("id", id);

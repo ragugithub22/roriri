@@ -44,19 +44,19 @@ const FarmExpensesManager = () => {
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["farm-expenses"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_expenses" as any)
+      const { data, error } = await (supabase as any)
+        .from("farm_expenses")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as FarmExpense[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from("farm_expenses" as any)
+      const { error } = await (supabase as any)
+        .from("farm_expenses")
         .insert([{
           ...data,
           amount: parseFloat(data.amount)
@@ -220,7 +220,7 @@ const FarmExpensesManager = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const topCategory = Object.entries(categoryTotals).sort(([,a], [,b]) => b - a)[0];
+  const topCategory = Object.entries(categoryTotals).sort(([,a], [,b]) => (b as number) - (a as number))[0];
 
   return (
     <div className="space-y-6">

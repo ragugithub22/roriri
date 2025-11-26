@@ -45,7 +45,7 @@ const DonationsManager = () => {
   const { data: donations = [], isLoading } = useQuery({
     queryKey: ["donations"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("donations")
         .select(`
           *,
@@ -54,23 +54,23 @@ const DonationsManager = () => {
         .eq("entity_code", "foundation")
         .order("donation_date", { ascending: false });
       if (error) throw error;
-      return data.map(donation => ({
+      return ((data || []).map((donation: any) => ({
         ...donation,
         donor_name: donation.foundation_donors?.full_name || "Anonymous"
-      })) as Donation[];
+      }))) as any;
     },
   });
 
   const { data: donors = [] } = useQuery({
     queryKey: ["foundation-donors"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("foundation_donors")
         .select("id, full_name")
         .eq("status", "active")
         .order("full_name");
       if (error) throw error;
-      return data;
+      return (data || []) as any;
     },
   });
 

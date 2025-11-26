@@ -47,19 +47,19 @@ const FarmPaymentsManager = () => {
   const { data: payments = [], isLoading } = useQuery({
     queryKey: ["farm-payments"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_payments" as any)
+      const { data, error } = await (supabase as any)
+        .from("farm_payments")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as FarmPayment[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from("farm_payments" as any)
+      const { error } = await (supabase as any)
+        .from("farm_payments")
         .insert([{
           ...data,
           amount: parseFloat(data.amount)

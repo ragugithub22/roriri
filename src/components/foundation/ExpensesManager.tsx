@@ -46,13 +46,13 @@ const ExpensesManager = () => {
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("expenses")
         .select("*")
         .eq("entity_code", "foundation")
         .order("expense_date", { ascending: false });
       if (error) throw error;
-      return data as Expense[];
+      return (data || []) as any;
     },
   });
 

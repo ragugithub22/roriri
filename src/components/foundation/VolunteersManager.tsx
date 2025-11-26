@@ -46,12 +46,12 @@ const VolunteersManager = () => {
   const { data: volunteers = [], isLoading } = useQuery({
     queryKey: ["volunteers"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("volunteers")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Volunteer[];
+      return (data || []) as any;
     },
   });
 

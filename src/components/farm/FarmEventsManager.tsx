@@ -48,19 +48,19 @@ const FarmEventsManager = () => {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["farm-events"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_events" as any)
+      const { data, error } = await (supabase as any)
+        .from("farm_events")
         .select("*")
         .order("event_date", { ascending: false });
       if (error) throw error;
-      return data as FarmEvent[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from("farm_events" as any)
+      const { error } = await (supabase as any)
+        .from("farm_events")
         .insert([{
           ...data,
           capacity: data.capacity ? parseInt(data.capacity) : null,
