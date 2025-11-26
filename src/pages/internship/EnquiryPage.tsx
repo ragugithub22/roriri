@@ -29,8 +29,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Eye, Pencil, Trash2, Plus } from "lucide-react";
+import { Eye, Pencil, Trash2, Plus, Send } from "lucide-react";
 import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { generateOfferLetterHTML } from "@/components/internship/OfferLetter";
+import { generateBonafideLetterHTML } from "@/components/internship/BonafideLetter";
 
 interface InternshipEnquiry {
   id: string;
@@ -53,8 +61,17 @@ interface InternshipEnquiry {
 export default function EnquiryPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isLetterDialogOpen, setIsLetterDialogOpen] = useState(false);
   const [editingEnquiry, setEditingEnquiry] = useState<InternshipEnquiry | null>(null);
   const [viewingEnquiry, setViewingEnquiry] = useState<InternshipEnquiry | null>(null);
+  const [selectedEnquiry, setSelectedEnquiry] = useState<InternshipEnquiry | null>(null);
+  const [letterType, setLetterType] = useState<"offer" | "bonafide">("offer");
+  const [letterData, setLetterData] = useState({
+    position: "",
+    joiningDate: format(new Date(), "yyyy-MM-dd"),
+    duration: "",
+    endDate: format(new Date(), "yyyy-MM-dd"),
+  });
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -183,6 +200,75 @@ export default function EnquiryPage() {
       deleteMutation.mutate(id);
     }
   };
+
+  const handleSendLetter = (enquiry: InternshipEnquiry, type: "offer" | "bonafide") => {
+    setSelectedEnquiry(enquiry);
+    setLetterType(type);
+    setLetterData({
+      position: "",
+      joiningDate: format(new Date(), "yyyy-MM-dd"),
+      duration: "1 Month",
+      endDate: format(new Date(), "yyyy-MM-dd"),
+    });
+    setIsLetterDialogOpen(true);
+  };
+
+  const sendLetterMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedEnquiry || !selectedEnquiry.email) {
+        throw new Error("Email address is required");
+      }
+
+      const letterHTML = letterType === "offer" 
+        ? generateOfferLetterHTML({
+            candidateName: selectedEnquiry.name,
+            position: letterData.position,
+            joiningDate: letterData.joiningDate,
+            duration: letterData.duration,
+          })
+        : generateBonafideLetterHTML({
+            candidateName: selectedEnquiry.name,
+            position: letterData.position,
+            startDate: letterData.joiningDate,
+            endDate: letterData.endDate,
+          });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-internship-letter`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            recipientEmail: selectedEnquiry.email,
+            recipientName: selectedEnquiry.name,
+            letterType: letterType,
+            letterHTML: letterHTML,
+            subject: letterType === "offer" 
+              ? "Internship Offer Letter - Roriri Software Solutions"
+              : "Bonafide Internship Certificate - Roriri Software Solutions",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to send letter");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success(`${letterType === "offer" ? "Offer Letter" : "Bonafide Certificate"} sent successfully!`);
+      setIsLetterDialogOpen(false);
+      setSelectedEnquiry(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to send letter: ${error.message}`);
+    },
+  });
 
   return (
     <Card>
@@ -437,6 +523,25 @@ export default function EnquiryPage() {
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              disabled={!enquiry.email}
+                            >
+                              <Send className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleSendLetter(enquiry, "offer")}>
+                              Offer Letter
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendLetter(enquiry, "bonafide")}>
+                              Bonafide Letter
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                           size="icon"
                           variant="ghost"
@@ -540,6 +645,94 @@ export default function EnquiryPage() {
 
               <div className="flex justify-end">
                 <Button onClick={() => setIsViewOpen(false)}>Close</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Letter Dialog */}
+      <Dialog open={isLetterDialogOpen} onOpenChange={setIsLetterDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Send {letterType === "offer" ? "Offer Letter" : "Bonafide Certificate"}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedEnquiry && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-muted-foreground">Candidate Name</Label>
+                <p className="font-medium">{selectedEnquiry.name}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Email</Label>
+                <p className="font-medium">{selectedEnquiry.email || "No email provided"}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="position">Position *</Label>
+                <Input
+                  id="position"
+                  value={letterData.position}
+                  onChange={(e) => setLetterData({ ...letterData, position: e.target.value })}
+                  placeholder="e.g., FullStack Developer"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="joiningDate">
+                    {letterType === "offer" ? "Joining Date *" : "Start Date *"}
+                  </Label>
+                  <Input
+                    id="joiningDate"
+                    type="date"
+                    value={letterData.joiningDate}
+                    onChange={(e) => setLetterData({ ...letterData, joiningDate: e.target.value })}
+                    required
+                  />
+                </div>
+                {letterType === "offer" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="duration">Duration *</Label>
+                    <Input
+                      id="duration"
+                      value={letterData.duration}
+                      onChange={(e) => setLetterData({ ...letterData, duration: e.target.value })}
+                      placeholder="e.g., 1 Month, 3 Months"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate">End Date *</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={letterData.endDate}
+                      onChange={(e) => setLetterData({ ...letterData, endDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsLetterDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => sendLetterMutation.mutate()}
+                  disabled={sendLetterMutation.isPending || !selectedEnquiry.email || !letterData.position}
+                >
+                  {sendLetterMutation.isPending ? "Sending..." : "Send Letter"}
+                </Button>
               </div>
             </div>
           )}
