@@ -45,7 +45,7 @@ const FarmVisitorEntryManager = () => {
   const { data: visitors = [], isLoading } = useQuery({
     queryKey: ["farm-visitors"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_visitors")
         .select(`
           *,
@@ -61,7 +61,7 @@ const FarmVisitorEntryManager = () => {
     queryKey: ["farm-events-active"],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_events")
         .select("id, title, event_date, ticket_price")
         .gte("event_date", today)
@@ -75,7 +75,7 @@ const FarmVisitorEntryManager = () => {
   const { data: ticketSettings = [] } = useQuery({
     queryKey: ["farm-tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_tickets")
         .select("*")
         .eq("is_active", true);
@@ -94,11 +94,11 @@ const FarmVisitorEntryManager = () => {
       // Calculate ticket price based on type and counts
       let basePrice = 0;
       if (data.entry_type === "single") {
-        const singleTicket = ticketSettings.find(t => t.ticket_type === "Regular Entry");
-        basePrice = singleTicket ? singleTicket.adult_price : 100;
+      const selectedTicket = ticketSettings.find((t: any) => t.ticket_type === "Regular Entry");
+      const basePrice = (selectedTicket as any) ? (selectedTicket as any).adult_price : 100;
       } else if (data.entry_type === "family") {
-        const familyTicket = ticketSettings.find(t => t.ticket_type === "Family Package");
-        basePrice = familyTicket ? familyTicket.adult_price : 300;
+      const selectedTicket = ticketSettings.find((t: any) => t.ticket_type === "Family Package");
+      const basePrice = (selectedTicket as any) ? (selectedTicket as any).adult_price : 300;
       }
 
       const adults = parseInt(data.adults_count);

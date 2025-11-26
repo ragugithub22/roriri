@@ -40,7 +40,7 @@ const FarmTicketsManager = () => {
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["farm-tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_tickets")
         .select("*")
         .order("created_at", { ascending: false });
@@ -63,7 +63,7 @@ const FarmTicketsManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_tickets")
         .insert([{
           ...data,
@@ -86,7 +86,7 @@ const FarmTicketsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_tickets")
         .update({
           ...data,
@@ -110,7 +110,7 @@ const FarmTicketsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_tickets")
         .delete()
         .eq("id", id);

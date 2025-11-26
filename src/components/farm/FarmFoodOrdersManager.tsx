@@ -46,8 +46,8 @@ const FarmFoodOrdersManager = () => {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["farm-food-orders"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_food_orders" as any)
+      const { data, error } = await (supabase as any)
+        .from("farm_food_orders")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
