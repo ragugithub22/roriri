@@ -627,6 +627,34 @@ export default function CandidatePage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Letter Modals */}
+      {selectedCandidate && letterType === "completion" && (
+        <CompletionLetter
+          isOpen={true}
+          onClose={() => {
+            setLetterType(null);
+            setSelectedCandidate(null);
+          }}
+          candidateName={selectedCandidate.name}
+          courseName={courses.find(c => c.id === selectedCandidate.course_id)?.name}
+          joiningDate={selectedCandidate.joining_date}
+          onGenerate={(startDate, endDate) => handleLetterGenerate(startDate, endDate)}
+        />
+      )}
+
+      {selectedCandidate && letterType === "bonafide" && (
+        <BonafideLetter
+          isOpen={true}
+          onClose={() => {
+            setLetterType(null);
+            setSelectedCandidate(null);
+          }}
+          candidateName={selectedCandidate.name}
+          joiningDate={selectedCandidate.joining_date}
+          onGenerate={(startDate) => handleLetterGenerate(startDate)}
+        />
+      )}
     </div>
   );
 }
