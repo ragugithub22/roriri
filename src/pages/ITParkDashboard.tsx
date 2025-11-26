@@ -10,6 +10,7 @@ import { NavigationItem, navigationItems } from "@/config/RORIRI IT PARK";
 import RolesList from "@/pages/RolesList";
 import DepartmentList from "@/pages/DepartmentList";
 import EmployeeList from "@/pages/EmployeeList";
+import EmployeeDetail from "@/pages/EmployeeDetail";
 import MOUManagement from "@/pages/MOUManagement";
 import HostelManagement from "@/pages/HostelManagement";
 import HostelResidentDetail from "@/pages/HostelResidentDetail";
@@ -57,6 +58,7 @@ export default function ITParkDashboard() {
   const [activeItem, setActiveItem] = useState<NavigationItem | null>(null);
   const [selectedResidentId, setSelectedResidentId] = useState<string | null>(null);
   const [selectedResidentType, setSelectedResidentType] = useState<string | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   const { data: isAdmin } = useQuery({
     queryKey: ['is-admin', user?.id],
@@ -180,6 +182,17 @@ export default function ITParkDashboard() {
                 setSelectedResidentId(id);
                 setSelectedResidentType(type);
               }}
+            />
+          )
+        ) : activeItem?.path === "/employees" ? (
+          selectedEmployeeId ? (
+            <EmployeeDetail
+              employeeId={selectedEmployeeId}
+              onBack={() => setSelectedEmployeeId(null)}
+            />
+          ) : (
+            <EmployeeList
+              onViewEmployee={(id) => setSelectedEmployeeId(id)}
             />
           )
         ) : ActiveComponent ? (
