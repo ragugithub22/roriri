@@ -106,11 +106,11 @@ const ITDashboardContent = ({
 }) => {
   const sidebar = useSidebar();
   
-  // Collapse sidebar to icons when Internship or Employee Detail is active
+  // Collapse sidebar to icons only when Internship is active
   useEffect(() => {
-    if (activeItem === "internship" || activeItem === "employee-detail") {
+    if (activeItem === "internship") {
       sidebar.setOpen(false);
-    } else if (!sidebar.open && activeItem !== "internship" && activeItem !== "employee-detail") {
+    } else if (!sidebar.open && activeItem !== "internship") {
       sidebar.setOpen(true);
     }
   }, [activeItem, sidebar]);
