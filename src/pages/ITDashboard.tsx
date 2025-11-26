@@ -55,9 +55,9 @@ const ITDashboard = () => {
       case "enquiry-details":
         return <EnquiryDetails onNavigate={setActiveItem} />;
       case "project-enquiry":
-        return <ClientEnquiry />;
+        return <ClientEnquiry onBack={() => setActiveItem("enquiry-details")} />;
       case "all-enquiries":
-        return <AllEnquiries />;
+        return <AllEnquiries onBack={() => setActiveItem("enquiry-details")} />;
       case "employee":
         return <Employee onViewEmployee={(id) => {
           setSelectedEmployeeId(id);

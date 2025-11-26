@@ -20,7 +20,11 @@ interface AllEnquiry {
   date: string;
 }
 
-const AllEnquiries = () => {
+interface AllEnquiriesProps {
+  onBack?: () => void;
+}
+
+const AllEnquiries = ({ onBack }: AllEnquiriesProps) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEnquiry, setEditingEnquiry] = useState<AllEnquiry | null>(null);
@@ -144,7 +148,7 @@ const AllEnquiries = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={onBack || (() => navigate(-1))}
           className="h-8 w-8"
         >
           <ArrowLeft className="h-5 w-5" />
