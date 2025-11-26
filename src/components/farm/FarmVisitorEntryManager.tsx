@@ -117,7 +117,7 @@ const FarmVisitorEntryManager = () => {
         payment_status: data.payment_status
       };
 
-      const { data: result, error } = await supabase
+      const { data: result, error } = await (supabase as any)
         .from("farm_visitors")
         .insert([visitorData])
         .select()
@@ -127,12 +127,12 @@ const FarmVisitorEntryManager = () => {
 
       // Create payment record if paid
       if (data.payment_status === "paid") {
-        await supabase
+        await (supabase as any)
           .from("farm_payments")
           .insert([{
             payment_code: `PAY${ticketNumber}`,
             payment_type: "entry_ticket",
-            reference_id: result.id,
+            reference_id: (result as any).id,
             amount: totalPrice,
             payment_method: "cash",
             status: "completed"
@@ -155,7 +155,7 @@ const FarmVisitorEntryManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_visitors")
         .update({
           visitor_name: data.visitor_name,
@@ -183,7 +183,7 @@ const FarmVisitorEntryManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_visitors")
         .delete()
         .eq("id", id);
@@ -243,11 +243,11 @@ const FarmVisitorEntryManager = () => {
 
     let basePrice = 0;
     if (entryType === "single") {
-      const singleTicket = ticketSettings.find(t => t.ticket_type === "Regular Entry");
-      basePrice = singleTicket ? singleTicket.adult_price : 100;
+      const singleTicket = ticketSettings.find((t: any) => t.ticket_type === "Regular Entry");
+      basePrice = (singleTicket as any) ? (singleTicket as any).adult_price : 100;
     } else if (entryType === "family") {
-      const familyTicket = ticketSettings.find(t => t.ticket_type === "Family Package");
-      basePrice = familyTicket ? familyTicket.adult_price : 300;
+      const familyTicket = ticketSettings.find((t: any) => t.ticket_type === "Family Package");
+      basePrice = (familyTicket as any) ? (familyTicket as any).adult_price : 300;
     }
 
     return basePrice + (kids * 50);
