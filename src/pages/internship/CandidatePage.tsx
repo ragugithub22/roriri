@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,11 @@ interface Candidate {
   created_at: string;
 }
 
-export default function CandidatePage() {
+interface CandidatePageProps {
+  onViewCandidate?: (candidateId: string) => void;
+}
+
+export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
   const [formData, setFormData] = useState({
@@ -57,7 +60,6 @@ export default function CandidatePage() {
     status: "active",
   });
 
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // Fetch candidates
@@ -302,7 +304,7 @@ export default function CandidatePage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/internship/candidate/${candidate.id}`)}
+                        onClick={() => onViewCandidate ? onViewCandidate(candidate.id) : null}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>

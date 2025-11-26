@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, MessageSquare, BookOpen, CreditCard, FileText, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Users, MessageSquare, BookOpen, CreditCard, FileText, MessageCircle, ArrowLeft } from "lucide-react";
 import CandidatePage from "./internship/CandidatePage";
 import EnquiryPage from "./internship/EnquiryPage";
 import CoursePage from "./internship/CoursePage";
@@ -7,7 +7,9 @@ import PaymentReportPage from "./internship/PaymentReportPage";
 import IDCardPage from "./internship/IDCardPage";
 import ChatBoxPage from "./internship/ChatBoxPage";
 import InternshipDashboard from "./internship/InternshipDashboard";
+import InternDetails from "./internship/InternDetails";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const internshipItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,13 +23,30 @@ const internshipItems = [
 
 const Internship = () => {
   const [activeItem, setActiveItem] = useState("dashboard");
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
+
+  const handleViewCandidate = (candidateId: string) => {
+    setSelectedCandidateId(candidateId);
+    setActiveItem("candidate-detail");
+  };
+
+  const handleBackToCandidates = () => {
+    setSelectedCandidateId(null);
+    setActiveItem("candidate");
+  };
 
   const renderActiveComponent = () => {
     switch (activeItem) {
       case "dashboard":
         return <InternshipDashboard />;
       case "candidate":
-        return <CandidatePage />;
+        return <CandidatePage onViewCandidate={handleViewCandidate} />;
+      case "candidate-detail":
+        return selectedCandidateId ? (
+          <InternDetails candidateId={selectedCandidateId} onBack={handleBackToCandidates} />
+        ) : (
+          <CandidatePage onViewCandidate={handleViewCandidate} />
+        );
       case "enquiry":
         return <EnquiryPage />;
       case "course":
@@ -47,7 +66,19 @@ const Internship = () => {
     <div className="flex h-full w-full">
       <aside className="w-64 border-r border-border bg-background">
         <div className="p-4 border-b border-border">
-          <h2 className="text-lg font-semibold">Internship</h2>
+          {activeItem === "candidate-detail" ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToCandidates}
+              className="mb-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Candidates
+            </Button>
+          ) : (
+            <h2 className="text-lg font-semibold">Internship</h2>
+          )}
         </div>
         <nav className="p-2">
           {internshipItems.map((item) => {
@@ -55,10 +86,13 @@ const Internship = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveItem(item.id)}
+                onClick={() => {
+                  setSelectedCandidateId(null);
+                  setActiveItem(item.id);
+                }}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                  activeItem === item.id
+                  activeItem === item.id || (item.id === "candidate" && activeItem === "candidate-detail")
                     ? "bg-accent text-accent-foreground font-medium"
                     : "hover:bg-accent/50 text-muted-foreground"
                 )}

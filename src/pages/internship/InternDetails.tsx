@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,20 +13,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
 
-export default function InternDetails() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+interface InternDetailsProps {
+  candidateId: string;
+  onBack: () => void;
+}
+
+export default function InternDetails({ candidateId, onBack }: InternDetailsProps) {
   const queryClient = useQueryClient();
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   // Fetch intern details
   const { data: intern } = useQuery({
-    queryKey: ["intern", id],
+    queryKey: ["intern", candidateId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("internship_candidates")
         .select("*")
-        .eq("id", id)
+        .eq("id", candidateId)
         .single();
       if (error) throw error;
       return data;
@@ -144,7 +146,7 @@ export default function InternDetails() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Header with Back Button */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate("/internship/candidate")} className="gap-2">
+          <Button variant="ghost" onClick={onBack} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
