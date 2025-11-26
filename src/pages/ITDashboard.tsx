@@ -104,16 +104,20 @@ const ITDashboardContent = ({
   setActiveItem: (item: string) => void;
   renderActiveComponent: () => React.ReactNode;
 }) => {
-  const sidebar = useSidebar();
-  
-  // Collapse sidebar when Internship is active
-  useEffect(() => {
-    if (activeItem === "internship") {
-      sidebar.setOpen(false);
-    } else if (!sidebar.open && activeItem !== "internship") {
-      sidebar.setOpen(true);
-    }
-  }, [activeItem, sidebar]);
+  // When internship is active, render without main sidebar
+  if (activeItem === "internship") {
+    return (
+      <div className="flex min-h-screen w-full">
+        <DashboardLayout
+          entityName="RORIRI IT Company"
+          entityIcon={Laptop}
+          entityColor="from-indigo-500 to-blue-500"
+        >
+          {renderActiveComponent()}
+        </DashboardLayout>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full">
