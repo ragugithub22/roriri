@@ -44,18 +44,18 @@ const DonorsManager = () => {
   const { data: donors = [], isLoading } = useQuery({
     queryKey: ["foundation-donors"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("foundation_donors")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Donor[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_donors")
         .insert([{
           ...data,
@@ -76,7 +76,7 @@ const DonorsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_donors")
         .update(data)
         .eq("id", id);
@@ -95,7 +95,7 @@ const DonorsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_donors")
         .delete()
         .eq("id", id);

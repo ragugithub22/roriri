@@ -45,7 +45,7 @@ const FarmVisitorEntryManager = () => {
   const { data: visitors = [], isLoading } = useQuery({
     queryKey: ["farm-visitors"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_visitors")
         .select(`
           *,
@@ -53,7 +53,7 @@ const FarmVisitorEntryManager = () => {
         `)
         .order("entry_time", { ascending: false });
       if (error) throw error;
-      return data as (FarmVisitor & { farm_events?: { title: string } })[];
+      return (data || []) as any;
     },
   });
 
@@ -61,26 +61,26 @@ const FarmVisitorEntryManager = () => {
     queryKey: ["farm-events-active"],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_events")
         .select("id, title, event_date, ticket_price")
         .gte("event_date", today)
         .eq("status", "active")
         .order("event_date");
       if (error) throw error;
-      return data || [];
+      return (data || []) as any;
     },
   });
 
   const { data: ticketSettings = [] } = useQuery({
     queryKey: ["farm-tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("farm_tickets")
         .select("*")
         .eq("is_active", true);
       if (error) throw error;
-      return data || [];
+      return (data || []) as any;
     },
   });
 
@@ -117,7 +117,7 @@ const FarmVisitorEntryManager = () => {
         payment_status: data.payment_status
       };
 
-      const { data: result, error } = await supabase
+      const { data: result, error } = await (supabase as any)
         .from("farm_visitors")
         .insert([visitorData])
         .select()
@@ -127,7 +127,7 @@ const FarmVisitorEntryManager = () => {
 
       // Create payment record if paid
       if (data.payment_status === "paid") {
-        await supabase
+        await (supabase as any)
           .from("farm_payments")
           .insert([{
             payment_code: `PAY${ticketNumber}`,
@@ -155,7 +155,7 @@ const FarmVisitorEntryManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_visitors")
         .update({
           visitor_name: data.visitor_name,
@@ -183,7 +183,7 @@ const FarmVisitorEntryManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("farm_visitors")
         .delete()
         .eq("id", id);

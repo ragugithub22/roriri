@@ -40,13 +40,13 @@ const AnnouncementsManager = () => {
   const { data: announcements = [], isLoading } = useQuery({
     queryKey: ["announcements"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("announcements")
         .select("*")
         .eq("entity_code", "foundation")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Announcement[];
+      return (data || []) as any;
     },
   });
 

@@ -46,18 +46,18 @@ const EventsManager = () => {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["foundation-events"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("foundation_events")
         .select("*")
         .order("start_date", { ascending: false });
       if (error) throw error;
-      return data as FoundationEvent[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_events")
         .insert([{
           ...data,
@@ -78,7 +78,7 @@ const EventsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_events")
         .update({
           ...data,
@@ -100,7 +100,7 @@ const EventsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_events")
         .delete()
         .eq("id", id);

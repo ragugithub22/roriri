@@ -36,18 +36,18 @@ const SettingsManager = () => {
   const { data: settings = [], isLoading } = useQuery({
     queryKey: ["foundation-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("foundation_settings")
         .select("*")
         .order("category", { ascending: true });
       if (error) throw error;
-      return data as Setting[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_settings")
         .insert([{
           ...data,

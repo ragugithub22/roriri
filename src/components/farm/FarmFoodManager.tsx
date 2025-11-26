@@ -44,19 +44,19 @@ const FarmFoodManager = () => {
   const { data: foodItems = [], isLoading } = useQuery({
     queryKey: ["farm-food-items"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_food_items" as any)
+      const { data, error } = await (supabase as any)
+        .from("farm_food_items")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as FarmFoodItem[];
+      return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from("farm_food_items" as any)
+      const { error } = await (supabase as any)
+        .from("farm_food_items")
         .insert([{
           ...data,
           price: parseFloat(data.price),

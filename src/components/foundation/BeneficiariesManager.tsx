@@ -48,12 +48,12 @@ const BeneficiariesManager = () => {
   const { data: beneficiaries = [], isLoading } = useQuery({
     queryKey: ["beneficiaries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("beneficiaries")
         .select("*")
         .order("date_added", { ascending: false });
       if (error) throw error;
-      return data as Beneficiary[];
+      return (data || []) as any;
     },
   });
 
