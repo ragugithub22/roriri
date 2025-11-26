@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarInset,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import EnquiryDetails from "./EnquiryDetails";
 import Attendance from "./Attendance";
@@ -85,52 +86,80 @@ const ITDashboard = () => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full">
-        <Sidebar collapsible={activeItem === "internship" ? "none" : "icon"}>
-          <SidebarHeader>
-            <div className="flex items-center gap-2 px-2">
-              <Laptop className="h-6 w-6 text-primary shrink-0" />
-              <h1 className="text-xl font-bold">IT Company</h1>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel></SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {sidebarItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton
-                          onClick={() => setActiveItem(item.id)}
-                          className="w-full"
-                          isActive={activeItem === item.id}
-                          tooltip={activeItem === "internship" ? item.label : undefined}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          {activeItem !== "internship" && <span>{item.label}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-        
-        <SidebarInset>
-          <DashboardLayout
-            entityName="RORIRI IT Company"
-            entityIcon={Laptop}
-            entityColor="from-indigo-500 to-blue-500"
-          >
-            {renderActiveComponent()}
-          </DashboardLayout>
-        </SidebarInset>
-      </div>
+      <ITDashboardContent 
+        activeItem={activeItem} 
+        setActiveItem={setActiveItem}
+        renderActiveComponent={renderActiveComponent}
+      />
     </SidebarProvider>
+  );
+};
+
+const ITDashboardContent = ({ 
+  activeItem, 
+  setActiveItem,
+  renderActiveComponent
+}: {
+  activeItem: string;
+  setActiveItem: (item: string) => void;
+  renderActiveComponent: () => React.ReactNode;
+}) => {
+  const sidebar = useSidebar();
+  
+  // Collapse sidebar when Internship is active
+  useEffect(() => {
+    if (activeItem === "internship") {
+      sidebar.setOpen(false);
+    } else if (!sidebar.open && activeItem !== "internship") {
+      sidebar.setOpen(true);
+    }
+  }, [activeItem, sidebar]);
+
+  return (
+    <div className="flex min-h-screen w-full">
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <div className="flex items-center gap-2 px-2">
+            <Laptop className="h-6 w-6 text-primary shrink-0" />
+            <h1 className="text-xl font-bold">IT Company</h1>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel></SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sidebarItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        onClick={() => setActiveItem(item.id)}
+                        className="w-full"
+                        isActive={activeItem === item.id}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+      
+      <SidebarInset>
+        <DashboardLayout
+          entityName="RORIRI IT Company"
+          entityIcon={Laptop}
+          entityColor="from-indigo-500 to-blue-500"
+        >
+          {renderActiveComponent()}
+        </DashboardLayout>
+      </SidebarInset>
+    </div>
   );
 };
 
