@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Calendar, Edit, Trash2, Eye, Upload, Image as ImageIcon } from "lucide-react";
+import { Calendar, Edit, Trash2, Eye, Upload, Image as ImageIcon, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -332,9 +332,18 @@ export default function IndustrialVisitVisitors() {
       )}
 
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Industrial Visit Visitors</h1>
-          <p className="text-muted-foreground mt-2">Manage upcoming and completed visits</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Industrial Visit Visitors</h1>
+            <p className="text-muted-foreground mt-2">Manage upcoming and completed visits</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>

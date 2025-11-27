@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 
 interface IndustrialVisitEnquiry {
@@ -36,6 +37,7 @@ interface IndustrialVisitEnquiry {
 
 const IndustrialVisitEnquiry = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -163,11 +165,20 @@ const IndustrialVisitEnquiry = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Industrial Visit Enquiry</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage industrial visit enquiries and requests
-          </p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Industrial Visit Enquiry</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage industrial visit enquiries and requests
+            </p>
+          </div>
         </div>
 
         <Dialog open={isOpen} onOpenChange={(open) => {
