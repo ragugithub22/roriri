@@ -28,6 +28,8 @@ export default function LetterManagement() {
   const [letterType, setLetterType] = useState<'offer' | 'bonafide' | 'completion' | 'experience' | null>(null);
   const [joiningDate, setJoiningDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [position, setPosition] = useState('');
+  const [duration, setDuration] = useState('');
   const queryClient = useQueryClient();
 
   const { data: employees } = useQuery({
@@ -89,6 +91,8 @@ export default function LetterManagement() {
       setLetterType(null);
       setJoiningDate('');
       setEndDate('');
+      setPosition('');
+      setDuration('');
     },
     onError: (error) => {
       toast.error('Failed to send letter: ' + error.message);
@@ -118,12 +122,16 @@ export default function LetterManagement() {
     }
 
     if (letterType === 'offer') {
+      if (!position || !duration) {
+        toast.error('Please fill all required fields for offer letter');
+        return;
+      }
       subject = 'Offer Letter - RORIRI Software Solutions';
       letterHTML = generateOfferLetterHTML({
         candidateName: recipientName,
-        position,
+        position: position || 'Position',
         joiningDate,
-        duration: '3 months',
+        duration,
       });
     } else if (letterType === 'bonafide') {
       subject = 'Bonafide Certificate - RORIRI Software Solutions';
@@ -340,37 +348,116 @@ export default function LetterManagement() {
       </Card>
 
       <Dialog open={letterDialogOpen} onOpenChange={setLetterDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="capitalize">Send {letterType} Letter</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              Send {letterType === 'offer' ? 'Offer' : letterType === 'bonafide' ? 'Bonafide' : letterType === 'completion' ? 'Completion' : 'Experience'} Letter
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Joining Date</Label>
-              <Input
-                type="date"
-                value={joiningDate}
-                onChange={(e) => setJoiningDate(e.target.value)}
-              />
+          <div className="space-y-4 py-4">
+            {/* Candidate Name - Read Only */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Candidate Name</Label>
+              <div className="text-base font-medium">
+                {selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name}
+              </div>
             </div>
-            {(letterType === 'bonafide' || letterType === 'completion' || letterType === 'experience') && (
-              <div>
-                <Label>End Date</Label>
+
+            {/* Email - Read Only */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Email</Label>
+              <div className="text-base font-medium">
+                {selectedRecipient?.profiles?.email || selectedRecipient?.email}
+              </div>
+            </div>
+
+            {/* Position - Required Input (for Offer Letter) */}
+            {letterType === 'offer' && (
+              <div className="space-y-2">
+                <Label htmlFor="position" className="text-sm font-medium">
+                  Position <span className="text-destructive">*</span>
+                </Label>
                 <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  id="position"
+                  type="text"
+                  placeholder="e.g., FullStack Developer"
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  className="rounded-lg border-2"
                 />
               </div>
             )}
-            <div className="flex gap-2">
-              <Button onClick={handleSendLetter} className="flex-1">
-                Send Letter
-              </Button>
-              <Button variant="outline" onClick={() => setLetterDialogOpen(false)}>
-                Cancel
-              </Button>
+
+            {/* Joining Date - Required */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="joiningDate" className="text-sm font-medium">
+                  Joining Date <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="joiningDate"
+                  type="date"
+                  value={joiningDate}
+                  onChange={(e) => setJoiningDate(e.target.value)}
+                  className="rounded-lg border-2"
+                />
+              </div>
+
+              {/* Duration - Required Dropdown (for Offer Letter) */}
+              {letterType === 'offer' && (
+                <div className="space-y-2">
+                  <Label htmlFor="duration" className="text-sm font-medium">
+                    Duration <span className="text-destructive">*</span>
+                  </Label>
+                  <select
+                    id="duration"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="flex h-10 w-full rounded-lg border-2 border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="">Select duration</option>
+                    <option value="1 Month">1 Month</option>
+                    <option value="2 Months">2 Months</option>
+                    <option value="3 Months">3 Months</option>
+                    <option value="6 Months">6 Months</option>
+                    <option value="1 Year">1 Year</option>
+                  </select>
+                </div>
+              )}
             </div>
+
+            {/* End Date for other letter types */}
+            {(letterType === 'bonafide' || letterType === 'completion' || letterType === 'experience') && (
+              <div className="space-y-2">
+                <Label htmlFor="endDate" className="text-sm font-medium">
+                  End Date <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="rounded-lg border-2"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setLetterDialogOpen(false)}
+              className="px-6"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendLetter}
+              className="px-6 bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              Generate
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
