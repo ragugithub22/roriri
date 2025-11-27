@@ -12,15 +12,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, ArrowLeft, Upload, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-export default function SyllabusDetails() {
-  const { subjectId } = useParams();
+interface SyllabusDetailsProps {
+  subjectId?: string;
+  onBack?: () => void;
+}
+
+export default function SyllabusDetails({ subjectId: propSubjectId, onBack }: SyllabusDetailsProps) {
+  const { subjectId: paramSubjectId } = useParams();
   const navigate = useNavigate();
+  const subjectId = propSubjectId || paramSubjectId;
   const [isSyllabusOpen, setIsSyllabusOpen] = useState(false);
   const [editingSyllabus, setEditingSyllabus] = useState<any>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadingSyllabus, setUploadingSyllabus] = useState<any>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
 
   const { data: subject } = useQuery({
     queryKey: ["subject", subjectId],
@@ -186,7 +200,7 @@ export default function SyllabusDetails() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>

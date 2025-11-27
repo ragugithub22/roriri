@@ -15,9 +15,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
 
-export default function TraineeDetail() {
-  const { id } = useParams();
+interface TraineeDetailProps {
+  traineeId?: string;
+  onBack?: () => void;
+}
+
+export default function TraineeDetail({ traineeId: propTraineeId, onBack }: TraineeDetailProps) {
+  const { id: paramId } = useParams();
   const navigate = useNavigate();
+  const id = propTraineeId || paramId;
   const queryClient = useQueryClient();
   const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
@@ -28,6 +34,14 @@ export default function TraineeDetail() {
   const [paidAmount, setPaidAmount] = useState(0);
 
   const itemsPerPage = 7;
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
 
   // Fetch trainee details
   const { data: trainee } = useQuery({
@@ -235,7 +249,7 @@ export default function TraineeDetail() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Header with Back Button and Assign Course Button */}
         <div className="mb-6 flex justify-between items-center">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <Button variant="ghost" onClick={handleBack} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
