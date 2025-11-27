@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -135,6 +135,33 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
     },
     enabled: !!editingEmployee?.profile_id,
   });
+
+  const { data: userRole } = useQuery({
+    queryKey: ['user-role', editingEmployee?.profile_id, editingEmployee?.entity_id],
+    queryFn: async () => {
+      if (!editingEmployee?.profile_id || !editingEmployee?.entity_id) return null;
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', editingEmployee.profile_id)
+        .eq('entity_id', editingEmployee.entity_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.role || null;
+    },
+    enabled: !!editingEmployee?.profile_id && !!editingEmployee?.entity_id,
+  });
+
+  // Update form data when editing employee and queries complete
+  useEffect(() => {
+    if (editingEmployee && isDialogOpen) {
+      setFormData(prev => ({
+        ...prev,
+        selectedRole: userRole ? userRole.toString() : '',
+        selectedEntities: userEntities || []
+      }));
+    }
+  }, [editingEmployee, userEntities, userRole, isDialogOpen]);
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
