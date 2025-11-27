@@ -39,6 +39,16 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
   const { data: employees = [] } = useQuery({
     queryKey: ["it-academy-trainers"],
     queryFn: async () => {
+      // First get the IT Academy entity ID
+      const { data: entity } = await supabase
+        .from("entities")
+        .select("id")
+        .eq("code", "it_academy")
+        .single();
+
+      if (!entity) return [];
+
+      // Fetch only IT Academy employees
       const { data, error } = await supabase
         .from("employees")
         .select(`
@@ -47,7 +57,10 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
             full_name
           )
         `)
+        .eq("entity_id", entity.id)
+        .eq("status", "active")
         .order("created_at", { ascending: false });
+      
       if (error) throw error;
       return data;
     },
