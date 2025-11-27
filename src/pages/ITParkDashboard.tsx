@@ -124,13 +124,13 @@ export default function ITParkDashboard() {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="icon" className="border-r">
-          <SidebarHeader className="border-b p-4 bg-gradient-to-b from-blue-600 to-indigo-600">
+          <SidebarHeader className="border-b p-4 bg-gradient-to-b from-cyan-600 to-teal-600">
             <div className="flex items-center gap-2">
               <Building2 className="h-6 w-6 text-white" />
               <h1 className="text-lg font-bold text-white">RORIRI IT PARK</h1>
             </div>
           </SidebarHeader>
-          <SidebarContent className="bg-gradient-to-b from-blue-600 to-indigo-600">
+          <SidebarContent className="bg-gradient-to-b from-cyan-600 to-teal-600">
             <SidebarGroup>
               <SidebarGroupLabel className="text-white/70 text-xs uppercase tracking-wider">
                 Navigation
