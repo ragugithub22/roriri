@@ -58,9 +58,9 @@ export default function EntitySidebarLayout({
               <h1 className="text-lg font-bold text-white">{entityName}</h1>
             </div>
           </SidebarHeader>
-          <SidebarContent className="bg-gradient-to-b from-cyan-600 to-teal-600">
+          <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className="text-white/70 text-xs uppercase tracking-wider px-4">
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider px-4">
                 Navigation
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -71,8 +71,8 @@ export default function EntitySidebarLayout({
                       <SidebarMenuItem key={item.value}>
                         <SidebarMenuButton
                           onClick={() => onItemChange(item.value)}
-                          className={`w-full text-white hover:bg-white/20 ${
-                            activeItem === item.value ? "bg-white/20 font-semibold" : ""
+                          className={`w-full hover:bg-gradient-to-r hover:from-cyan-600 hover:to-teal-600 hover:text-white ${
+                            activeItem === item.value ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold" : ""
                           }`}
                           isActive={activeItem === item.value}
                         >

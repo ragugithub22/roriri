@@ -130,9 +130,9 @@ export default function ITParkDashboard() {
               <h1 className="text-lg font-bold text-white">RORIRI IT PARK</h1>
             </div>
           </SidebarHeader>
-          <SidebarContent className="bg-gradient-to-b from-cyan-600 to-teal-600">
+          <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className="text-white/70 text-xs uppercase tracking-wider">
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider">
                 Navigation
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -149,8 +149,8 @@ export default function ITParkDashboard() {
                               setActiveItem(item);
                             }
                           }}
-                          className={`text-white hover:bg-white/20 ${
-                            activeItem?.path === item.path ? "bg-white/20 font-semibold" : ""
+                          className={`hover:bg-gradient-to-r hover:from-cyan-600 hover:to-teal-600 hover:text-white ${
+                            activeItem?.path === item.path ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold" : ""
                           }`}
                           isActive={activeItem?.path === item.path}
                         >
