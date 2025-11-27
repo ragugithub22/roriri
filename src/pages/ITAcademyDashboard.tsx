@@ -16,7 +16,8 @@ import {
   FileCheck,
   Clipboard,
   MessageSquareWarning,
-  Home
+  Home,
+  UserCheck
 } from "lucide-react";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
@@ -26,6 +27,8 @@ import CertificatesManager from "@/components/it-academy/CertificatesManager";
 import ApplicationsManager from "../components/it-academy/ApplicationsManager";
 import DailyWorkUpdateManager from "../components/it-academy/DailyWorkUpdateManager";
 import ComplaintsManager from "../components/it-academy/ComplaintsManager";
+import EmployeesManager from "../components/it-academy/EmployeesManager";
+import EmployeeDetail from "../components/it-academy/EmployeeDetail";
 import SyllabusDetails from "./SyllabusDetails";
 import TraineeDetail from "./TraineeDetail";
 
@@ -34,6 +37,7 @@ const navItems: SidebarNavItem[] = [
   { label: "Courses", value: "courses", icon: BookOpen },
   { label: "Subjects", value: "subjects", icon: FileText },
   { label: "Trainees", value: "trainees", icon: Users },
+  { label: "Employees", value: "employees", icon: UserCheck },
   { label: "Payments", value: "payments", icon: CreditCard },
   { label: "Certificates", value: "certificates", icon: Certificate },
   { label: "Applications", value: "applications", icon: FileCheck },
@@ -46,14 +50,16 @@ const ITAcademyDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    if (hash && ['dashboard', 'courses', 'subjects', 'trainees', 'payments', 'certificates', 'applications', 'daily-work-update', 'complaints'].includes(hash)) {
+    if (hash && ['dashboard', 'courses', 'subjects', 'trainees', 'employees', 'payments', 'certificates', 'applications', 'daily-work-update', 'complaints'].includes(hash)) {
       setActiveTab(hash);
       // Reset detail views when changing tabs
       setSelectedSubjectId(null);
       setSelectedTraineeId(null);
+      setSelectedEmployeeId(null);
     }
   }, [location.hash]);
 
@@ -241,6 +247,14 @@ const ITAcademyDashboard = () => {
             <TraineeDetail traineeId={selectedTraineeId} onBack={() => setSelectedTraineeId(null)} />
           ) : (
             <TraineesManager onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)} />
+          )
+        )}
+
+        {activeTab === "employees" && (
+          selectedEmployeeId ? (
+            <EmployeeDetail employeeId={selectedEmployeeId} onBack={() => setSelectedEmployeeId(null)} />
+          ) : (
+            <EmployeesManager onViewEmployee={(employeeId) => setSelectedEmployeeId(employeeId)} />
           )
         )}
 
