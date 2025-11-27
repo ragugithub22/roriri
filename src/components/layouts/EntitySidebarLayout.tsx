@@ -52,8 +52,8 @@ export default function EntitySidebarLayout({
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
         <Sidebar collapsible="icon" className="border-r">
-          <SidebarHeader className="border-b border-white/10 bg-gradient-to-b from-cyan-600 to-teal-600">
-            <div className="flex items-center gap-2 px-4 py-6">
+          <SidebarHeader className="h-[73px] border-b border-white/10 bg-gradient-to-b from-cyan-600 to-teal-600 flex items-center">
+            <div className="flex items-center gap-2 px-4">
               <EntityIcon className="h-6 w-6 text-white" />
               <h1 className="text-lg font-bold text-white">{entityName}</h1>
             </div>
