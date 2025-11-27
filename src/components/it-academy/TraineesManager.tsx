@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Pencil, Trash2, Eye } from "lucide-react";
+import { UserPlus, Pencil, Trash2, Eye, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -20,6 +20,7 @@ interface TraineesManagerProps {
 export default function TraineesManager({ onViewTrainee }: TraineesManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingTrainee, setEditingTrainee] = useState<any>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -29,6 +30,23 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
       const { data, error } = await supabase
         .from("students")
         .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ["it-academy-trainers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select(`
+          id,
+          profiles:profile_id(
+            full_name
+          )
+        `)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -75,9 +93,32 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    let imageUrl = editingTrainee?.image_url || null;
+    
+    // Upload image if provided
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const { error: uploadError, data } = await supabase.storage
+        .from('trainee-images')
+        .upload(fileName, imageFile);
+      
+      if (uploadError) {
+        toast.error("Failed to upload image");
+        return;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('trainee-images')
+        .getPublicUrl(fileName);
+      
+      imageUrl = publicUrl;
+    }
+    
     const traineeData = {
       student_code: formData.get("student_code"),
       full_name: formData.get("full_name"),
@@ -90,6 +131,8 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
       enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
       residence_type: formData.get("residence_type"),
+      incharge_person_id: formData.get("incharge_person_id") || null,
+      image_url: imageUrl,
     };
     saveMutation.mutate(traineeData);
   };
@@ -232,6 +275,39 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
                     name="address"
                     defaultValue={editingTrainee?.address}
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="incharge_person_id">In-charge Name</Label>
+                    <Select name="incharge_person_id" defaultValue={editingTrainee?.incharge_person_id || ""}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select in-charge" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employees.map((employee: any) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.profiles?.full_name || "Unknown"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="image">Upload Image</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        className="cursor-pointer"
+                      />
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    {editingTrainee?.image_url && (
+                      <p className="text-xs text-muted-foreground mt-1">Current image will be replaced if new one is uploaded</p>
+                    )}
+                  </div>
                 </div>
                 <Button type="submit" className="w-full">
                   {editingTrainee ? "Update" : "Register"} Trainee
