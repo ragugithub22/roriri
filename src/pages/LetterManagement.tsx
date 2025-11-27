@@ -47,11 +47,7 @@ export default function LetterManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`
-          *,
-          courses:course_id(name),
-          batches:batch_id(batch_name)
-        `)
+        .select('*')
         .order('full_name');
       if (error) throw error;
       return data;
@@ -64,10 +60,7 @@ export default function LetterManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('internship_candidates')
-        .select(`
-          *,
-          internship_courses:course_id(course_name)
-        `)
+        .select('*')
         .order('name');
       if (error) throw error;
       return data;
@@ -118,10 +111,10 @@ export default function LetterManagement() {
     let position = 'Position';
     if (selectedRecipient?.primary_entity?.name) {
       position = selectedRecipient.primary_entity.name;
-    } else if (selectedRecipient?.courses?.name) {
-      position = selectedRecipient.courses.name;
-    } else if (selectedRecipient?.internship_courses?.course_name) {
-      position = selectedRecipient.internship_courses.course_name;
+    } else if (selectedType === 'trainee') {
+      position = 'IT Academy Trainee';
+    } else if (selectedType === 'intern') {
+      position = 'Internship Candidate';
     }
 
     if (letterType === 'offer') {
@@ -212,10 +205,12 @@ export default function LetterManagement() {
               <TableCell>{item.profiles?.full_name || item.full_name || item.name}</TableCell>
               <TableCell className="capitalize">{selectedType}</TableCell>
               <TableCell>
-                {item.primary_entity?.name || 
-                 item.courses?.name || 
-                 item.batches?.batch_name ||
-                 item.internship_courses?.course_name || '-'}
+                {item.primary_entity?.name ||
+                  (selectedType === 'trainee'
+                    ? 'IT Academy'
+                    : selectedType === 'intern'
+                      ? 'Internship'
+                      : '-')}
               </TableCell>
               <TableCell>
                 <Badge variant="outline">{getDocumentStatus(item)}</Badge>
