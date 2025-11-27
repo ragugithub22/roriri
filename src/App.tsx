@@ -71,6 +71,7 @@ import IndustrialVisitVisitors from "./pages/IndustrialVisitVisitors";
 import IndustrialVisitPaymentReport from "./pages/IndustrialVisitPaymentReport";
 import IndustrialVisitRegistration from "./pages/IndustrialVisitRegistration";
 import IndustrialVisitVisitorDetails from "./pages/IndustrialVisitVisitorDetails";
+import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/industrial-visit/registration" element={<IndustrialVisitRegistration />} />
             <Route path="/" element={<Index />} />
+            <Route path="/user-dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
             <Route path="/academy" element={<ProtectedRoute><AcademyDashboard /></ProtectedRoute>} />
             <Route path="/it-academy" element={<ProtectedRoute><ITAcademyDashboard /></ProtectedRoute>} />
             <Route path="/foundation" element={<ProtectedRoute><FoundationDashboard /></ProtectedRoute>} />
