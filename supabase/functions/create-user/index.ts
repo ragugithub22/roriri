@@ -71,12 +71,13 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id
 
-    // Update profile with phone, dob, and username if provided
-    if (phone || dob || username) {
+    // Update profile with phone, dob, username, and password if provided
+    if (phone || dob || username || password) {
       const updateData: any = {};
       if (phone) updateData.phone = phone;
       if (dob) updateData.dob = dob;
       if (username) updateData.username = username;
+      if (password) updateData.password = password;
       
       const { error: profileError } = await supabaseAdmin
         .from('profiles')

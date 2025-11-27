@@ -190,6 +190,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
             phone: data.phone || null,
             address: data.address || null,
             username: data.username || null,
+            password: data.password || null,
             dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
           })
           .eq('id', userId);
@@ -317,6 +318,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           phone: data.phone,
           address: data.address,
           username: data.username || null,
+          password: data.password || null,
           dob: data.dob ? data.dob.toISOString().split('T')[0] : null
         })
         .eq('id', editingEmployee.profile_id)
@@ -455,7 +457,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
         full_name: employee.profiles?.full_name || '',
         email: employee.profiles?.email || '',
         username: employee.profiles?.username || '',
-        password: '',
+        password: employee.profiles?.password || '',
         phone: employee.profiles?.phone || '',
         address: employee.profiles?.address || '',
         dob: employee.profiles?.dob ? new Date(employee.profiles.dob) : undefined,
