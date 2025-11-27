@@ -12,7 +12,7 @@ interface EmployeeDetailProps {
 }
 
 export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailProps) {
-  const { data: employee, isLoading } = useQuery({
+  const { data: employee, isLoading } = useQuery<any>({
     queryKey: ['employee-detail', employeeId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -28,15 +28,23 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
           departments:department_id(
             name
           ),
-          positions:position_id(
-            title
-          ),
           primary_entity:entities!entity_id(
             name
           )
         `)
         .eq('id', employeeId)
         .single();
+
+      if (error) throw error;
+
+      // Fetch user role
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.profile_id)
+        .maybeSingle();
+
+      return { ...data, user_role: roleData?.role };
 
       if (error) throw error;
       return data;
@@ -141,7 +149,7 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
               <Briefcase className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Position</p>
-                <p className="font-medium">{employee.positions?.title || '-'}</p>
+                <p className="font-medium">{employee.user_role || '-'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
