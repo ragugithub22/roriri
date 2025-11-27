@@ -30,6 +30,8 @@ export default function LetterManagement() {
   const [endDate, setEndDate] = useState('');
   const [position, setPosition] = useState('');
   const [duration, setDuration] = useState('');
+  const [generatedLetterHTML, setGeneratedLetterHTML] = useState('');
+  const [letterSubject, setLetterSubject] = useState('');
   const queryClient = useQueryClient();
 
   const { data: employees } = useQuery({
@@ -93,32 +95,35 @@ export default function LetterManagement() {
       setEndDate('');
       setPosition('');
       setDuration('');
+      setGeneratedLetterHTML('');
+      setLetterSubject('');
     },
     onError: (error) => {
       toast.error('Failed to send letter: ' + error.message);
     },
   });
 
-  const handleSendLetter = () => {
+  const handleGenerateLetter = () => {
     if (!selectedRecipient || !letterType || !joiningDate) {
       toast.error('Please fill all required fields');
       return;
     }
 
-    const recipientEmail = selectedRecipient?.profiles?.email || selectedRecipient?.email;
     const recipientName = selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name;
 
     let letterHTML = '';
     let subject = '';
 
     // Determine position/course name based on type
-    let position = 'Position';
-    if (selectedRecipient?.primary_entity?.name) {
-      position = selectedRecipient.primary_entity.name;
-    } else if (selectedType === 'trainee') {
-      position = 'IT Academy Trainee';
-    } else if (selectedType === 'intern') {
-      position = 'Internship Candidate';
+    let positionText = position;
+    if (!positionText) {
+      if (selectedRecipient?.primary_entity?.name) {
+        positionText = selectedRecipient.primary_entity.name;
+      } else if (selectedType === 'trainee') {
+        positionText = 'IT Academy Trainee';
+      } else if (selectedType === 'intern') {
+        positionText = 'Internship Candidate';
+      }
     }
 
     if (letterType === 'offer') {
@@ -129,7 +134,7 @@ export default function LetterManagement() {
       subject = 'Offer Letter - RORIRI Software Solutions';
       letterHTML = generateOfferLetterHTML({
         candidateName: recipientName,
-        position: position || 'Position',
+        position: position || positionText,
         joiningDate,
         duration,
       });
@@ -137,13 +142,32 @@ export default function LetterManagement() {
       subject = 'Bonafide Certificate - RORIRI Software Solutions';
       letterHTML = generateBonafideLetterHTML({
         candidateName: recipientName,
-        position,
+        position: positionText,
         startDate: joiningDate,
         endDate: endDate || new Date().toISOString().split('T')[0],
       });
     }
 
-    sendLetterMutation.mutate({ recipientEmail, letterHTML, subject });
+    setGeneratedLetterHTML(letterHTML);
+    setLetterSubject(subject);
+  };
+
+  const handleSendLetter = () => {
+    const recipientEmail = selectedRecipient?.profiles?.email || selectedRecipient?.email;
+    sendLetterMutation.mutate({ recipientEmail, letterHTML: generatedLetterHTML, subject: letterSubject });
+  };
+
+  const handleDownloadLetter = () => {
+    const blob = new Blob([generatedLetterHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${letterType}-letter-${selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Letter downloaded successfully!');
   };
 
   const getDocumentStatus = (recipient: any) => {
@@ -347,118 +371,168 @@ export default function LetterManagement() {
         </CardContent>
       </Card>
 
-      <Dialog open={letterDialogOpen} onOpenChange={setLetterDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+      <Dialog open={letterDialogOpen} onOpenChange={(open) => {
+        setLetterDialogOpen(open);
+        if (!open) {
+          setGeneratedLetterHTML('');
+          setLetterSubject('');
+          setPosition('');
+          setDuration('');
+          setJoiningDate('');
+          setEndDate('');
+        }
+      }}>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
               Send {letterType === 'offer' ? 'Offer' : letterType === 'bonafide' ? 'Bonafide' : letterType === 'completion' ? 'Completion' : 'Experience'} Letter
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            {/* Candidate Name - Read Only */}
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Candidate Name</Label>
-              <div className="text-base font-medium">
-                {selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name}
-              </div>
-            </div>
-
-            {/* Email - Read Only */}
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Email</Label>
-              <div className="text-base font-medium">
-                {selectedRecipient?.profiles?.email || selectedRecipient?.email}
-              </div>
-            </div>
-
-            {/* Position - Required Input (for Offer Letter) */}
-            {letterType === 'offer' && (
-              <div className="space-y-2">
-                <Label htmlFor="position" className="text-sm font-medium">
-                  Position <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="position"
-                  type="text"
-                  placeholder="e.g., FullStack Developer"
-                  value={position}
-                  onChange={(e) => setPosition(e.target.value)}
-                  className="rounded-lg border-2"
-                />
-              </div>
-            )}
-
-            {/* Joining Date - Required */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="joiningDate" className="text-sm font-medium">
-                  Joining Date <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="joiningDate"
-                  type="date"
-                  value={joiningDate}
-                  onChange={(e) => setJoiningDate(e.target.value)}
-                  className="rounded-lg border-2"
-                />
-              </div>
-
-              {/* Duration - Required Dropdown (for Offer Letter) */}
-              {letterType === 'offer' && (
+          
+          {!generatedLetterHTML ? (
+            <>
+              <div className="space-y-4 py-4">
+                {/* Candidate Name - Read Only */}
                 <div className="space-y-2">
-                  <Label htmlFor="duration" className="text-sm font-medium">
-                    Duration <span className="text-destructive">*</span>
-                  </Label>
-                  <select
-                    id="duration"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="flex h-10 w-full rounded-lg border-2 border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="">Select duration</option>
-                    <option value="1 Month">1 Month</option>
-                    <option value="2 Months">2 Months</option>
-                    <option value="3 Months">3 Months</option>
-                    <option value="6 Months">6 Months</option>
-                    <option value="1 Year">1 Year</option>
-                  </select>
+                  <Label className="text-sm text-muted-foreground">Candidate Name</Label>
+                  <div className="text-base font-medium">
+                    {selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name}
+                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* End Date for other letter types */}
-            {(letterType === 'bonafide' || letterType === 'completion' || letterType === 'experience') && (
-              <div className="space-y-2">
-                <Label htmlFor="endDate" className="text-sm font-medium">
-                  End Date <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="rounded-lg border-2"
-                />
+                {/* Email - Read Only */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Email</Label>
+                  <div className="text-base font-medium">
+                    {selectedRecipient?.profiles?.email || selectedRecipient?.email}
+                  </div>
+                </div>
+
+                {/* Position - Required Input (for Offer Letter) */}
+                {letterType === 'offer' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="position" className="text-sm font-medium">
+                      Position <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="position"
+                      type="text"
+                      placeholder="e.g., FullStack Developer"
+                      value={position}
+                      onChange={(e) => setPosition(e.target.value)}
+                      className="rounded-lg border-2"
+                    />
+                  </div>
+                )}
+
+                {/* Joining Date - Required */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="joiningDate" className="text-sm font-medium">
+                      Joining Date <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="joiningDate"
+                      type="date"
+                      value={joiningDate}
+                      onChange={(e) => setJoiningDate(e.target.value)}
+                      className="rounded-lg border-2"
+                    />
+                  </div>
+
+                  {/* Duration - Required Dropdown (for Offer Letter) */}
+                  {letterType === 'offer' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="duration" className="text-sm font-medium">
+                        Duration <span className="text-destructive">*</span>
+                      </Label>
+                      <select
+                        id="duration"
+                        value={duration}
+                        onChange={(e) => setDuration(e.target.value)}
+                        className="flex h-10 w-full rounded-lg border-2 border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        <option value="">Select duration</option>
+                        <option value="1 Month">1 Month</option>
+                        <option value="2 Months">2 Months</option>
+                        <option value="3 Months">3 Months</option>
+                        <option value="6 Months">6 Months</option>
+                        <option value="1 Year">1 Year</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* End Date for other letter types */}
+                {(letterType === 'bonafide' || letterType === 'completion' || letterType === 'experience') && (
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate" className="text-sm font-medium">
+                      End Date <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="rounded-lg border-2"
+                    />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setLetterDialogOpen(false)}
-              className="px-6"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSendLetter}
-              className="px-6 bg-teal-600 hover:bg-teal-700 text-white"
-            >
-              Generate
-            </Button>
-          </div>
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setLetterDialogOpen(false)}
+                  className="px-6"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleGenerateLetter}
+                  className="px-6 bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  Generate
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Letter Preview */}
+              <div className="border rounded-lg p-4 bg-white max-h-[500px] overflow-y-auto">
+                <div dangerouslySetInnerHTML={{ __html: generatedLetterHTML }} />
+              </div>
+
+              {/* Send and Download Buttons */}
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setGeneratedLetterHTML('');
+                    setLetterSubject('');
+                  }}
+                  className="px-6"
+                >
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleDownloadLetter}
+                  variant="outline"
+                  className="px-6"
+                >
+                  Download
+                </Button>
+                <Button 
+                  onClick={handleSendLetter}
+                  disabled={sendLetterMutation.isPending}
+                  className="px-6 bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  {sendLetterMutation.isPending ? 'Sending...' : 'Send'}
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
