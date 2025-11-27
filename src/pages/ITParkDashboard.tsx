@@ -141,18 +141,12 @@ export default function ITParkDashboard() {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {filteredNavItems.map((item) => {
+                  {filteredNavItems.filter(item => !item.isLogout).map((item) => {
                     const Icon = item.icon;
                     return (
                       <SidebarMenuItem key={item.path}>
                         <SidebarMenuButton
-                          onClick={() => {
-                            if (item.isLogout) {
-                              handleLogout();
-                            } else {
-                              setActiveItem(item);
-                            }
-                          }}
+                          onClick={() => setActiveItem(item)}
                           className={`hover:bg-gradient-to-r hover:from-cyan-600 hover:to-teal-600 hover:text-white ${
                             activeItem?.path === item.path ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold" : ""
                           }`}
@@ -164,6 +158,22 @@ export default function ITParkDashboard() {
                       </SidebarMenuItem>
                     );
                   })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup className="mt-auto">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={handleLogout}
+                      className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950 dark:hover:text-red-400"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
