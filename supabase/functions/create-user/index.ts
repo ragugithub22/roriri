@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fullName, email, phone, dob, role, entityId } = await req.json()
+    const { fullName, email, phone, dob, role, entityId, username, password } = await req.json()
 
     // Validate input
     if (!fullName || !email || !role) {
@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
       }
     )
 
-    // Generate a temporary password
-    const tempPassword = `Temp${Math.random().toString(36).slice(-8)}!`
+    // Generate a temporary password or use provided one
+    const tempPassword = password || `Temp${Math.random().toString(36).slice(-8)}!`
 
     // Create user in auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -71,11 +71,12 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id
 
-    // Update profile with phone and dob if provided
-    if (phone || dob) {
+    // Update profile with phone, dob, and username if provided
+    if (phone || dob || username) {
       const updateData: any = {};
       if (phone) updateData.phone = phone;
       if (dob) updateData.dob = dob;
+      if (username) updateData.username = username;
       
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
