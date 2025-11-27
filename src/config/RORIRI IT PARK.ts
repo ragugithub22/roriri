@@ -66,7 +66,13 @@ export const navigationItems: NavigationItem[] = [
     label: "Chat Box",
     path: "/chat",
     icon: MessageCircle,
-    adminOnly: false
+    adminOnly: true
+  },
+  {
+    label: "Industrial Visit",
+    path: "/industrial-visit",
+    icon: Briefcase,
+    adminOnly: true
   },
   {
     label: "IT Academy",
@@ -97,11 +103,6 @@ export const navigationItems: NavigationItem[] = [
     label: "Builders",
     path: "/builders",
     icon: Factory
-  },
-  {
-    label: "Industrial Visit",
-    path: "/industrial-visit",
-    icon: Briefcase
   },
   {
     label: "Logout",
