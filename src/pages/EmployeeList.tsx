@@ -34,6 +34,8 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
+    username: '',
+    password: '',
     phone: '',
     address: '',
     dob: undefined as Date | undefined,
@@ -448,6 +450,8 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
       setFormData({
         full_name: employee.profiles?.full_name || '',
         email: employee.profiles?.email || '',
+        username: employee.profiles?.username || '',
+        password: '',
         phone: employee.profiles?.phone || '',
         address: employee.profiles?.address || '',
         dob: employee.profiles?.dob ? new Date(employee.profiles.dob) : undefined,
@@ -469,6 +473,8 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
       setFormData({
         full_name: '',
         email: '',
+        username: '',
+        password: '',
         phone: '',
         address: '',
         dob: undefined,
@@ -735,6 +741,27 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
                 {validationErrors.email && (
                   <p className="text-sm text-destructive">{validationErrors.email}</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="Enter username"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder={editingEmployee ? "Leave blank to keep current password" : "Enter password"}
+                />
               </div>
 
               <div className="space-y-2">
