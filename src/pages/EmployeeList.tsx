@@ -935,27 +935,6 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Additional Entities (Optional)</Label>
-                <p className="text-sm text-muted-foreground">Select additional entities this employee has access to</p>
-                <div className="space-y-2 border rounded-lg p-4 max-h-48 overflow-y-auto">
-                  {entities?.map((entity) => (
-                    <div key={entity.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`entity-${entity.id}`}
-                        checked={formData.selectedEntities.includes(entity.id)}
-                        onCheckedChange={() => toggleEntity(entity.id)}
-                      />
-                      <label
-                        htmlFor={`entity-${entity.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {entity.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
