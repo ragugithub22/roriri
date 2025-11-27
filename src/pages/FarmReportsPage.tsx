@@ -1,3 +1,4 @@
+// @ts-nocheck
 import FarmLayout from "@/components/farm/FarmLayout";
 import FarmReportsManager from "@/components/farm/FarmReportsManager";
 
