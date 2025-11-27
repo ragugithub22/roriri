@@ -80,8 +80,7 @@ const DonationsManager = () => {
         .from("donations")
         .insert([{
           ...data,
-          amount: parseFloat(data.amount),
-          entity_code: "foundation"
+          amount: parseFloat(data.amount)
         }]);
       if (error) throw error;
     },

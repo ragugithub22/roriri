@@ -58,13 +58,12 @@ const ExpensesManager = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("expenses")
         .insert([{
           ...data,
-          amount: parseFloat(data.amount),
-          entity_code: "foundation"
-        }]);
+          amount: parseFloat(data.amount)
+        }] as any);
       if (error) throw error;
     },
     onSuccess: () => {
