@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle } from "lucide-react";
+import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
+import { useAuth } from "@/contexts/AuthContext";
 import KPICard from "@/components/dashboard/KPICard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,8 +47,15 @@ const sidebarItems = [
 ];
 
 const ITDashboard = () => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [activeItem, setActiveItem] = useState("dashboard");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   const renderActiveComponent = () => {
     switch (activeItem) {
@@ -90,6 +99,7 @@ const ITDashboard = () => {
         activeItem={activeItem} 
         setActiveItem={setActiveItem}
         renderActiveComponent={renderActiveComponent}
+        handleLogout={handleLogout}
       />
     </SidebarProvider>
   );
@@ -98,11 +108,13 @@ const ITDashboard = () => {
 const ITDashboardContent = ({ 
   activeItem, 
   setActiveItem,
-  renderActiveComponent
+  renderActiveComponent,
+  handleLogout
 }: {
   activeItem: string;
   setActiveItem: (item: string) => void;
   renderActiveComponent: () => React.ReactNode;
+  handleLogout: () => void;
 }) => {
   const sidebar = useSidebar();
   
@@ -117,16 +129,18 @@ const ITDashboardContent = ({
 
   return (
     <div className="flex min-h-screen w-full">
-      <Sidebar collapsible="icon">
-        <SidebarHeader>
-          <div className="flex items-center gap-2 px-2">
-            <Laptop className="h-6 w-6 text-primary shrink-0" />
-            {sidebar.open && <h1 className="text-xl font-bold">IT Company</h1>}
+      <Sidebar collapsible="icon" className="border-r">
+        <SidebarHeader className="h-[73px] border-b bg-gradient-to-b from-cyan-600 to-teal-600 flex items-center px-4">
+          <div className="flex items-center gap-2">
+            <Laptop className="h-6 w-6 text-white shrink-0" />
+            {sidebar.open && <h1 className="text-lg font-bold text-white">IT Company</h1>}
           </div>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel></SidebarGroupLabel>
+            <SidebarGroupLabel className="text-xs uppercase tracking-wider">
+              Navigation
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {sidebarItems.map((item) => {
@@ -135,7 +149,9 @@ const ITDashboardContent = ({
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
                         onClick={() => setActiveItem(item.id)}
-                        className="w-full"
+                        className={`hover:bg-gradient-to-r hover:from-cyan-600 hover:to-teal-600 hover:text-white ${
+                          activeItem === item.id ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold" : ""
+                        }`}
                         isActive={activeItem === item.id}
                         tooltip={item.label}
                       >
@@ -145,6 +161,22 @@ const ITDashboardContent = ({
                     </SidebarMenuItem>
                   );
                 })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={handleLogout}
+                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950 dark:hover:text-red-400"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
