@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
+import EntitySidebarLayout, { SidebarNavItem } from "@/components/layouts/EntitySidebarLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { Building2, Hammer, Users, TrendingUp, MapPin, HardHat, Package, DollarSign } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building2, Hammer, Users, TrendingUp, MapPin, HardHat, Package, DollarSign, Home, FileText, Settings, BarChart3, Users2 } from "lucide-react";
 import ProjectsManager from "@/components/builders/ProjectsManager";
 import SitesManager from "@/components/builders/SitesManager";
 import ContractorsManager from "@/components/builders/ContractorsManager";
@@ -17,6 +16,21 @@ import DocumentsManager from "@/components/builders/DocumentsManager";
 import ReportsManager from "@/components/builders/ReportsManager";
 import UsersRolesManager from "@/components/builders/UsersRolesManager";
 import SettingsManager from "@/components/builders/SettingsManager";
+
+const navItems: SidebarNavItem[] = [
+  { label: "Dashboard", value: "dashboard", icon: Home },
+  { label: "Projects", value: "projects", icon: Building2 },
+  { label: "Sites", value: "sites", icon: MapPin },
+  { label: "Contractors", value: "contractors", icon: HardHat },
+  { label: "Labour", value: "labour", icon: Users },
+  { label: "Materials", value: "materials", icon: Package },
+  { label: "Clients", value: "clients", icon: Users2 },
+  { label: "Finance", value: "finance", icon: DollarSign },
+  { label: "Documents", value: "documents", icon: FileText },
+  { label: "Reports", value: "reports", icon: BarChart3 },
+  { label: "Users & Roles", value: "users", icon: Users },
+  { label: "Settings", value: "settings", icon: Settings },
+];
 
 const BuildersDashboard = () => {
   const location = useLocation();
@@ -105,148 +119,101 @@ const BuildersDashboard = () => {
     .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   return (
-    <DashboardLayout
-      entityName="Roshan Builders - Super Admin"
+    <EntitySidebarLayout
+      entityName="Roshan Builders"
       entityIcon={Building2}
-      entityColor="from-amber-500 to-orange-500"
+      navItems={navItems}
+      activeItem={activeTab}
+      onItemChange={setActiveTab}
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" orientation="vertical">
-        <div className="flex gap-6">
-          <TabsList className="flex flex-col h-fit w-48 space-y-1">
-            <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
-            <TabsTrigger value="projects" className="w-full justify-start">Projects</TabsTrigger>
-            <TabsTrigger value="sites" className="w-full justify-start">Sites</TabsTrigger>
-            <TabsTrigger value="contractors" className="w-full justify-start">Contractors</TabsTrigger>
-            <TabsTrigger value="labour" className="w-full justify-start">Labour</TabsTrigger>
-            <TabsTrigger value="materials" className="w-full justify-start">Materials</TabsTrigger>
-            <TabsTrigger value="clients" className="w-full justify-start">Clients</TabsTrigger>
-            <TabsTrigger value="finance" className="w-full justify-start">Finance</TabsTrigger>
-            <TabsTrigger value="documents" className="w-full justify-start">Documents</TabsTrigger>
-            <TabsTrigger value="reports" className="w-full justify-start">Reports</TabsTrigger>
-            <TabsTrigger value="users" className="w-full justify-start">Users & Roles</TabsTrigger>
-            <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
-          </TabsList>
+      <div className="space-y-6">
+        {activeTab === "dashboard" && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <KPICard
+                title="Active Projects"
+                value={activeProjects}
+                subtitle="Currently in progress"
+                trend={15}
+                icon={Building2}
+                color="from-amber-500 to-orange-500"
+              />
+              <KPICard
+                title="Active Sites"
+                value={activeSites}
+                subtitle="Construction sites"
+                trend={8}
+                icon={MapPin}
+                color="from-blue-500 to-cyan-500"
+              />
+              <KPICard
+                title="Active Contractors"
+                value={activeContractors}
+                subtitle="Working contractors"
+                trend={12}
+                icon={HardHat}
+                color="from-green-500 to-emerald-500"
+              />
+              <KPICard
+                title="Total Clients"
+                value={totalClients}
+                subtitle="Registered clients"
+                trend={25}
+                icon={Users}
+                color="from-purple-500 to-violet-500"
+              />
+            </div>
 
-          <div className="flex-1">
-            <TabsContent value="dashboard" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <KPICard
-                  title="Active Projects"
-                  value={activeProjects}
-                  subtitle="Currently in progress"
-                  trend={15}
-                  icon={Building2}
-                  color="from-amber-500 to-orange-500"
-                />
-                <KPICard
-                  title="Active Sites"
-                  value={activeSites}
-                  subtitle="Construction sites"
-                  trend={8}
-                  icon={MapPin}
-                  color="from-blue-500 to-cyan-500"
-                />
-                <KPICard
-                  title="Active Contractors"
-                  value={activeContractors}
-                  subtitle="Working contractors"
-                  trend={12}
-                  icon={HardHat}
-                  color="from-green-500 to-emerald-500"
-                />
-                <KPICard
-                  title="Total Clients"
-                  value={totalClients}
-                  subtitle="Registered clients"
-                  trend={25}
-                  icon={Users}
-                  color="from-purple-500 to-violet-500"
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KPICard
+                title="Completed Projects"
+                value={completedProjects}
+                subtitle="Successfully delivered"
+                trend={18}
+                icon={Hammer}
+                color="from-emerald-500 to-teal-500"
+              />
+              <KPICard
+                title="Total Revenue"
+                value={`₹${totalRevenue.toLocaleString()}`}
+                subtitle="Total earnings"
+                trend={22}
+                icon={DollarSign}
+                color="from-indigo-500 to-purple-500"
+              />
+              <KPICard
+                title="Material Stock"
+                value="85%"
+                subtitle="Average stock level"
+                trend={5}
+                icon={Package}
+                color="from-pink-500 to-rose-500"
+              />
+              <KPICard
+                title="On-Time Delivery"
+                value="92%"
+                subtitle="Project completion rate"
+                trend={3}
+                icon={TrendingUp}
+                color="from-cyan-500 to-blue-500"
+              />
+            </div>
+          </>
+        )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <KPICard
-                  title="Completed Projects"
-                  value={completedProjects}
-                  subtitle="Successfully delivered"
-                  trend={18}
-                  icon={Hammer}
-                  color="from-emerald-500 to-teal-500"
-                />
-                <KPICard
-                  title="Total Revenue"
-                  value={`₹${totalRevenue.toLocaleString()}`}
-                  subtitle="Total earnings"
-                  trend={22}
-                  icon={DollarSign}
-                  color="from-indigo-500 to-purple-500"
-                />
-                <KPICard
-                  title="Material Stock"
-                  value="85%"
-                  subtitle="Average stock level"
-                  trend={5}
-                  icon={Package}
-                  color="from-pink-500 to-rose-500"
-                />
-                <KPICard
-                  title="On-Time Delivery"
-                  value="92%"
-                  subtitle="Project completion rate"
-                  trend={3}
-                  icon={TrendingUp}
-                  color="from-cyan-500 to-blue-500"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="projects" className="mt-0">
-              <ProjectsManager />
-            </TabsContent>
-
-            <TabsContent value="sites" className="mt-0">
-              <SitesManager />
-            </TabsContent>
-
-            <TabsContent value="contractors" className="mt-0">
-              <ContractorsManager />
-            </TabsContent>
-
-            <TabsContent value="labour" className="mt-0">
-              <LabourManager />
-            </TabsContent>
-
-            <TabsContent value="materials" className="mt-0">
-              <MaterialsManager />
-            </TabsContent>
-
-            <TabsContent value="clients" className="mt-0">
-              <ClientsManager />
-            </TabsContent>
-
-            <TabsContent value="finance" className="mt-0">
-              <FinanceManager />
-            </TabsContent>
-
-            <TabsContent value="documents" className="mt-0">
-              <DocumentsManager />
-            </TabsContent>
-
-            <TabsContent value="reports" className="mt-0">
-              <ReportsManager />
-            </TabsContent>
-
-            <TabsContent value="users" className="mt-0">
-              <UsersRolesManager />
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-0">
-              <SettingsManager />
-            </TabsContent>
-          </div>
-        </div>
-      </Tabs>
-    </DashboardLayout>
+        {activeTab === "projects" && <ProjectsManager />}
+        {activeTab === "sites" && <SitesManager />}
+        {activeTab === "contractors" && <ContractorsManager />}
+        {activeTab === "labour" && <LabourManager />}
+        {activeTab === "materials" && <MaterialsManager />}
+        {activeTab === "clients" && <ClientsManager />}
+        {activeTab === "finance" && <FinanceManager />}
+        {activeTab === "documents" && <DocumentsManager />}
+        {activeTab === "reports" && <ReportsManager />}
+        {activeTab === "users" && <UsersRolesManager />}
+        {activeTab === "settings" && <SettingsManager />}
+      </div>
+    </EntitySidebarLayout>
   );
 };
 

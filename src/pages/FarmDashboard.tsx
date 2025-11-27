@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Sprout, Users, Calendar, Gamepad2, Utensils, CreditCard, TrendingUp, Plus, UserCheck, Ticket, BookOpen, ShoppingCart } from "lucide-react";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
+import { Sprout, Users, Calendar, Gamepad2, Utensils, CreditCard, TrendingUp, Plus, UserCheck, Ticket, BookOpen, ShoppingCart, Home, Bell, BarChart3, Settings } from "lucide-react";
+import EntitySidebarLayout, { SidebarNavItem } from "@/components/layouts/EntitySidebarLayout";
 import KPICard from "@/components/dashboard/KPICard";
 import { DataTable, Badge } from "@/components/dashboard/DataTable";
 import ChartCard from "@/components/dashboard/ChartCard";
@@ -10,7 +10,6 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FarmEventsManager from "@/components/farm/FarmEventsManager";
 import FarmGamesManager from "@/components/farm/FarmGamesManager";
 import FarmFoodManager from "@/components/farm/FarmFoodManager";
@@ -23,6 +22,22 @@ import FarmExpensesManager from "@/components/farm/FarmExpensesManager";
 import FarmAnnouncementsManager from "@/components/farm/FarmAnnouncementsManager";
 import FarmReportsManager from "@/components/farm/FarmReportsManager";
 import FarmSettingsManager from "@/components/farm/FarmSettingsManager";
+
+const navItems: SidebarNavItem[] = [
+  { label: "Dashboard", value: "dashboard", icon: Home },
+  { label: "Visitors", value: "visitors", icon: Users },
+  { label: "Events", value: "events", icon: Calendar },
+  { label: "Games", value: "games", icon: Gamepad2 },
+  { label: "Food", value: "food", icon: Utensils },
+  { label: "Tickets", value: "tickets", icon: Ticket },
+  { label: "Bookings", value: "bookings", icon: BookOpen },
+  { label: "Food Orders", value: "food-orders", icon: ShoppingCart },
+  { label: "Payments", value: "payments", icon: CreditCard },
+  { label: "Expenses", value: "expenses", icon: TrendingUp },
+  { label: "Announcements", value: "announcements", icon: Bell },
+  { label: "Reports", value: "reports", icon: BarChart3 },
+  { label: "Settings", value: "settings", icon: Settings },
+];
 
 const FarmDashboard = () => {
   const location = useLocation();
@@ -199,231 +214,173 @@ const FarmDashboard = () => {
   const totalRevenue = todayRevenue.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
   return (
-    <DashboardLayout
-      entityName="Rithish Farms - Super Admin"
+    <EntitySidebarLayout
+      entityName="Rithish Farms"
       entityIcon={Sprout}
-      entityColor="from-green-500 to-emerald-600"
+      navItems={navItems}
+      activeItem={activeTab}
+      onItemChange={setActiveTab}
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" orientation="vertical">
-        <div className="flex gap-6">
-          <TabsList className="flex flex-col h-fit w-48 space-y-1">
-            <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
-            <TabsTrigger value="visitors" className="w-full justify-start">Visitors</TabsTrigger>
-            <TabsTrigger value="events" className="w-full justify-start">Events</TabsTrigger>
-            <TabsTrigger value="games" className="w-full justify-start">Games</TabsTrigger>
-            <TabsTrigger value="food" className="w-full justify-start">Food</TabsTrigger>
-            <TabsTrigger value="tickets" className="w-full justify-start">Tickets</TabsTrigger>
-            <TabsTrigger value="bookings" className="w-full justify-start">Bookings</TabsTrigger>
-            <TabsTrigger value="food-orders" className="w-full justify-start">Food Orders</TabsTrigger>
-            <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
-            <TabsTrigger value="expenses" className="w-full justify-start">Expenses</TabsTrigger>
-            <TabsTrigger value="announcements" className="w-full justify-start">Announcements</TabsTrigger>
-            <TabsTrigger value="reports" className="w-full justify-start">Reports</TabsTrigger>
-            <TabsTrigger value="settings" className="w-full justify-start">Settings</TabsTrigger>
-          </TabsList>
+      <div className="space-y-6">
+        {activeTab === "dashboard" && (
+          <>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <KPICard
+                title="Visitors Today"
+                value={todayVisitors.length}
+                subtitle="Total entries"
+                trend={12}
+                icon={Users}
+                color="from-green-500 to-emerald-500"
+              />
+              <KPICard
+                title="Total Events"
+                value={events.length}
+                subtitle="Active events"
+                trend={8}
+                icon={Calendar}
+                color="from-blue-500 to-cyan-500"
+              />
+              <KPICard
+                title="Games Available"
+                value={games.length}
+                subtitle="Activities"
+                trend={5}
+                icon={Gamepad2}
+                color="from-purple-500 to-pink-500"
+              />
+              <KPICard
+                title="Food Orders Today"
+                value={todayFoodOrders.length}
+                subtitle="Orders placed"
+                trend={15}
+                icon={Utensils}
+                color="from-yellow-500 to-orange-500"
+              />
+              <KPICard
+                title="Revenue Today"
+                value={`₹${(totalRevenue / 1000).toFixed(1)}K`}
+                subtitle="Total earnings"
+                trend={18}
+                icon={CreditCard}
+                color="from-cyan-500 to-blue-500"
+              />
+            </div>
 
-          <div className="flex-1">
-            <TabsContent value="dashboard" className="mt-0">
-              <div className="space-y-6">
-                <div>
-                  <h1 className="text-3xl font-bold">Farm Dashboard</h1>
-                  <p className="text-muted-foreground">Welcome to Rithish Farms Management System</p>
-                </div>
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ChartCard
+                title="Visitor Entry Timeline"
+                description="Hourly visitor entries today"
+              >
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={visitorChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="visitors"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={{ fill: "hsl(var(--primary))" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartCard>
 
-                {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                  <KPICard
-                    title="Visitors Today"
-                    value={todayVisitors.length}
-                    subtitle="Total entries"
-                    trend={12}
-                    icon={Users}
-                    color="from-green-500 to-emerald-500"
-                  />
-                  <KPICard
-                    title="Total Events"
-                    value={events.length}
-                    subtitle="Active events"
-                    trend={8}
-                    icon={Calendar}
-                    color="from-blue-500 to-cyan-500"
-                  />
-                  <KPICard
-                    title="Games Available"
-                    value={games.length}
-                    subtitle="Activities"
-                    trend={5}
-                    icon={Gamepad2}
-                    color="from-purple-500 to-pink-500"
-                  />
-                  <KPICard
-                    title="Food Orders Today"
-                    value={todayFoodOrders.length}
-                    subtitle="Orders placed"
-                    trend={15}
-                    icon={Utensils}
-                    color="from-yellow-500 to-orange-500"
-                  />
-                  <KPICard
-                    title="Revenue Today"
-                    value={`₹${(totalRevenue / 1000).toFixed(1)}K`}
-                    subtitle="Total earnings"
-                    trend={18}
-                    icon={CreditCard}
-                    color="from-cyan-500 to-blue-500"
-                  />
-                </div>
+              <ChartCard
+                title="Revenue Breakdown"
+                description="Today's revenue by category"
+              >
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={revenueData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {revenueData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </div>
 
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ChartCard
-                    title="Visitor Entry Timeline"
-                    description="Hourly visitor entries today"
-                  >
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={visitorChartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line
-                          type="monotone"
-                          dataKey="visitors"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={{ fill: "hsl(var(--primary))" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartCard>
-
-                  <ChartCard
-                    title="Revenue Breakdown"
-                    description="Today's revenue by category"
-                  >
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={revenueData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {revenueData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </ChartCard>
-                </div>
-
-                {/* Quick Actions and Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-1">
-                    <QuickActions actions={quickActions} />
-                  </div>
-
-                  <div className="lg:col-span-2">
-                    <ActivityFeed activities={recentActivities} />
-                  </div>
-                </div>
-
-                {/* Recent Visitors Table */}
-                <DataTable
-                  title="Recent Visitors"
-                  description="Latest farm visitors today"
-                  columns={[
-                    { key: "ticket_number", label: "Ticket #" },
-                    { key: "visitor_name", label: "Name" },
-                    { key: "mobile", label: "Mobile" },
-                    {
-                      key: "entry_type",
-                      label: "Type",
-                      render: (value: string) => (
-                        <Badge variant="outline">{value}</Badge>
-                      )
-                    },
-                    {
-                      key: "ticket_price",
-                      label: "Amount",
-                      render: (value: number) => `₹${value}`
-                    },
-                    {
-                      key: "payment_status",
-                      label: "Payment",
-                      render: (value: string) => (
-                        <Badge variant={value === "paid" ? "default" : "secondary"}>
-                          {value}
-                        </Badge>
-                      )
-                    },
-                    {
-                      key: "entry_time",
-                      label: "Entry Time",
-                      render: (value: string) => new Date(value).toLocaleTimeString()
-                    }
-                  ]}
-                  data={todayVisitors.slice(0, 10)}
-                  emptyMessage="No visitors today"
-                />
+            {/* Quick Actions and Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <QuickActions actions={quickActions} />
               </div>
-            </TabsContent>
 
-            <TabsContent value="visitors" className="mt-0">
-              <FarmVisitorEntryManager />
-            </TabsContent>
+              <div className="lg:col-span-2">
+                <ActivityFeed activities={recentActivities} />
+              </div>
+            </div>
 
-            <TabsContent value="events" className="mt-0">
-              <FarmEventsManager />
-            </TabsContent>
+            {/* Recent Visitors Table */}
+            <DataTable
+              title="Recent Visitors"
+              description="Latest farm visitors today"
+              columns={[
+                { key: "ticket_number", label: "Ticket #" },
+                { key: "visitor_name", label: "Name" },
+                { key: "mobile", label: "Mobile" },
+                {
+                  key: "entry_type",
+                  label: "Type",
+                  render: (value: string) => (
+                    <Badge variant="outline">{value}</Badge>
+                  )
+                },
+                {
+                  key: "ticket_price",
+                  label: "Amount",
+                  render: (value: number) => `₹${value}`
+                },
+                {
+                  key: "payment_status",
+                  label: "Payment",
+                  render: (value: string) => (
+                    <Badge variant={value === "paid" ? "default" : "secondary"}>
+                      {value}
+                    </Badge>
+                  )
+                },
+                {
+                  key: "entry_time",
+                  label: "Entry Time",
+                  render: (value: string) => new Date(value).toLocaleTimeString()
+                }
+              ]}
+              data={todayVisitors.slice(0, 10)}
+              emptyMessage="No visitors today"
+            />
+          </>
+        )}
 
-            <TabsContent value="games" className="mt-0">
-              <FarmGamesManager />
-            </TabsContent>
-
-            <TabsContent value="food" className="mt-0">
-              <FarmFoodManager />
-            </TabsContent>
-
-            <TabsContent value="tickets" className="mt-0">
-              <FarmTicketsManager />
-            </TabsContent>
-
-            <TabsContent value="bookings" className="mt-0">
-              <FarmBookingsManager />
-            </TabsContent>
-
-            <TabsContent value="food-orders" className="mt-0">
-              <FarmFoodOrdersManager />
-            </TabsContent>
-
-            <TabsContent value="payments" className="mt-0">
-              <FarmPaymentsManager />
-            </TabsContent>
-
-            <TabsContent value="expenses" className="mt-0">
-              <FarmExpensesManager />
-            </TabsContent>
-
-            <TabsContent value="announcements" className="mt-0">
-              <FarmAnnouncementsManager />
-            </TabsContent>
-
-            <TabsContent value="reports" className="mt-0">
-              <FarmReportsManager />
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-0">
-              <FarmSettingsManager />
-            </TabsContent>
-          </div>
-        </div>
-      </Tabs>
-    </DashboardLayout>
+        {activeTab === "visitors" && <FarmVisitorEntryManager />}
+        {activeTab === "events" && <FarmEventsManager />}
+        {activeTab === "games" && <FarmGamesManager />}
+        {activeTab === "food" && <FarmFoodManager />}
+        {activeTab === "tickets" && <FarmTicketsManager />}
+        {activeTab === "bookings" && <FarmBookingsManager />}
+        {activeTab === "food-orders" && <FarmFoodOrdersManager />}
+        {activeTab === "payments" && <FarmPaymentsManager />}
+        {activeTab === "expenses" && <FarmExpensesManager />}
+        {activeTab === "announcements" && <FarmAnnouncementsManager />}
+        {activeTab === "reports" && <FarmReportsManager />}
+        {activeTab === "settings" && <FarmSettingsManager />}
+      </div>
+    </EntitySidebarLayout>
   );
 };
 
