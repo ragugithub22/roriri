@@ -47,18 +47,18 @@ export default function Auth() {
     }
 
     if (user) {
-      // Redirect Admin users to IT Park, others to home
+      // Redirect Admin users to IT Park, regular users to user dashboard
       if (isAdmin) {
         navigate('/it-park', {
           replace: true
         });
       } else {
-        navigate('/', {
+        navigate('/user-dashboard', {
           replace: true
         });
       }
     }
-  }, [user, isAdmin, navigate]);
+  }, [user, isAdmin, navigate, isAdminLoading]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
