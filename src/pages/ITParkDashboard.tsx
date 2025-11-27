@@ -21,6 +21,8 @@ import SettingsPage from "@/pages/SettingsPage";
 import IndustrialVisit from "@/pages/IndustrialVisit";
 import IndustrialVisitEnquiry from "@/pages/IndustrialVisitEnquiry";
 import IndustrialVisitVisitors from "@/pages/IndustrialVisitVisitors";
+import LetterManagement from "@/pages/LetterManagement";
+import ChatBox from "@/components/chat/ChatBox";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,8 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/mou": MOUManagement,
   "/asset-management": AssetManagement,
   "/entities": EntitiesManagement,
+  "/letters": LetterManagement,
+  "/chat": ChatBox,
   "/industrial-visit": IndustrialVisit,
   "/industrial-visit/enquiry": IndustrialVisitEnquiry,
   "/industrial-visit/visitors": IndustrialVisitVisitors,
