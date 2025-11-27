@@ -49,16 +49,16 @@ export default function EntitySidebarLayout({
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
-        <Sidebar className="border-r bg-gradient-to-b from-blue-600 to-indigo-600">
-          <SidebarHeader className="border-b border-white/10">
+        <Sidebar collapsible="icon" className="border-r">
+          <SidebarHeader className="border-b border-white/10 bg-gradient-to-b from-blue-600 to-indigo-600">
             <div className="flex items-center gap-2 px-4 py-3">
               <EntityIcon className="h-6 w-6 text-white" />
               <h1 className="text-lg font-bold text-white">{entityName}</h1>
             </div>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="bg-gradient-to-b from-blue-600 to-indigo-600">
             <SidebarGroup>
               <SidebarGroupLabel className="text-white/70 text-xs uppercase tracking-wider px-4">
                 Navigation
@@ -71,8 +71,8 @@ export default function EntitySidebarLayout({
                       <SidebarMenuItem key={item.value}>
                         <SidebarMenuButton
                           onClick={() => onItemChange(item.value)}
-                          className={`w-full text-white hover:bg-white/10 ${
-                            activeItem === item.value ? "bg-white/20" : ""
+                          className={`w-full text-white hover:bg-white/20 ${
+                            activeItem === item.value ? "bg-white/20 font-semibold" : ""
                           }`}
                           isActive={activeItem === item.value}
                         >
