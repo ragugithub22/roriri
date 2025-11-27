@@ -70,35 +70,28 @@ export default function Auth() {
       
       console.log('Attempting login with:', validated.email);
 
-      // Try to find user credentials - check profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('email, username, password')
-        .or(`email.eq.${validated.email},username.eq.${validated.email}`)
-        .maybeSingle();
+      // Verify credentials using edge function (bypasses RLS)
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-login', {
+        body: {
+          emailOrUsername: validated.email,
+          password: validated.password
+        }
+      });
 
-      console.log('Profile query result:', { profile, profileError });
+      console.log('Verify login response:', { verifyData, verifyError });
 
-      if (!profile) {
-        toast.error('User not found in system');
+      if (verifyError || !verifyData?.success) {
+        toast.error('Invalid credentials');
         setLoading(false);
         return;
       }
 
-      // Check if the password matches
-      console.log('Checking password match');
-      if (profile.password !== validated.password) {
-        toast.error('Incorrect password');
-        setLoading(false);
-        return;
-      }
+      console.log('Credentials verified, attempting Supabase auth with email:', verifyData.email);
 
-      console.log('Password matches, attempting Supabase auth with email:', profile.email);
-
-      // Authenticate with Supabase Auth using the email from profile
+      // Authenticate with Supabase Auth using the verified email
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: profile.email,
-        password: validated.password
+        email: verifyData.email,
+        password: verifyData.password
       });
 
       if (signInError) {
