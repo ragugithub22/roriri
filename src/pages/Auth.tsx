@@ -12,11 +12,11 @@ import { z } from 'zod';
 import { Building2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 const authSchema = z.object({
-  email: z.string().trim().email({
-    message: "Invalid email address"
+  email: z.string().trim().min(1, {
+    message: "Email or username is required"
   }).max(255),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters"
+  password: z.string().min(1, {
+    message: "Password is required"
   }).max(100),
   fullName: z.string().trim().min(2).max(100).optional()
 });
@@ -67,18 +67,38 @@ export default function Auth() {
         password
       });
       setLoading(true);
+
+      // First, check if the user exists in profiles by username or email
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email, username, password')
+        .or(`email.eq.${validated.email},username.eq.${validated.email}`)
+        .single();
+
+      if (profileError || !profile) {
+        toast.error('User not found');
+        setLoading(false);
+        return;
+      }
+
+      // Check if the password matches
+      if (profile.password !== validated.password) {
+        toast.error('Incorrect password');
+        setLoading(false);
+        return;
+      }
+
+      // If credentials match, sign in with the actual email from the database
       const {
-        error
+        error: signInError
       } = await supabase.auth.signInWithPassword({
-        email: validated.email,
+        email: profile.email,
         password: validated.password
       });
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Invalid email or password');
-        } else {
-          toast.error(error.message);
-        }
+
+      if (signInError) {
+        toast.error('Login failed. Please contact administrator.');
+        console.error('Sign in error:', signInError);
       } else {
         toast.success('Logged in successfully');
       }
@@ -87,6 +107,7 @@ export default function Auth() {
         toast.error(error.errors[0].message);
       } else {
         toast.error('An error occurred during login');
+        console.error('Login error:', error);
       }
     } finally {
       setLoading(false);
@@ -156,8 +177,8 @@ export default function Auth() {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input id="login-email" type="email" placeholder="your.email@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                  <Label htmlFor="login-email">Email or Username</Label>
+                  <Input id="login-email" type="text" placeholder="Enter email or username" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
