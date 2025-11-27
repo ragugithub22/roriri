@@ -35,6 +35,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
     full_name: '',
     email: '',
     phone: '',
+    address: '',
     dob: undefined as Date | undefined,
     hire_date: undefined as Date | undefined,
     employee_code: '',
@@ -49,6 +50,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
   const [validationErrors, setValidationErrors] = useState({
     full_name: '',
     email: '',
+    address: '',
     employee_code: '',
     entity_id: '',
     selectedRole: '',
@@ -181,6 +183,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           .update({
             full_name: data.full_name,
             phone: data.phone || null,
+            address: data.address || null,
             dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
           })
           .eq('id', userId);
@@ -304,6 +307,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           full_name: data.full_name,
           email: data.email,
           phone: data.phone,
+          address: data.address,
           dob: data.dob ? data.dob.toISOString().split('T')[0] : null
         })
         .eq('id', editingEmployee.profile_id)
@@ -442,6 +446,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
         full_name: employee.profiles?.full_name || '',
         email: employee.profiles?.email || '',
         phone: employee.profiles?.phone || '',
+        address: employee.profiles?.address || '',
         dob: employee.profiles?.dob ? new Date(employee.profiles.dob) : undefined,
         hire_date: new Date(employee.hire_date),
         employee_code: employee.employee_code,
@@ -459,6 +464,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
         full_name: '',
         email: '',
         phone: '',
+        address: '',
         dob: undefined,
         hire_date: undefined,
         employee_code: '',
@@ -480,6 +486,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
     setValidationErrors({
       full_name: '',
       email: '',
+      address: '',
       employee_code: '',
       entity_id: '',
       selectedRole: '',
@@ -492,6 +499,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
     const errors = {
       full_name: '',
       email: '',
+      address: '',
       employee_code: '',
       entity_id: '',
       selectedRole: '',
@@ -509,6 +517,11 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
       isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Invalid email format';
+      isValid = false;
+    }
+
+    if (!formData.address.trim()) {
+      errors.address = 'Address is required';
       isValid = false;
     }
 
@@ -722,6 +735,22 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => {
+                    setFormData({ ...formData, address: e.target.value });
+                    setValidationErrors({ ...validationErrors, address: '' });
+                  }}
+                  className={validationErrors.address ? 'border-destructive' : ''}
+                />
+                {validationErrors.address && (
+                  <p className="text-sm text-destructive">{validationErrors.address}</p>
+                )}
               </div>
 
               <div className="space-y-2">
