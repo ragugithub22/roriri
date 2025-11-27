@@ -15,7 +15,7 @@ interface EmployeesManagerProps {
 export default function EmployeesManager({ onViewEmployee }: EmployeesManagerProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: employees = [], isLoading } = useQuery({
+  const { data: employees = [], isLoading } = useQuery<any[]>({
     queryKey: ['it-academy-employees'],
     queryFn: async () => {
       // First get the IT Academy entity ID
@@ -35,6 +35,7 @@ export default function EmployeesManager({ onViewEmployee }: EmployeesManagerPro
           hire_date,
           status,
           residence_type,
+          profile_id,
           profiles:profile_id(
             full_name,
             email,
@@ -42,16 +43,27 @@ export default function EmployeesManager({ onViewEmployee }: EmployeesManagerPro
           ),
           departments:department_id(
             name
-          ),
-          positions:position_id(
-            title
           )
         `)
         .eq('entity_id', entity.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Fetch roles for all employees
+      const employeesWithRoles = await Promise.all(
+        (data || []).map(async (employee) => {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', employee.profile_id)
+            .maybeSingle();
+
+          return { ...employee, user_role: roleData?.role };
+        })
+      );
+
+      return employeesWithRoles;
     },
   });
 
@@ -115,7 +127,7 @@ export default function EmployeesManager({ onViewEmployee }: EmployeesManagerPro
                     <TableCell>{employee.profiles?.full_name || '-'}</TableCell>
                     <TableCell>{employee.profiles?.email || '-'}</TableCell>
                     <TableCell>{employee.departments?.name || '-'}</TableCell>
-                    <TableCell>{employee.positions?.title || '-'}</TableCell>
+                    <TableCell>{employee.user_role || '-'}</TableCell>
                     <TableCell>
                       <Badge
                         variant={employee.status === 'active' ? 'default' : 'secondary'}
