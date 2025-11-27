@@ -42,7 +42,7 @@ export default function LetterManagement() {
     enabled: selectedType === 'employee',
   });
 
-  const { data: trainees } = useQuery({
+  const { data: trainees, isLoading: isLoadingTrainees, error: traineesError } = useQuery({
     queryKey: ['trainees-letters'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -59,7 +59,7 @@ export default function LetterManagement() {
     enabled: selectedType === 'trainee',
   });
 
-  const { data: interns } = useQuery({
+  const { data: interns, isLoading: isLoadingInterns, error: internsError } = useQuery({
     queryKey: ['interns-letters'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -152,10 +152,46 @@ export default function LetterManagement() {
 
   const renderRecipientTable = () => {
     let data: any[] = [];
+    let isLoading = false;
+    let error = null;
     
-    if (selectedType === 'employee') data = employees || [];
-    if (selectedType === 'trainee') data = trainees || [];
-    if (selectedType === 'intern') data = interns || [];
+    if (selectedType === 'employee') {
+      data = employees || [];
+    }
+    if (selectedType === 'trainee') {
+      data = trainees || [];
+      isLoading = isLoadingTrainees;
+      error = traineesError;
+    }
+    if (selectedType === 'intern') {
+      data = interns || [];
+      isLoading = isLoadingInterns;
+      error = internsError;
+    }
+
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center py-8">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex justify-center items-center py-8">
+          <p className="text-destructive">Error loading data: {error.message}</p>
+        </div>
+      );
+    }
+
+    if (data.length === 0) {
+      return (
+        <div className="flex justify-center items-center py-8">
+          <p className="text-muted-foreground">No {selectedType}s found</p>
+        </div>
+      );
+    }
 
     return (
       <Table>
