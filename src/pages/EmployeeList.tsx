@@ -45,8 +45,11 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
     status: 'active' as 'active' | 'inactive',
     residence_type: '',
     selectedRole: '',
+    selectedRoles: [] as string[],
+    avatar_url: '',
     selectedEntities: [] as string[]
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [validationErrors, setValidationErrors] = useState({
     full_name: '',
     email: '',
@@ -456,8 +459,11 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
         status: employee.status || 'active',
         residence_type: employee.residence_type || '',
         selectedRole: '',
+        selectedRoles: [],
+        avatar_url: employee.profiles?.avatar_url || '',
         selectedEntities: userEntities || []
       });
+      setAvatarFile(null);
     } else {
       setEditingEmployee(null);
       setFormData({
@@ -474,8 +480,11 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
         status: 'active',
         residence_type: '',
         selectedRole: '',
+        selectedRoles: [],
+        avatar_url: '',
         selectedEntities: []
       });
+      setAvatarFile(null);
     }
     setIsDialogOpen(true);
   };
@@ -881,25 +890,44 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
               </div>
 
               <div className="space-y-2">
-                <Label>Additional Entities (Optional)</Label>
-                <div className="border rounded-md p-4 space-y-2">
-                  {entities?.filter(entity => entity.id !== formData.entity_id).map((entity) => (
-                    <div key={entity.id} className="flex items-center space-x-2">
+                <Label>Profile Image</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setAvatarFile(file);
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Additional Roles (Optional)</Label>
+                <div className="border rounded-md p-4 space-y-2 max-h-48 overflow-y-auto">
+                  {roles?.filter(role => role.role_name !== formData.selectedRole).map((role) => (
+                    <div key={role.id} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`entity-${entity.id}`}
-                        checked={formData.selectedEntities.includes(entity.id)}
-                        onCheckedChange={() => toggleEntity(entity.id)}
+                        id={`role-${role.id}`}
+                        checked={formData.selectedRoles.includes(role.role_name)}
+                        onCheckedChange={() => {
+                          const updatedRoles = formData.selectedRoles.includes(role.role_name)
+                            ? formData.selectedRoles.filter(r => r !== role.role_name)
+                            : [...formData.selectedRoles, role.role_name];
+                          setFormData({ ...formData, selectedRoles: updatedRoles });
+                        }}
                       />
                       <Label
-                        htmlFor={`entity-${entity.id}`}
+                        htmlFor={`role-${role.id}`}
                         className="text-sm font-normal cursor-pointer"
                       >
-                        {entity.name}
+                        {role.role_name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                       </Label>
                     </div>
                   ))}
-                  {entities?.filter(entity => entity.id !== formData.entity_id).length === 0 && (
-                    <p className="text-sm text-muted-foreground">No additional entities available</p>
+                  {roles?.filter(role => role.role_name !== formData.selectedRole).length === 0 && (
+                    <p className="text-sm text-muted-foreground">No additional roles available</p>
                   )}
                 </div>
               </div>
