@@ -3059,6 +3059,7 @@ export type Database = {
           primary_entity_id: string | null
           status: Database["public"]["Enums"]["status_type"] | null
           updated_at: string | null
+          username: string | null
         }
         Insert: {
           address?: string | null
@@ -3072,6 +3073,7 @@ export type Database = {
           primary_entity_id?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
           updated_at?: string | null
+          username?: string | null
         }
         Update: {
           address?: string | null
@@ -3085,6 +3087,7 @@ export type Database = {
           primary_entity_id?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
           updated_at?: string | null
+          username?: string | null
         }
         Relationships: [
           {
