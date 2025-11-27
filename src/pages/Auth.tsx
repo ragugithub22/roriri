@@ -68,32 +68,75 @@ export default function Auth() {
       });
       setLoading(true);
 
-      // First, check if the user exists in profiles by username or email
-      const { data: profile, error: profileError } = await supabase
+      // Try to find user credentials across multiple tables
+      let userEmail = null;
+      let userPassword = null;
+
+      // Check profiles table first
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('id, email, username, password')
+        .select('email, username, password')
         .or(`email.eq.${validated.email},username.eq.${validated.email}`)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !profile) {
-        toast.error('User not found');
+      if (profile && profile.password === validated.password) {
+        userEmail = profile.email;
+        userPassword = profile.password;
+      }
+
+      // If not found, check students (trainees) table
+      if (!userEmail) {
+        const { data: student } = await supabase
+          .from('students')
+          .select('profile_id, profiles!inner(email, username, password)')
+          .or(`profiles.email.eq.${validated.email},profiles.username.eq.${validated.email}`)
+          .maybeSingle();
+
+        if (student?.profiles && student.profiles.password === validated.password) {
+          userEmail = student.profiles.email;
+          userPassword = student.profiles.password;
+        }
+      }
+
+      // If not found, check employees table
+      if (!userEmail) {
+        const { data: employee } = await supabase
+          .from('employees')
+          .select('profile_id, profiles!inner(email, username, password)')
+          .or(`profiles.email.eq.${validated.email},profiles.username.eq.${validated.email}`)
+          .maybeSingle();
+
+        if (employee?.profiles && employee.profiles.password === validated.password) {
+          userEmail = employee.profiles.email;
+          userPassword = employee.profiles.password;
+        }
+      }
+
+      // If not found, check internship_candidates table
+      if (!userEmail) {
+        const { data: intern } = await supabase
+          .from('internship_candidates')
+          .select('email, username, password')
+          .or(`email.eq.${validated.email},username.eq.${validated.email}`)
+          .maybeSingle();
+
+        if (intern && intern.password === validated.password) {
+          userEmail = intern.email;
+          userPassword = intern.password;
+        }
+      }
+
+      // If no matching credentials found
+      if (!userEmail || !userPassword) {
+        toast.error('Invalid credentials');
         setLoading(false);
         return;
       }
 
-      // Check if the password matches
-      if (profile.password !== validated.password) {
-        toast.error('Incorrect password');
-        setLoading(false);
-        return;
-      }
-
-      // If credentials match, sign in with the actual email from the database
-      const {
-        error: signInError
-      } = await supabase.auth.signInWithPassword({
-        email: profile.email,
-        password: validated.password
+      // Authenticate with Supabase Auth using the found email
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: userPassword
       });
 
       if (signInError) {
