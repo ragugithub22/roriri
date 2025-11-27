@@ -178,52 +178,50 @@ export default function ITParkDashboard() {
               </div>
             </div>
           </header>
-    <DashboardLayout
-      entityName="RORIRI IT Park"
-      entityIcon={Building2}
-      entityColor="from-blue-600 to-indigo-600"
-    >
-      <div className="space-y-6">
-        {activeItem?.path === "/hostel" ? (
-          selectedResidentId && selectedResidentType ? (
-            <HostelResidentDetail
-              residentId={selectedResidentId}
-              residentType={selectedResidentType}
-              onBack={() => {
-                setSelectedResidentId(null);
-                setSelectedResidentType(null);
-              }}
-            />
-          ) : (
-            <HostelManagement
-              onViewResident={(id, type) => {
-                setSelectedResidentId(id);
-                setSelectedResidentType(type);
-              }}
-            />
-          )
-        ) : activeItem?.path === "/employees" ? (
-          selectedEmployeeId ? (
-            <EmployeeDetail
-              employeeId={selectedEmployeeId}
-              onBack={() => setSelectedEmployeeId(null)}
-            />
-          ) : (
-            <EmployeeList
-              onViewEmployee={(id) => setSelectedEmployeeId(id)}
-            />
-          )
-        ) : ActiveComponent ? (
-          ActiveComponent === IndustrialVisit ? (
-            <IndustrialVisit onNavigate={(path) => setActiveItem({ path } as NavigationItem)} />
-          ) : (
-            <ActiveComponent />
-          )
-        ) : (
-          <DashboardContent />
-        )}
-      </div>
-    </DashboardLayout>
+
+          {/* Main Content */}
+          <main className="p-6 bg-background min-h-[calc(100vh-73px)]">
+            <div className="space-y-6">
+              {activeItem?.path === "/hostel" ? (
+                selectedResidentId && selectedResidentType ? (
+                  <HostelResidentDetail
+                    residentId={selectedResidentId}
+                    residentType={selectedResidentType}
+                    onBack={() => {
+                      setSelectedResidentId(null);
+                      setSelectedResidentType(null);
+                    }}
+                  />
+                ) : (
+                  <HostelManagement
+                    onViewResident={(id, type) => {
+                      setSelectedResidentId(id);
+                      setSelectedResidentType(type);
+                    }}
+                  />
+                )
+              ) : activeItem?.path === "/employees" ? (
+                selectedEmployeeId ? (
+                  <EmployeeDetail
+                    employeeId={selectedEmployeeId}
+                    onBack={() => setSelectedEmployeeId(null)}
+                  />
+                ) : (
+                  <EmployeeList
+                    onViewEmployee={(id) => setSelectedEmployeeId(id)}
+                  />
+                )
+              ) : ActiveComponent ? (
+                ActiveComponent === IndustrialVisit ? (
+                  <IndustrialVisit onNavigate={(path) => setActiveItem({ path } as NavigationItem)} />
+                ) : (
+                  <ActiveComponent />
+                )
+              ) : (
+                <DashboardContent />
+              )}
+            </div>
+          </main>
         </SidebarInset>
       </div>
     </SidebarProvider>
