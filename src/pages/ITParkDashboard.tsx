@@ -82,20 +82,8 @@ export default function ITParkDashboard() {
     navigate("/auth");
   };
 
-  const entityPaths = [
-    "/it-academy",
-    "/foundation",
-    "/farm",
-    "/consultancy",
-    "/tours-travels",
-    "/builders",
-  ];
-
   const filteredNavItems = useMemo(() => {
-    return navigationItems.filter(item => {
-      if (entityPaths.includes(item.path)) {
-        return false;
-      }
+    return navigationItems.filter((item) => {
       if (item.isLogout) return true;
       if (item.adminOnly) return isAdmin;
       return true;
