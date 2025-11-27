@@ -14,7 +14,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-export default function SubjectsManager() {
+interface SubjectsManagerProps {
+  onViewSyllabus?: (subjectId: string) => void;
+}
+
+export default function SubjectsManager({ onViewSyllabus }: SubjectsManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null);
   const navigate = useNavigate();
@@ -253,7 +257,13 @@ export default function SubjectsManager() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate(`/syllabus/${subject.id}`)}
+                      onClick={() => {
+                        if (onViewSyllabus) {
+                          onViewSyllabus(subject.id);
+                        } else {
+                          navigate(`/syllabus/${subject.id}`);
+                        }
+                      }}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>

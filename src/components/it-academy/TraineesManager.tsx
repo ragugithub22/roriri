@@ -13,7 +13,11 @@ import { UserPlus, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-export default function TraineesManager() {
+interface TraineesManagerProps {
+  onViewTrainee?: (traineeId: string) => void;
+}
+
+export default function TraineesManager({ onViewTrainee }: TraineesManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingTrainee, setEditingTrainee] = useState<any>(null);
   const queryClient = useQueryClient();
@@ -264,7 +268,13 @@ export default function TraineesManager() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/trainees/${trainee.id}`)}
+                      onClick={() => {
+                        if (onViewTrainee) {
+                          onViewTrainee(trainee.id);
+                        } else {
+                          navigate(`/trainees/${trainee.id}`);
+                        }
+                      }}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>

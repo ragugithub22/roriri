@@ -14,15 +14,22 @@ import CertificatesManager from "@/components/it-academy/CertificatesManager";
 import ApplicationsManager from "../components/it-academy/ApplicationsManager";
 import DailyWorkUpdateManager from "../components/it-academy/DailyWorkUpdateManager";
 import ComplaintsManager from "../components/it-academy/ComplaintsManager";
+import SyllabusDetails from "./SyllabusDetails";
+import TraineeDetail from "./TraineeDetail";
 
 const ITAcademyDashboard = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
 
   useEffect(() => {
     const hash = location.hash.replace('#', '');
     if (hash && ['dashboard', 'courses', 'subjects', 'trainees', 'payments', 'certificates', 'applications', 'daily-work-update', 'complaints'].includes(hash)) {
       setActiveTab(hash);
+      // Reset detail views when changing tabs
+      setSelectedSubjectId(null);
+      setSelectedTraineeId(null);
     }
   }, [location.hash]);
 
@@ -212,11 +219,19 @@ const ITAcademyDashboard = () => {
             </TabsContent>
 
             <TabsContent value="subjects" className="mt-0">
-              <SubjectsManager />
+              {selectedSubjectId ? (
+                <SyllabusDetails subjectId={selectedSubjectId} onBack={() => setSelectedSubjectId(null)} />
+              ) : (
+                <SubjectsManager onViewSyllabus={(subjectId) => setSelectedSubjectId(subjectId)} />
+              )}
             </TabsContent>
 
             <TabsContent value="trainees" className="mt-0">
-              <TraineesManager />
+              {selectedTraineeId ? (
+                <TraineeDetail traineeId={selectedTraineeId} onBack={() => setSelectedTraineeId(null)} />
+              ) : (
+                <TraineesManager onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)} />
+              )}
             </TabsContent>
 
             <TabsContent value="payments" className="mt-0">
