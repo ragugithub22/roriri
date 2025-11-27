@@ -121,16 +121,18 @@ export default function ITParkDashboard() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-2 px-2">
-              <Building2 className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">RORIRI IT PARK</h1>
+        <Sidebar className="border-r bg-gradient-to-b from-blue-600 to-indigo-600">
+          <SidebarHeader className="border-b border-white/10">
+            <div className="flex items-center gap-2 px-4 py-3">
+              <Building2 className="h-6 w-6 text-white" />
+              <h1 className="text-lg font-bold text-white">RORIRI IT PARK</h1>
             </div>
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel></SidebarGroupLabel>
+              <SidebarGroupLabel className="text-white/70 text-xs uppercase tracking-wider px-4">
+                Navigation
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {filteredNavItems.map((item) => {
@@ -145,7 +147,9 @@ export default function ITParkDashboard() {
                               setActiveItem(item);
                             }
                           }}
-                          className="w-full"
+                          className={`w-full text-white hover:bg-white/10 ${
+                            activeItem?.path === item.path ? "bg-white/20" : ""
+                          }`}
                           isActive={activeItem?.path === item.path}
                         >
                           <Icon className="h-4 w-4" />
@@ -159,7 +163,21 @@ export default function ITParkDashboard() {
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset className="flex-1">
+          {/* Header */}
+          <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 shadow-md border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">RORIRI IT Park</h2>
+                  <p className="text-sm text-white/80">Dashboard & Management</p>
+                </div>
+              </div>
+            </div>
+          </header>
     <DashboardLayout
       entityName="RORIRI IT Park"
       entityIcon={Building2}

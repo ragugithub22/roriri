@@ -2,10 +2,22 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
+import EntitySidebarLayout, { SidebarNavItem } from "@/components/layouts/EntitySidebarLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { Code2, Users, BookOpen, Award } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Code2, 
+  Users, 
+  BookOpen, 
+  Award, 
+  GraduationCap,
+  FileText,
+  CreditCard,
+  Award as Certificate,
+  FileCheck,
+  Clipboard,
+  MessageSquareWarning,
+  Home
+} from "lucide-react";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
 import TraineesManager from "@/components/it-academy/TraineesManager";
@@ -16,6 +28,18 @@ import DailyWorkUpdateManager from "../components/it-academy/DailyWorkUpdateMana
 import ComplaintsManager from "../components/it-academy/ComplaintsManager";
 import SyllabusDetails from "./SyllabusDetails";
 import TraineeDetail from "./TraineeDetail";
+
+const navItems: SidebarNavItem[] = [
+  { label: "Dashboard", value: "dashboard", icon: Home },
+  { label: "Courses", value: "courses", icon: BookOpen },
+  { label: "Subjects", value: "subjects", icon: FileText },
+  { label: "Trainees", value: "trainees", icon: Users },
+  { label: "Payments", value: "payments", icon: CreditCard },
+  { label: "Certificates", value: "certificates", icon: Certificate },
+  { label: "Applications", value: "applications", icon: FileCheck },
+  { label: "Daily Work Update", value: "daily-work-update", icon: Clipboard },
+  { label: "Complaints", value: "complaints", icon: MessageSquareWarning },
+];
 
 const ITAcademyDashboard = () => {
   const location = useLocation();
@@ -161,102 +185,72 @@ const ITAcademyDashboard = () => {
   const certificationCourses = courses.filter(c => c.certification_available).length;
 
   return (
-    <DashboardLayout
-      entityName="RORIRI IT Academy - Super Admin"
-      entityIcon={Code2}
-      entityColor="from-blue-500 to-indigo-600"
+    <EntitySidebarLayout
+      entityName="RORIRI IT Academy"
+      entityIcon={GraduationCap}
+      navItems={navItems}
+      activeItem={activeTab}
+      onItemChange={setActiveTab}
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" orientation="vertical">
-        <div className="flex gap-6">
-          <TabsList className="flex flex-col h-fit w-48 space-y-1">
-            <TabsTrigger value="dashboard" className="w-full justify-start">Dashboard</TabsTrigger>
-            <TabsTrigger value="courses" className="w-full justify-start">Courses</TabsTrigger>
-            <TabsTrigger value="subjects" className="w-full justify-start">Subjects</TabsTrigger>
-            <TabsTrigger value="trainees" className="w-full justify-start">Trainees</TabsTrigger>
-            <TabsTrigger value="payments" className="w-full justify-start">Payments</TabsTrigger>
-            <TabsTrigger value="certificates" className="w-full justify-start">Certificates</TabsTrigger>
-            <TabsTrigger value="applications" className="w-full justify-start">Applications</TabsTrigger>
-            <TabsTrigger value="daily-work-update" className="w-full justify-start">Daily Work Update</TabsTrigger>
-            <TabsTrigger value="complaints" className="w-full justify-start">Complaints</TabsTrigger>
-          </TabsList>
-
-          <div className="flex-1">
-            <TabsContent value="dashboard" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <KPICard
-                  title="Total IT Courses"
-                  value={totalCourses}
-                  subtitle="Active training programs"
-                  icon={BookOpen}
-                  color="from-blue-500 to-indigo-600"
-                />
-                <KPICard
-                  title="Active Trainees"
-                  value={totalTrainees}
-                  subtitle="Enrolled trainees"
-                  icon={Users}
-                  color="from-green-500 to-emerald-600"
-                />
-                <KPICard
-                  title="Trainers"
-                  value={totalTrainers}
-                  subtitle={`${trainers.filter(t => !t.is_external).length} internal, ${trainers.filter(t => t.is_external).length} external`}
-                  icon={Users}
-                  color="from-purple-500 to-violet-600"
-                />
-                <KPICard
-                  title="Certifications"
-                  value={certificationCourses}
-                  subtitle="Courses with certification"
-                  icon={Award}
-                  color="from-orange-500 to-amber-600"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="courses" className="mt-0">
-              <CoursesManager />
-            </TabsContent>
-
-            <TabsContent value="subjects" className="mt-0">
-              {selectedSubjectId ? (
-                <SyllabusDetails subjectId={selectedSubjectId} onBack={() => setSelectedSubjectId(null)} />
-              ) : (
-                <SubjectsManager onViewSyllabus={(subjectId) => setSelectedSubjectId(subjectId)} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="trainees" className="mt-0">
-              {selectedTraineeId ? (
-                <TraineeDetail traineeId={selectedTraineeId} onBack={() => setSelectedTraineeId(null)} />
-              ) : (
-                <TraineesManager onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="payments" className="mt-0">
-              <PaymentsManager />
-            </TabsContent>
-
-            <TabsContent value="certificates" className="mt-0">
-              <CertificatesManager />
-            </TabsContent>
-
-            <TabsContent value="applications" className="mt-0">
-              <ApplicationsManager />
-            </TabsContent>
-
-            <TabsContent value="daily-work-update" className="mt-0">
-              <DailyWorkUpdateManager />
-            </TabsContent>
-
-            <TabsContent value="complaints" className="mt-0">
-              <ComplaintsManager />
-            </TabsContent>
+      <div className="space-y-6">
+        {activeTab === "dashboard" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <KPICard
+              title="Total IT Courses"
+              value={totalCourses}
+              subtitle="Active training programs"
+              icon={BookOpen}
+              color="from-blue-500 to-indigo-600"
+            />
+            <KPICard
+              title="Active Trainees"
+              value={totalTrainees}
+              subtitle="Enrolled trainees"
+              icon={Users}
+              color="from-green-500 to-emerald-600"
+            />
+            <KPICard
+              title="Trainers"
+              value={totalTrainers}
+              subtitle={`${trainers.filter(t => !t.is_external).length} internal, ${trainers.filter(t => t.is_external).length} external`}
+              icon={Users}
+              color="from-purple-500 to-violet-600"
+            />
+            <KPICard
+              title="Certifications"
+              value={certificationCourses}
+              subtitle="Courses with certification"
+              icon={Award}
+              color="from-orange-500 to-amber-600"
+            />
           </div>
-        </div>
-      </Tabs>
-    </DashboardLayout>
+        )}
+
+        {activeTab === "courses" && <CoursesManager />}
+        
+        {activeTab === "subjects" && (
+          selectedSubjectId ? (
+            <SyllabusDetails subjectId={selectedSubjectId} onBack={() => setSelectedSubjectId(null)} />
+          ) : (
+            <SubjectsManager onViewSyllabus={(subjectId) => setSelectedSubjectId(subjectId)} />
+          )
+        )}
+
+        {activeTab === "trainees" && (
+          selectedTraineeId ? (
+            <TraineeDetail traineeId={selectedTraineeId} onBack={() => setSelectedTraineeId(null)} />
+          ) : (
+            <TraineesManager onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)} />
+          )
+        )}
+
+        {activeTab === "payments" && <PaymentsManager />}
+        {activeTab === "certificates" && <CertificatesManager />}
+        {activeTab === "applications" && <ApplicationsManager />}
+        {activeTab === "daily-work-update" && <DailyWorkUpdateManager />}
+        {activeTab === "complaints" && <ComplaintsManager />}
+      </div>
+    </EntitySidebarLayout>
   );
 };
 
