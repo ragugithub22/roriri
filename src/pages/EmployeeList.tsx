@@ -242,7 +242,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
-          additional_entity_id: data.additional_entity_id && data.additional_entity_id !== "" ? data.additional_entity_id : null,
+          additional_entity_id: data.selectedEntities.length > 0 ? data.selectedEntities[0] : null,
           department_id: data.department_id || null,
           status: data.status,
           residence_type: data.residence_type || null
@@ -320,7 +320,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
           employee_code: data.employee_code,
           hire_date: data.hire_date?.toISOString().split('T')[0],
           entity_id: data.entity_id,
-          additional_entity_id: data.additional_entity_id && data.additional_entity_id !== "" ? data.additional_entity_id : null,
+          additional_entity_id: data.selectedEntities.length > 0 ? data.selectedEntities[0] : null,
           department_id: data.department_id || null,
           status: data.status,
           residence_type: data.residence_type || null
@@ -852,23 +852,27 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="additional_entity">Additional Entity (Optional)</Label>
-                <Select
-                  value={formData.additional_entity_id || "none"}
-                  onValueChange={(value) => setFormData({ ...formData, additional_entity_id: value === "none" ? "" : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose an additional entity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {entities?.map((entity) => (
-                      <SelectItem key={entity.id} value={entity.id}>
+                <Label>Additional Entities (Optional)</Label>
+                <div className="border rounded-md p-4 space-y-2">
+                  {entities?.filter(entity => entity.id !== formData.entity_id).map((entity) => (
+                    <div key={entity.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`entity-${entity.id}`}
+                        checked={formData.selectedEntities.includes(entity.id)}
+                        onCheckedChange={() => toggleEntity(entity.id)}
+                      />
+                      <Label
+                        htmlFor={`entity-${entity.id}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
                         {entity.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </Label>
+                    </div>
+                  ))}
+                  {entities?.filter(entity => entity.id !== formData.entity_id).length === 0 && (
+                    <p className="text-sm text-muted-foreground">No additional entities available</p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
