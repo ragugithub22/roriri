@@ -47,7 +47,12 @@ export default function LetterManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select('*, courses(name)');
+        .select(`
+          *,
+          courses:course_id(name),
+          batches:batch_id(batch_name)
+        `)
+        .order('full_name');
       if (error) throw error;
       return data;
     },
@@ -59,7 +64,11 @@ export default function LetterManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('internship_candidates')
-        .select('*, internship_courses(course_name)');
+        .select(`
+          *,
+          internship_courses:course_id(course_name)
+        `)
+        .order('name');
       if (error) throw error;
       return data;
     },
@@ -105,11 +114,21 @@ export default function LetterManagement() {
     let letterHTML = '';
     let subject = '';
 
+    // Determine position/course name based on type
+    let position = 'Position';
+    if (selectedRecipient?.primary_entity?.name) {
+      position = selectedRecipient.primary_entity.name;
+    } else if (selectedRecipient?.courses?.name) {
+      position = selectedRecipient.courses.name;
+    } else if (selectedRecipient?.internship_courses?.course_name) {
+      position = selectedRecipient.internship_courses.course_name;
+    }
+
     if (letterType === 'offer') {
       subject = 'Offer Letter - RORIRI Software Solutions';
       letterHTML = generateOfferLetterHTML({
         candidateName: recipientName,
-        position: selectedRecipient?.primary_entity?.name || selectedRecipient?.courses?.name || selectedRecipient?.internship_courses?.course_name || 'Position',
+        position,
         joiningDate,
         duration: '3 months',
       });
@@ -117,7 +136,7 @@ export default function LetterManagement() {
       subject = 'Bonafide Certificate - RORIRI Software Solutions';
       letterHTML = generateBonafideLetterHTML({
         candidateName: recipientName,
-        position: selectedRecipient?.primary_entity?.name || selectedRecipient?.courses?.name || selectedRecipient?.internship_courses?.course_name || 'Position',
+        position,
         startDate: joiningDate,
         endDate: endDate || new Date().toISOString().split('T')[0],
       });
@@ -157,7 +176,10 @@ export default function LetterManagement() {
               <TableCell>{item.profiles?.full_name || item.full_name || item.name}</TableCell>
               <TableCell className="capitalize">{selectedType}</TableCell>
               <TableCell>
-                {item.primary_entity?.name || item.courses?.name || item.internship_courses?.course_name || '-'}
+                {item.primary_entity?.name || 
+                 item.courses?.name || 
+                 item.batches?.batch_name ||
+                 item.internship_courses?.course_name || '-'}
               </TableCell>
               <TableCell>
                 <Badge variant="outline">{getDocumentStatus(item)}</Badge>
