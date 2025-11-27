@@ -12,17 +12,62 @@ export default function ChatBox() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [message, setMessage] = useState('');
 
-  const { data: users } = useQuery({
-    queryKey: ['chat-users'],
+  // Fetch employees
+  const { data: employees } = useQuery({
+    queryKey: ['chat-employees'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('employees')
+        .select('id, profiles:profile_id(full_name, email)')
+        .order('profiles(full_name)');
+      if (error) throw error;
+      return data?.map(emp => ({
+        id: emp.id,
+        full_name: emp.profiles?.full_name,
+        email: emp.profiles?.email,
+        type: 'Employee'
+      })) || [];
+    },
+  });
+
+  // Fetch trainees
+  const { data: trainees } = useQuery({
+    queryKey: ['chat-trainees'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('students')
         .select('id, full_name, email')
         .order('full_name');
       if (error) throw error;
-      return data;
+      return data?.map(trainee => ({
+        id: trainee.id,
+        full_name: trainee.full_name,
+        email: trainee.email,
+        type: 'Trainee'
+      })) || [];
     },
   });
+
+  // Fetch intern candidates
+  const { data: interns } = useQuery({
+    queryKey: ['chat-interns'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('internship_candidates')
+        .select('id, name, email')
+        .order('name');
+      if (error) throw error;
+      return data?.map(intern => ({
+        id: intern.id,
+        full_name: intern.name,
+        email: intern.email,
+        type: 'Intern'
+      })) || [];
+    },
+  });
+
+  // Combine all users
+  const users = [...(employees || []), ...(trainees || []), ...(interns || [])];
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -57,7 +102,9 @@ export default function ChatBox() {
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{user.full_name}</p>
-                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {user.type} • {user.email}
+                    </p>
                   </div>
                 </div>
               </div>

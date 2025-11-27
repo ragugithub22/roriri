@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { generateOfferLetterHTML } from '@/components/internship/OfferLetter';
 import { generateBonafideLetterHTML } from '@/components/internship/BonafideLetter';
+import html2pdf from 'html2pdf.js';
 
 type RecipientType = 'employee' | 'trainee' | 'intern' | null;
 
@@ -158,15 +159,18 @@ export default function LetterManagement() {
   };
 
   const handleDownloadLetter = () => {
-    const blob = new Blob([generatedLetterHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${letterType}-letter-${selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const element = document.createElement('div');
+    element.innerHTML = generatedLetterHTML;
+    
+    const opt = {
+      margin: 10,
+      filename: `${letterType}-letter-${selectedRecipient?.profiles?.full_name || selectedRecipient?.full_name || selectedRecipient?.name}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
     toast.success('Letter downloaded successfully!');
   };
 
