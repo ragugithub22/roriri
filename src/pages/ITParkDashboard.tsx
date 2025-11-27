@@ -166,18 +166,39 @@ export default function ITParkDashboard() {
         </Sidebar>
         <SidebarInset className="flex-1">
           {/* Header */}
-          <header className="border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white sticky top-0 z-50">
-            <div className="flex h-16 items-center justify-between px-6">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="text-white hover:bg-white/20" />
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/20">
-                    <Building2 className="h-6 w-6" />
+          <header className="bg-gradient-primary text-primary-foreground py-6 px-6 shadow-medium">
+            <div className="container mx-auto max-w-7xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => navigate("/it-park", { state: { showEntities: true } })}
+                    className="text-primary-foreground hover:bg-primary-foreground/20"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary-foreground/20">
+                      <Building2 className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold">RORIRI IT Park</h1>
+                      <p className="text-sm opacity-90">Dashboard & Analytics</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold">RORIRI IT Park</h2>
-                    <p className="text-sm text-white/80">Dashboard & Management</p>
-                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="text-primary-foreground hover:bg-primary-foreground/20"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
                 </div>
               </div>
             </div>
