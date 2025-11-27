@@ -19,7 +19,7 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
         .from('employees')
         .select(`
           *,
-          profiles:profile_id (full_name, email, phone, dob),
+          profiles:profile_id (full_name, email, phone, dob, address),
           primary_entity:entities!entity_id (name, color, icon),
           additional_entity:entities!additional_entity_id (name, color, icon),
           departments:department_id (name)
@@ -121,7 +121,7 @@ export default function EmployeeDetail({ employeeId, onBack }: { employeeId?: st
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Address</div>
-                <div>{'Not provided'}</div>
+                <div>{employee.profiles?.address || 'Not provided'}</div>
               </div>
             </CardContent>
           </Card>

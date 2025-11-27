@@ -66,7 +66,7 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
         .from('employees')
         .select(`
           *,
-          profiles:profile_id (full_name, email, phone, dob),
+          profiles:profile_id (full_name, email, phone, dob, address),
           primary_entity:entities!entity_id (name, color, icon),
           departments:department_id (name),
           positions:position_id (title)
