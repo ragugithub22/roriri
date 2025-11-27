@@ -3055,6 +3055,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          password: string | null
           phone: string | null
           primary_entity_id: string | null
           status: Database["public"]["Enums"]["status_type"] | null
@@ -3069,6 +3070,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          password?: string | null
           phone?: string | null
           primary_entity_id?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null
@@ -3083,6 +3085,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          password?: string | null
           phone?: string | null
           primary_entity_id?: string | null
           status?: Database["public"]["Enums"]["status_type"] | null

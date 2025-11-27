@@ -24,7 +24,8 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
             email,
             phone,
             address,
-            username
+            username,
+            password
           ),
           departments:department_id(
             name
@@ -139,7 +140,7 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
               <Mail className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Password</p>
-                <p className="font-medium font-mono">{'••••••••'}</p>
+                <p className="font-medium font-mono">{employee.profiles?.password || '-'}</p>
               </div>
             </div>
           </CardContent>
