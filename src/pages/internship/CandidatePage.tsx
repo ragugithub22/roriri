@@ -148,6 +148,7 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
+      // Update the internship_candidates table
       const { error } = await supabase
         .from("internship_candidates")
         .update({
@@ -157,6 +158,22 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
         })
         .eq("id", id);
       if (error) throw error;
+
+      // Also update the profiles table with email, username, and password
+      if (data.email) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({
+            email: data.email,
+            username: data.username,
+            password: data.password,
+            full_name: data.name,
+            phone: data.phone,
+          })
+          .eq("email", editingCandidate?.email);
+        
+        if (profileError) console.error("Profile update error:", profileError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["internship-candidates"] });
