@@ -64,12 +64,68 @@ Deno.serve(async (req) => {
 
     console.log('Credentials verified successfully');
 
-    // Return the email to use for Supabase Auth login
+    // Determine user role by checking various tables
+    let userRole = 'user';
+    
+    // Check if super admin
+    if (profile.email === 'admin@roririsoft.com' || profile.username === 'admin') {
+      userRole = 'super_admin';
+    } else {
+      // Check user_roles table for admin
+      const { data: adminRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', profile.id)
+        .eq('role', 'admin')
+        .single();
+      
+      if (adminRole) {
+        userRole = 'admin';
+      } else {
+        // Check if employee
+        const { data: employee } = await supabaseAdmin
+          .from('employees')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .single();
+        
+        if (employee) {
+          userRole = 'employee';
+        } else {
+          // Check if trainee (students table)
+          const { data: trainee } = await supabaseAdmin
+            .from('students')
+            .select('id')
+            .eq('profile_id', profile.id)
+            .single();
+          
+          if (trainee) {
+            userRole = 'trainee';
+          } else {
+            // Check if intern
+            const { data: intern } = await supabaseAdmin
+              .from('internship_candidates')
+              .select('id')
+              .eq('profile_id', profile.id)
+              .single();
+            
+            if (intern) {
+              userRole = 'intern';
+            }
+          }
+        }
+      }
+    }
+
+    console.log('User role determined:', userRole);
+
+    // Return the email, password, and role
     return new Response(
       JSON.stringify({ 
         success: true, 
         email: profile.email,
-        password: profile.password
+        password: profile.password,
+        role: userRole
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
