@@ -69,11 +69,29 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
   const saveMutation = useMutation({
     mutationFn: async (traineeData: any) => {
       if (editingTrainee) {
+        // Update the students table
         const { error } = await supabase
           .from("students")
           .update(traineeData)
           .eq("id", editingTrainee.id);
         if (error) throw error;
+
+        // Also update the profiles table with email, username, and password
+        if (traineeData.email) {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({
+              email: traineeData.email,
+              username: traineeData.student_code,
+              password: traineeData.password,
+              full_name: traineeData.full_name,
+              phone: traineeData.phone,
+              dob: traineeData.date_of_birth,
+            })
+            .eq("email", editingTrainee.email);
+          
+          if (profileError) console.error("Profile update error:", profileError);
+        }
       } else {
         const { error } = await supabase
           .from("students")
