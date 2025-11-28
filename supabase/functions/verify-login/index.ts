@@ -28,11 +28,12 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Check profiles table - use limit(1) to handle duplicate emails
+    // Check profiles table - filter out null passwords and use limit(1)
     const { data: profiles, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, email, username, password')
       .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
+      .not('password', 'is', null)
       .limit(1);
 
     const profile = profiles?.[0];
