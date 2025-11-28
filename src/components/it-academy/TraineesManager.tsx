@@ -191,7 +191,6 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
       status: formData.get("status"),
       residence_type: formData.get("residence_type"),
       incharge_person_id: formData.get("incharge_person_id") || null,
-      image_url: imageUrl,
     };
     saveMutation.mutate(traineeData);
   };

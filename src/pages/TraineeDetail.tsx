@@ -57,6 +57,8 @@ export default function TraineeDetail({ traineeId: propTraineeId, onBack }: Trai
     },
   });
 
+
+
   // Fetch courses
   const { data: courses = [] } = useQuery({
     queryKey: ["courses"],
@@ -401,11 +403,16 @@ export default function TraineeDetail({ traineeId: propTraineeId, onBack }: Trai
                     <p className="text-sm text-muted-foreground">Address</p>
                     <p className="font-medium">{trainee.address || "N/A"}</p>
                   </div>
-                  
+
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">In-charge Name</p>
+                    <p className="font-medium">Not Assigned</p>
+                  </div>
+
                   {hasCourseAssigned && (
                     <>
                       <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Incharge Name</p>
+                        <p className="text-sm text-muted-foreground">Course Trainer</p>
                         <p className="font-medium">{trainerInfo || "Not Assigned"}</p>
                       </div>
                       
