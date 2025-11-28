@@ -76,23 +76,50 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
           .eq("id", editingTrainee.id);
         if (error) throw error;
 
-        // Also update the profiles table with email, username, and password
+        // Find and update profile record by email (if exists)
         if (traineeData.email) {
-          const { error: profileError } = await supabase
+          const { data: existingProfile } = await supabase
             .from("profiles")
-            .update({
-              email: traineeData.email,
-              username: traineeData.student_code,
-              password: traineeData.password,
-              full_name: traineeData.full_name,
-              phone: traineeData.phone,
-              dob: traineeData.date_of_birth,
-            })
-            .eq("email", editingTrainee.email);
+            .select("id")
+            .eq("email", editingTrainee.email)
+            .maybeSingle();
           
-          if (profileError) console.error("Profile update error:", profileError);
+          if (existingProfile) {
+            // Update existing profile
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .update({
+                email: traineeData.email,
+                username: traineeData.student_code,
+                password: traineeData.password,
+                full_name: traineeData.full_name,
+                phone: traineeData.phone,
+                dob: traineeData.date_of_birth,
+              })
+              .eq("id", existingProfile.id);
+            if (profileError) throw profileError;
+          }
         }
       } else {
+        // Create new trainee via edge function to properly create profile
+        const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
+          body: {
+            fullName: traineeData.full_name,
+            email: traineeData.email,
+            phone: traineeData.phone,
+            username: traineeData.student_code,
+            password: traineeData.password,
+            dob: traineeData.date_of_birth,
+            role: 'trainee',
+            entityId: null
+          },
+        });
+
+        if (userError || userData?.error) {
+          throw new Error(userData?.error || userError?.message || 'Failed to create user');
+        }
+        
+        // Now insert trainee record
         const { error } = await supabase
           .from("students")
           .insert(traineeData);
