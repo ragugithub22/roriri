@@ -28,13 +28,14 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Check profiles table
-    const { data: profile, error: profileError } = await supabaseAdmin
+    // Check profiles table - use limit(1) to handle duplicate emails
+    const { data: profiles, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, email, username, password')
       .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
-      .maybeSingle();
+      .limit(1);
 
+    const profile = profiles?.[0];
     console.log('Profile query result:', { found: !!profile, error: profileError });
 
     if (!profile) {
