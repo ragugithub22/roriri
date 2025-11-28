@@ -71,22 +71,33 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id
 
-    // Update profile with phone, dob, username, and password if provided
-    if (phone || dob || username || password) {
-      const updateData: any = {};
-      if (phone) updateData.phone = phone;
-      if (dob) updateData.dob = dob;
-      if (username) updateData.username = username;
-      if (password) updateData.password = password;
-      
-      const { error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .update(updateData)
-        .eq('id', userId)
+    // Create or update profile with all user data including username and password
+    const profileData: any = {
+      id: userId,
+      email: email,
+      full_name: fullName,
+    };
+    
+    if (phone) profileData.phone = phone;
+    if (dob) profileData.dob = dob;
+    if (username) profileData.username = username;
+    if (password) profileData.password = password;
+    
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .upsert(profileData, { onConflict: 'id' })
 
-      if (profileError) {
-        console.error('Profile update error:', profileError)
-      }
+    if (profileError) {
+      console.error('Profile upsert error:', profileError)
+      // Try to clean up the user if profile creation fails
+      await supabaseAdmin.auth.admin.deleteUser(userId)
+      return new Response(
+        JSON.stringify({ error: 'Failed to create user profile' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
     // Assign role - accept any role from the roles table
