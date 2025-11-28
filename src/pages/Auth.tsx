@@ -111,8 +111,29 @@ export default function Auth() {
         toast.error('Login failed. Please contact administrator.');
         console.error('Sign in error:', signInError);
       } else {
-        console.log('Login successful');
+        console.log('Login successful, role:', verifyData.role);
         toast.success('Logged in successfully');
+        
+        // Route based on role
+        switch (verifyData.role) {
+          case 'super_admin':
+            navigate('/it-park', { replace: true });
+            break;
+          case 'admin':
+            navigate('/it-park', { replace: true });
+            break;
+          case 'trainee':
+            navigate('/trainee-dashboard', { replace: true });
+            break;
+          case 'employee':
+            navigate('/employee-dashboard', { replace: true });
+            break;
+          case 'intern':
+            navigate('/intern-dashboard', { replace: true });
+            break;
+          default:
+            navigate('/user-dashboard', { replace: true });
+        }
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
