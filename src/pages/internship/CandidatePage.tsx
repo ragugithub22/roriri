@@ -125,6 +125,24 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Create user via edge function to properly create profile
+      const { data: userData, error: userError } = await supabase.functions.invoke('create-user', {
+        body: {
+          fullName: data.name,
+          email: data.email,
+          phone: data.phone,
+          username: data.username,
+          password: data.password,
+          role: 'intern',
+          entityId: null
+        },
+      });
+
+      if (userError || userData?.error) {
+        throw new Error(userData?.error || userError?.message || 'Failed to create user');
+      }
+      
+      // Insert candidate record
       const { error } = await supabase
         .from("internship_candidates")
         .insert([{
@@ -159,20 +177,28 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
         .eq("id", id);
       if (error) throw error;
 
-      // Also update the profiles table with email, username, and password
-      if (data.email) {
-        const { error: profileError } = await supabase
+      // Find and update profile record by email (if exists)
+      if (data.email && editingCandidate?.email) {
+        const { data: existingProfile } = await supabase
           .from("profiles")
-          .update({
-            email: data.email,
-            username: data.username,
-            password: data.password,
-            full_name: data.name,
-            phone: data.phone,
-          })
-          .eq("email", editingCandidate?.email);
+          .select("id")
+          .eq("email", editingCandidate.email)
+          .maybeSingle();
         
-        if (profileError) console.error("Profile update error:", profileError);
+        if (existingProfile) {
+          // Update existing profile
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({
+              email: data.email,
+              username: data.username,
+              password: data.password,
+              full_name: data.name,
+              phone: data.phone,
+            })
+            .eq("id", existingProfile.id);
+          if (profileError) throw profileError;
+        }
       }
     },
     onSuccess: () => {
