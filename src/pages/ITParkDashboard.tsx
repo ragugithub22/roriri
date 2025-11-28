@@ -66,10 +66,23 @@ export default function ITParkDashboard() {
   const [selectedResidentType, setSelectedResidentType] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
-  const { data: isAdmin } = useQuery({
+  const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
     queryKey: ['is-admin', user?.id],
     queryFn: async () => {
       if (!user?.id) return false;
+      
+      // First check if this is the super admin by email or username
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, email')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile && (profile.username === 'admin' || profile.email === 'admin@roririsoft.com')) {
+        return true;
+      }
+      
+      // Otherwise check role-based admin status
       const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
       if (error) return false;
       return data;
@@ -92,6 +105,11 @@ export default function ITParkDashboard() {
   ];
 
   const filteredNavItems = useMemo(() => {
+    // While loading admin status, show all items to avoid flickering
+    if (isAdminLoading) {
+      return navigationItems.filter(item => !entityPaths.includes(item.path));
+    }
+    
     return navigationItems.filter(item => {
       if (entityPaths.includes(item.path)) {
         return false;
@@ -100,7 +118,7 @@ export default function ITParkDashboard() {
       if (item.adminOnly) return isAdmin;
       return true;
     });
-  }, [isAdmin]);
+  }, [isAdmin, isAdminLoading]);
 
   useEffect(() => {
     // Check if we should show entities page (coming from entity dashboard)
