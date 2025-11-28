@@ -34,6 +34,19 @@ export default function Auth() {
     queryKey: ['is-admin', user?.id],
     queryFn: async () => {
       if (!user?.id) return false;
+      
+      // First check if this is the super admin by email or username
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, email')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile && (profile.username === 'admin' || profile.email === 'admin@roririsoft.com')) {
+        return true;
+      }
+      
+      // Otherwise check role-based admin status
       const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
       if (error) return false;
       return data;
