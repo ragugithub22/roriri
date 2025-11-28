@@ -52,8 +52,9 @@ export default function TraineesManager() {
       setIsOpen(false);
       setEditingTrainee(null);
     },
-    onError: () => {
-      toast.error("Failed to save trainee");
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Unknown error occurred";
+      toast.error(`Failed to save trainee: ${errorMessage}`);
     },
   });
 
