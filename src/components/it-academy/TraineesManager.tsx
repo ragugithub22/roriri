@@ -99,7 +99,7 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
               .eq("id", existingProfile.id);
             if (profileError) throw profileError;
 
-            // Update user_login table
+            // Update user_login table with correct user_type
             const { error: loginError } = await supabase
               .from("user_login")
               .update({
@@ -108,7 +108,7 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
                 password: traineeData.password,
               })
               .eq("original_id", existingProfile.id)
-              .eq("user_type", "profile");
+              .eq("user_type", "student"); // Use 'student' for trainees
             if (loginError) throw loginError;
           }
         }
@@ -123,7 +123,8 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
             password: traineeData.password,
             dob: traineeData.date_of_birth,
             role: 'trainee',
-            entityId: null
+            entityId: null,
+            userType: 'student' // Set correct user_type for trainees
           },
         });
 

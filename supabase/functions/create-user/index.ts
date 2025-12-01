@@ -9,7 +9,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { fullName, email, phone, dob, role, entityId, username, password } = await req.json()
+    const { fullName, email, phone, dob, role, entityId, username, password, userType } = await req.json()
 
     // Validate input
     if (!fullName || !email || !role) {
@@ -105,18 +105,18 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Insert into user_login table
+    // Insert or update user_login table with correct user_type
     const loginData = {
       email: email,
       username: username || null,
       password: password || tempPassword,
-      user_type: 'profile',
+      user_type: userType || 'profile', // Use provided userType or default to 'profile'
       original_id: userId
     };
 
     const { error: loginError } = await supabaseAdmin
       .from('user_login')
-      .insert(loginData)
+      .upsert(loginData, { onConflict: 'email' })
 
     if (loginError) {
       console.error('User login insert error:', loginError)
