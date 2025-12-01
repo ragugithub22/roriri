@@ -184,7 +184,7 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
           .select("id")
           .eq("email", editingCandidate.email)
           .maybeSingle();
-        
+
         if (existingProfile) {
           // Update existing profile
           const { error: profileError } = await supabase
@@ -198,6 +198,18 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
             })
             .eq("id", existingProfile.id);
           if (profileError) throw profileError;
+
+          // Update user_login table
+          const { error: loginError } = await supabase
+            .from("user_login")
+            .update({
+              email: data.email,
+              username: data.username,
+              password: data.password,
+            })
+            .eq("original_id", existingProfile.id)
+            .eq("user_type", "profile");
+          if (loginError) throw loginError;
         }
       }
     },

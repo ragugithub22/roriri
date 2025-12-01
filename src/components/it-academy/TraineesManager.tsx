@@ -83,7 +83,7 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
             .select("id")
             .eq("email", editingTrainee.email)
             .maybeSingle();
-          
+
           if (existingProfile) {
             // Update existing profile
             const { error: profileError } = await supabase
@@ -98,6 +98,18 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
               })
               .eq("id", existingProfile.id);
             if (profileError) throw profileError;
+
+            // Update user_login table
+            const { error: loginError } = await supabase
+              .from("user_login")
+              .update({
+                email: traineeData.email,
+                username: traineeData.student_code,
+                password: traineeData.password,
+              })
+              .eq("original_id", existingProfile.id)
+              .eq("user_type", "profile");
+            if (loginError) throw loginError;
           }
         }
       } else {

@@ -1,3 +1,4 @@
+// @ts-ignore: ESM imports work in Deno runtime
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
@@ -5,7 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-Deno.serve(async (req) => {
+// @ts-ignore: Deno global is available in Supabase Edge Functions
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,8 +19,11 @@ Deno.serve(async (req) => {
     console.log('Login attempt for:', emailOrUsername);
 
     // Create service role client to bypass RLS
+    // @ts-ignore: Deno global is available in Supabase Edge Functions
     const supabaseAdmin = createClient(
+      // @ts-ignore: Deno global is available in Supabase Edge Functions
       Deno.env.get('SUPABASE_URL') ?? '',
+      // @ts-ignore: Deno global is available in Supabase Edge Functions
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
@@ -28,92 +33,78 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Check profiles table - filter out null passwords and use limit(1)
-    const { data: profiles, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, email, username, password')
+    // Check user_login table - filter out null passwords and use limit(1)
+    const { data: userLogins, error: loginError } = await supabaseAdmin
+      .from('user_login')
+      .select('id, email, username, password, user_type, original_id')
       .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
       .not('password', 'is', null)
       .limit(1);
 
-    const profile = profiles?.[0];
-    console.log('Profile query result:', { found: !!profile, error: profileError });
+    const userLogin = userLogins?.[0];
+    console.log('User login query result:', { found: !!userLogin, error: loginError });
 
-    if (!profile) {
-      console.log('User not found in profiles table');
+    if (!userLogin) {
+      console.log('User not found in user_login table');
       return new Response(
         JSON.stringify({ success: false, message: 'Invalid credentials' }),
-        { 
+        {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
+          status: 401
         }
       );
     }
 
     // Verify password
-    if (profile.password !== password) {
+    if (userLogin.password !== password) {
       console.log('Password mismatch');
       return new Response(
         JSON.stringify({ success: false, message: 'Invalid credentials' }),
-        { 
+        {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
+          status: 401
         }
       );
     }
 
     console.log('Credentials verified successfully');
 
-    // Determine user role by checking various tables
+    // Determine user role based on user_type and original_id
     let userRole = 'user';
-    
+
     // Check if super admin
-    if (profile.email === 'admin@roririsoft.com' || profile.username === 'admin') {
+    if (userLogin.email === 'admin@roririsoft.com' || userLogin.username === 'admin') {
       userRole = 'super_admin';
     } else {
-      // Check user_roles table for admin
-      const { data: adminRole } = await supabaseAdmin
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', profile.id)
-        .eq('role', 'admin')
-        .single();
-      
-      if (adminRole) {
-        userRole = 'admin';
-      } else {
-        // Check if employee
-        const { data: employee } = await supabaseAdmin
-          .from('employees')
-          .select('id')
-          .eq('profile_id', profile.id)
+      // For profiles, check user_roles table for admin
+      if (userLogin.user_type === 'profile') {
+        const { data: adminRole } = await supabaseAdmin
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userLogin.original_id)
+          .eq('role', 'admin')
           .single();
-        
-        if (employee) {
-          userRole = 'employee';
+
+        if (adminRole) {
+          userRole = 'admin';
         } else {
-          // Check if trainee (students table)
-          const { data: trainee } = await supabaseAdmin
-            .from('students')
+          // Check if employee
+          const { data: employee } = await supabaseAdmin
+            .from('employees')
             .select('id')
-            .eq('profile_id', profile.id)
+            .eq('profile_id', userLogin.original_id)
             .single();
-          
-          if (trainee) {
-            userRole = 'trainee';
-          } else {
-            // Check if intern
-            const { data: intern } = await supabaseAdmin
-              .from('internship_candidates')
-              .select('id')
-              .eq('profile_id', profile.id)
-              .single();
-            
-            if (intern) {
-              userRole = 'intern';
-            }
+
+          if (employee) {
+            userRole = 'employee';
           }
         }
+      } else if (userLogin.user_type === 'student') {
+        // Students are trainees
+        userRole = 'trainee';
+      } else if (userLogin.user_type === 'internship_candidate') {
+        // Internship candidates are interns
+        userRole = 'intern';
       }
     }
 
@@ -121,15 +112,15 @@ Deno.serve(async (req) => {
 
     // Return the email, password, and role
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        email: profile.email,
-        password: profile.password,
+      JSON.stringify({
+        success: true,
+        email: userLogin.email,
+        password: userLogin.password,
         role: userRole
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        status: 200
       }
     );
 

@@ -1,7 +1,9 @@
+// @ts-ignore: ESM imports work in Deno runtime
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
 
-Deno.serve(async (req) => {
+// @ts-ignore: Deno global is available in Supabase Edge Functions
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -33,8 +35,11 @@ Deno.serve(async (req) => {
     }
 
     // Get Supabase service role client
+    // @ts-ignore: Deno global is available in Supabase Edge Functions
     const supabaseAdmin = createClient(
+      // @ts-ignore: Deno global is available in Supabase Edge Functions
       Deno.env.get('SUPABASE_URL') ?? '',
+      // @ts-ignore: Deno global is available in Supabase Edge Functions
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
@@ -77,12 +82,12 @@ Deno.serve(async (req) => {
       email: email,
       full_name: fullName,
     };
-    
+
     if (phone) profileData.phone = phone;
     if (dob) profileData.dob = dob;
     if (username) profileData.username = username;
     if (password) profileData.password = password;
-    
+
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert(profileData, { onConflict: 'id' })
@@ -93,9 +98,35 @@ Deno.serve(async (req) => {
       await supabaseAdmin.auth.admin.deleteUser(userId)
       return new Response(
         JSON.stringify({ error: 'Failed to create user profile' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Insert into user_login table
+    const loginData = {
+      email: email,
+      username: username || null,
+      password: password || tempPassword,
+      user_type: 'profile',
+      original_id: userId
+    };
+
+    const { error: loginError } = await supabaseAdmin
+      .from('user_login')
+      .insert(loginData)
+
+    if (loginError) {
+      console.error('User login insert error:', loginError)
+      // Try to clean up the user if login creation fails
+      await supabaseAdmin.auth.admin.deleteUser(userId)
+      return new Response(
+        JSON.stringify({ error: 'Failed to create user login record' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }

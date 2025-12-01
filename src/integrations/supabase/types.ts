@@ -4268,6 +4268,39 @@ export type Database = {
           },
         ]
       }
+      user_login: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          original_id: string
+          password: string
+          updated_at: string | null
+          user_type: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          original_id: string
+          password: string
+          updated_at?: string | null
+          user_type: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          original_id?: string
+          password?: string
+          updated_at?: string | null
+          user_type?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       user_tasks: {
         Row: {
           assigned_by: string | null
