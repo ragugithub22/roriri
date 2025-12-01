@@ -11,7 +11,7 @@ export interface NavigationItem {
 export const navigationItems: NavigationItem[] = [
   {
     label: "Dashboard",
-    path: "/it",
+    path: "/it-park",
     icon: Home
   },
   {

@@ -42,10 +42,12 @@ import {
 } from "@/components/ui/sidebar";
 
 const pageComponents: Record<string, ComponentType | null> = {
+  "/it-park": null, // Dashboard - handled separately
   "/roles": RolesList,
   "/departments": DepartmentList,
   "/employees": EmployeeList,
   "/mou": MOUManagement,
+  "/hostel": HostelManagement,
   "/asset-management": AssetManagement,
   "/entities": EntitiesManagement,
   "/letters": LetterManagement,
@@ -67,27 +69,37 @@ export default function ITParkDashboard() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
-    queryKey: ['is-admin', user?.id],
+    queryKey: ['is-admin', (user as any)?.id || (user as any)?.userId],
     queryFn: async () => {
-      if (!user?.id) return false;
-      
+      if (!user) return false;
+
+      // Check if this is a custom login user (from our user_login system)
+      const customUser = user as any;
+      if (customUser.role) {
+        // For custom login users, check role directly
+        return customUser.role === 'super_admin' || customUser.role === 'admin';
+      }
+
+      // For Supabase auth users, check the traditional way
+      if (!customUser.id) return false;
+
       // First check if this is the super admin by email or username
       const { data: profile } = await supabase
         .from('profiles')
         .select('username, email')
-        .eq('id', user.id)
+        .eq('id', customUser.id)
         .single();
-      
+
       if (profile && (profile.username === 'admin' || profile.email === 'admin@roririsoft.com')) {
         return true;
       }
-      
+
       // Otherwise check role-based admin status
-      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
+      const { data, error } = await supabase.rpc('is_admin', { _user_id: customUser.id });
       if (error) return false;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user,
   });
 
   const handleLogout = async () => {
@@ -141,6 +153,9 @@ export default function ITParkDashboard() {
   }, [filteredNavItems, activeItem, location.state, navigate]);
 
   const ActiveComponent = activeItem ? pageComponents[activeItem.path] ?? null : null;
+
+  // Show dashboard content when no specific component is selected or for dashboard path
+  const shouldShowDashboard = !activeItem || activeItem.path === "/it-park" || !ActiveComponent;
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -275,9 +290,9 @@ export default function ITParkDashboard() {
                 ) : (
                   <ActiveComponent />
                 )
-              ) : (
+              ) : shouldShowDashboard ? (
                 <DashboardContent />
-              )}
+              ) : null}
             </div>
           </main>
         </SidebarInset>
@@ -331,16 +346,16 @@ const DashboardContent = () => {
         .lt("payment_date", `${currentMonth}-32`);
       if (error) throw error;
 
-      const academyRevenue = data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
+      const academyRevenue = (data as any)?.reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0) || 0;
 
       // Add revenue from other entities if needed
       const { data: foundationData } = await supabase
-        .from("foundation_donations")
+        .from("donations")
         .select("amount")
         .gte("donation_date", `${currentMonth}-01`)
         .lt("donation_date", `${currentMonth}-32`);
 
-      const foundationRevenue = foundationData?.reduce((sum, donation) => sum + (donation.amount || 0), 0) || 0;
+      const foundationRevenue = (foundationData as any)?.reduce((sum: number, donation: any) => sum + (donation.amount || 0), 0) || 0;
 
       return academyRevenue + foundationRevenue;
     },
