@@ -191,7 +191,7 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
       imageUrl = publicUrl;
     }
     
-    const traineeData = {
+    const traineeData: any = {
       student_code: formData.get("student_code"),
       full_name: formData.get("full_name"),
       gender: formData.get("gender"),
@@ -203,8 +203,14 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
       enrollment_date: formData.get("enrollment_date"),
       status: formData.get("status"),
       residence_type: formData.get("residence_type"),
-      incharge_person_id: formData.get("incharge_person_id") || null,
+      // Note: incharge_person_id and image_url removed as they don't exist in students table
     };
+    
+    // Only include image_url if it was uploaded and if we're adding it to the table
+    if (imageUrl) {
+      traineeData.image_url = imageUrl;
+    }
+    
     saveMutation.mutate(traineeData);
   };
 
