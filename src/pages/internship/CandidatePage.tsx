@@ -134,7 +134,8 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
           username: data.username,
           password: data.password,
           role: 'intern',
-          entityId: null
+          entityId: null,
+          userType: 'internship_candidate' // Set correct user_type for interns
         },
       });
 
@@ -199,7 +200,7 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
             .eq("id", existingProfile.id);
           if (profileError) throw profileError;
 
-          // Update user_login table
+          // Update user_login table with correct user_type
           const { error: loginError } = await supabase
             .from("user_login")
             .update({
@@ -208,7 +209,7 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
               password: data.password,
             })
             .eq("original_id", existingProfile.id)
-            .eq("user_type", "profile");
+            .eq("user_type", "internship_candidate"); // Use 'internship_candidate' for interns
           if (loginError) throw loginError;
         }
       }
