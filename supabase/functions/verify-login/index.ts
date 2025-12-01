@@ -69,54 +69,52 @@ Deno.serve(async (req: Request) => {
 
     console.log('Credentials verified successfully');
 
-    // Determine user role based on user_type and original_id
+    // Determine user role based on user_type
     let userRole = 'user';
 
     // Check if super admin
     if (userLogin.email === 'admin@roririsoft.com' || userLogin.username === 'admin') {
       userRole = 'super_admin';
-    } else {
+    } else if (userLogin.user_type === 'profile') {
       // For profiles, check user_roles table for admin
-      if (userLogin.user_type === 'profile') {
-        const { data: adminRole } = await supabaseAdmin
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', userLogin.original_id)
-          .eq('role', 'admin')
+      const { data: adminRole } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userLogin.original_id)
+        .eq('role', 'admin')
+        .single();
+
+      if (adminRole) {
+        userRole = 'admin';
+      } else {
+        // Check if employee
+        const { data: employee } = await supabaseAdmin
+          .from('employees')
+          .select('id')
+          .eq('profile_id', userLogin.original_id)
           .single();
 
-        if (adminRole) {
-          userRole = 'admin';
-        } else {
-          // Check if employee
-          const { data: employee } = await supabaseAdmin
-            .from('employees')
-            .select('id')
-            .eq('profile_id', userLogin.original_id)
-            .single();
-
-          if (employee) {
-            userRole = 'employee';
-          }
+        if (employee) {
+          userRole = 'employee';
         }
-      } else if (userLogin.user_type === 'student') {
-        // Students are trainees
-        userRole = 'trainee';
-      } else if (userLogin.user_type === 'internship_candidate') {
-        // Internship candidates are interns
-        userRole = 'intern';
       }
+    } else if (userLogin.user_type === 'student') {
+      // Students are trainees
+      userRole = 'trainee';
+    } else if (userLogin.user_type === 'internship_candidate') {
+      // Internship candidates are interns
+      userRole = 'intern';
     }
 
     console.log('User role determined:', userRole);
 
-    // Return the email, password, and role
+    // Return the user info and role
     return new Response(
       JSON.stringify({
         success: true,
         email: userLogin.email,
-        password: userLogin.password,
-        role: userRole
+        role: userRole,
+        userId: userLogin.original_id
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -83,7 +83,7 @@ export default function Auth() {
       
       console.log('Attempting login with:', validated.email);
 
-      // Verify credentials using edge function (bypasses RLS)
+      // Verify credentials using edge function
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-login', {
         body: {
           emailOrUsername: validated.email,
@@ -99,41 +99,34 @@ export default function Auth() {
         return;
       }
 
-      console.log('Credentials verified, attempting Supabase auth with email:', verifyData.email);
-
-      // Authenticate with Supabase Auth using the verified email
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      console.log('Login verified successfully, role:', verifyData.role);
+      
+      // Store session info for non-Supabase-Auth users
+      localStorage.setItem('userSession', JSON.stringify({
         email: verifyData.email,
-        password: verifyData.password
-      });
+        role: verifyData.role,
+        userId: verifyData.userId
+      }));
 
-      if (signInError) {
-        toast.error('Login failed. Please contact administrator.');
-        console.error('Sign in error:', signInError);
-      } else {
-        console.log('Login successful, role:', verifyData.role);
-        toast.success('Logged in successfully');
-        
-        // Route based on role
-        switch (verifyData.role) {
-          case 'super_admin':
-            navigate('/it-park', { replace: true });
-            break;
-          case 'admin':
-            navigate('/it-park', { replace: true });
-            break;
-          case 'trainee':
-            navigate('/trainee-dashboard', { replace: true });
-            break;
-          case 'employee':
-            navigate('/employee-dashboard', { replace: true });
-            break;
-          case 'intern':
-            navigate('/intern-dashboard', { replace: true });
-            break;
-          default:
-            navigate('/user-dashboard', { replace: true });
-        }
+      toast.success('Logged in successfully');
+      
+      // Route based on role from user_type in user_login table
+      switch (verifyData.role) {
+        case 'super_admin':
+        case 'admin':
+          navigate('/it-park', { replace: true });
+          break;
+        case 'trainee':
+          navigate('/trainee-dashboard', { replace: true });
+          break;
+        case 'employee':
+          navigate('/employee-dashboard', { replace: true });
+          break;
+        case 'intern':
+          navigate('/intern-dashboard', { replace: true });
+          break;
+        default:
+          navigate('/user-dashboard', { replace: true });
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
