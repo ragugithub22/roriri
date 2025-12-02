@@ -9,7 +9,8 @@ import {
   Calendar, 
   AlertCircle, 
   MessageCircle,
-  LogOut
+  LogOut,
+  Users
 } from 'lucide-react';
 
 export default function InternDashboard() {
@@ -71,6 +72,34 @@ export default function InternDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
+        {/* Header */}
+        <header className="bg-gradient-primary text-primary-foreground py-6 px-6 shadow-medium">
+          <div className="container mx-auto max-w-7xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary-foreground/20">
+                  <Users className="h-8 w-8" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">Intern Portal</h1>
+                  <p className="text-sm opacity-90">Dashboard & Learning Experience</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost"
+                  onClick={handleLogout}
+                  className="text-primary-foreground hover:bg-primary-foreground/20"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
         <div className="p-8">
           <h2 className="text-3xl font-bold text-foreground mb-6">
             {menuItems.find(item => item.id === activeSection)?.label}
