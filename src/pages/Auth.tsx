@@ -116,13 +116,13 @@ export default function Auth() {
         case 'admin':
           navigate('/it-park', { replace: true });
           break;
-        case 'trainee':
+        case 'student':
           navigate('/trainee-dashboard', { replace: true });
           break;
-        case 'employee':
+        case 'profile':
           navigate('/employee-dashboard', { replace: true });
           break;
-        case 'intern':
+        case 'internship_candidate':
           navigate('/intern-dashboard', { replace: true });
           break;
         default:
