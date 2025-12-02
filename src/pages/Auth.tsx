@@ -117,13 +117,13 @@ export default function Auth() {
         case 'admin':
           window.location.href = '/it-park';
           break;
-        case 'student':
+        case 'trainee':
           window.location.href = '/trainee-dashboard';
           break;
-        case 'profile':
+        case 'employee':
           window.location.href = '/employee-dashboard';
           break;
-        case 'internship_candidate':
+        case 'intern':
           window.location.href = '/intern-dashboard';
           break;
         default:
