@@ -111,22 +111,23 @@ export default function Auth() {
       toast.success('Logged in successfully');
       
       // Route based on role from user_type in user_login table
+      // Use window.location.href to force page reload so AuthContext can read localStorage
       switch (verifyData.role) {
         case 'super_admin':
         case 'admin':
-          navigate('/it-park', { replace: true });
+          window.location.href = '/it-park';
           break;
         case 'student':
-          navigate('/trainee-dashboard', { replace: true });
+          window.location.href = '/trainee-dashboard';
           break;
         case 'profile':
-          navigate('/employee-dashboard', { replace: true });
+          window.location.href = '/employee-dashboard';
           break;
         case 'internship_candidate':
-          navigate('/intern-dashboard', { replace: true });
+          window.location.href = '/intern-dashboard';
           break;
         default:
-          navigate('/user-dashboard', { replace: true });
+          window.location.href = '/user-dashboard';
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
