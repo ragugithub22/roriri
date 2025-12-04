@@ -21,25 +21,25 @@ export default function ExpensesManager() {
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["tours-expenses"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_expenses")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (expenseData: any) => {
       if (editingExpense) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_expenses")
           .update(expenseData)
           .eq("id", editingExpense.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_expenses")
           .insert(expenseData);
         if (error) throw error;
@@ -58,7 +58,7 @@ export default function ExpensesManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_expenses").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_expenses").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

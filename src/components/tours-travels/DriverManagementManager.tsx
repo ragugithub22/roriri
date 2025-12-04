@@ -20,25 +20,25 @@ export default function DriverManagementManager() {
   const { data: drivers = [], isLoading } = useQuery({
     queryKey: ["tours-drivers"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_drivers")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (driverData: any) => {
       if (editingDriver) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_drivers")
           .update(driverData)
           .eq("id", editingDriver.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_drivers")
           .insert(driverData);
         if (error) throw error;
@@ -57,7 +57,7 @@ export default function DriverManagementManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_drivers").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_drivers").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

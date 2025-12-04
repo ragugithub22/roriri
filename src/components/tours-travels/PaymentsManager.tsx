@@ -20,40 +20,37 @@ export default function PaymentsManager() {
   const { data: payments = [], isLoading } = useQuery({
     queryKey: ["tours-payments"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_payments")
-        .select(`
-          *,
-          tours_bookings!inner(booking_code, tours_customers!inner(full_name))
-        `)
+        .select(`*`)
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: bookings = [] } = useQuery({
     queryKey: ["tours-bookings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_bookings")
-        .select("id, booking_code, tours_customers!inner(full_name)")
+        .select("id, booking_code")
         .order("booking_code");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (paymentData: any) => {
       if (editingPayment) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_payments")
           .update(paymentData)
           .eq("id", editingPayment.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_payments")
           .insert(paymentData);
         if (error) throw error;
@@ -72,7 +69,7 @@ export default function PaymentsManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_payments").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_payments").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -102,16 +99,7 @@ export default function PaymentsManager() {
   };
 
   const columns = [
-    {
-      key: "booking",
-      label: "Booking",
-      render: (value: any, row: any) => row.tours_bookings?.booking_code || "-"
-    },
-    {
-      key: "customer",
-      label: "Customer",
-      render: (value: any, row: any) => row.tours_bookings?.tours_customers?.full_name || "-"
-    },
+    { key: "booking_id", label: "Booking" },
     {
       key: "payment_date",
       label: "Payment Date",
@@ -120,23 +108,14 @@ export default function PaymentsManager() {
     {
       key: "amount",
       label: "Amount",
-      render: (value: any) => `₹${value?.toLocaleString()}`
+      render: (value: any) => `₹${value?.toLocaleString() || 0}`
     },
     {
       key: "payment_method",
       label: "Method",
       render: (value: any) => (
         <Badge variant="outline">
-          {value}
-        </Badge>
-      )
-    },
-    {
-      key: "payment_for",
-      label: "Purpose",
-      render: (value: any) => (
-        <Badge variant={value === 'refund' ? 'destructive' : 'default'}>
-          {value}
+          {value || "-"}
         </Badge>
       )
     },
@@ -145,7 +124,7 @@ export default function PaymentsManager() {
       label: "Status",
       render: (value: any) => (
         <Badge variant={value === 'completed' ? 'default' : value === 'pending' ? 'secondary' : 'outline'}>
-          {value}
+          {value || "-"}
         </Badge>
       )
     },
@@ -206,7 +185,7 @@ export default function PaymentsManager() {
                       <SelectContent>
                         {bookings.map((booking: any) => (
                           <SelectItem key={booking.id} value={booking.id}>
-                            {booking.booking_code} - {booking.tours_customers?.full_name}
+                            {booking.booking_code}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -5,9 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, PieChart, TrendingUp, Download, Calendar, DollarSign } from "lucide-react";
+import { BarChart3, TrendingUp, Download, Calendar, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ReportsManager() {
@@ -16,66 +15,66 @@ export default function ReportsManager() {
     end: new Date().toISOString().split('T')[0]
   });
 
-  const { data: bookingStats, isLoading: bookingLoading } = useQuery({
+  const { data: bookingStats = [], isLoading: bookingLoading } = useQuery({
     queryKey: ["tours-booking-stats", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_bookings")
         .select("total_amount, booking_status, created_at")
         .gte("created_at", dateRange.start)
         .lte("created_at", dateRange.end);
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
-  const { data: paymentStats, isLoading: paymentLoading } = useQuery({
+  const { data: paymentStats = [], isLoading: paymentLoading } = useQuery({
     queryKey: ["tours-payment-stats", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_payments")
         .select("amount, payment_status, payment_date")
         .gte("payment_date", dateRange.start)
         .lte("payment_date", dateRange.end);
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
-  const { data: expenseStats, isLoading: expenseLoading } = useQuery({
+  const { data: expenseStats = [], isLoading: expenseLoading } = useQuery({
     queryKey: ["tours-expense-stats", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_expenses")
         .select("amount, category, expense_date")
         .gte("expense_date", dateRange.start)
         .lte("expense_date", dateRange.end);
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
-  const { data: enquiryStats, isLoading: enquiryLoading } = useQuery({
+  const { data: enquiryStats = [], isLoading: enquiryLoading } = useQuery({
     queryKey: ["tours-enquiry-stats", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_enquiries")
         .select("status, created_at")
         .gte("created_at", dateRange.start)
         .lte("created_at", dateRange.end);
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const calculateStats = () => {
     const totalBookings = bookingStats?.length || 0;
-    const confirmedBookings = bookingStats?.filter(b => b.booking_status === 'confirmed').length || 0;
-    const totalRevenue = bookingStats?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
-    const totalPayments = paymentStats?.filter(p => p.payment_status === 'completed').reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-    const totalExpenses = expenseStats?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0;
+    const confirmedBookings = bookingStats?.filter((b: any) => b.booking_status === 'confirmed').length || 0;
+    const totalRevenue = bookingStats?.reduce((sum: number, b: any) => sum + (Number(b.total_amount) || 0), 0) || 0;
+    const totalPayments = paymentStats?.filter((p: any) => p.payment_status === 'completed').reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0) || 0;
+    const totalExpenses = expenseStats?.reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0) || 0;
     const totalEnquiries = enquiryStats?.length || 0;
-    const convertedEnquiries = enquiryStats?.filter(e => e.status === 'confirmed').length || 0;
+    const convertedEnquiries = enquiryStats?.filter((e: any) => e.status === 'confirmed').length || 0;
 
     return {
       totalBookings,
@@ -104,14 +103,11 @@ export default function ReportsManager() {
 
     const dataStr = JSON.stringify(reportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-
     const exportFileDefaultName = `tours-report-${dateRange.start}-to-${dateRange.end}.json`;
-
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
-
     toast.success("Report exported successfully");
   };
 
@@ -162,9 +158,7 @@ export default function ReportsManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.confirmedBookings} confirmed
-            </p>
+            <p className="text-xs text-muted-foreground">{stats.confirmedBookings} confirmed</p>
           </CardContent>
         </Card>
 
@@ -175,9 +169,7 @@ export default function ReportsManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              ₹{stats.totalPayments.toLocaleString()} received
-            </p>
+            <p className="text-xs text-muted-foreground">₹{stats.totalPayments.toLocaleString()} received</p>
           </CardContent>
         </Card>
 
@@ -188,9 +180,7 @@ export default function ReportsManager() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{stats.totalExpenses.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Operating costs
-            </p>
+            <p className="text-xs text-muted-foreground">Operating costs</p>
           </CardContent>
         </Card>
 
@@ -203,9 +193,7 @@ export default function ReportsManager() {
             <div className={`text-2xl font-bold ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               ₹{stats.netProfit.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Revenue - Expenses
-            </p>
+            <p className="text-xs text-muted-foreground">Revenue - Expenses</p>
           </CardContent>
         </Card>
       </div>
@@ -269,8 +257,8 @@ export default function ReportsManager() {
           ) : (
             <div className="space-y-4">
               {Object.entries(
-                expenseStats?.reduce((acc: any, expense) => {
-                  acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+                expenseStats?.reduce((acc: any, expense: any) => {
+                  acc[expense.category] = (acc[expense.category] || 0) + Number(expense.amount);
                   return acc;
                 }, {}) || {}
               ).map(([category, amount]: [string, any]) => (

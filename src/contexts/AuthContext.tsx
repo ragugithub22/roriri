@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CustomUser {
+  id: string;
   email: string;
   role: string;
   userId: string;

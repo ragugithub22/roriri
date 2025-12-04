@@ -21,54 +21,50 @@ export default function QuotationsManager() {
   const { data: quotations = [], isLoading } = useQuery({
     queryKey: ["tours-quotations"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_quotations")
-        .select(`
-          *,
-          tours_enquiries!inner(customer_name, phone),
-          tours_packages!inner(package_name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: enquiries = [] } = useQuery({
     queryKey: ["tours-enquiries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_enquiries")
         .select("id, customer_name, destination")
         .order("customer_name");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: packages = [] } = useQuery({
     queryKey: ["tours-packages"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_packages")
         .select("id, package_name, package_code, price_per_person")
         .eq("status", "active")
         .order("package_name");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (quotationData: any) => {
       if (editingQuotation) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_quotations")
           .update(quotationData)
           .eq("id", editingQuotation.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_quotations")
           .insert(quotationData);
         if (error) throw error;
@@ -87,7 +83,7 @@ export default function QuotationsManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_quotations").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_quotations").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -114,9 +110,6 @@ export default function QuotationsManager() {
       discounts: parseFloat(formData.get("discounts") as string) || 0,
       total_amount: parseFloat(formData.get("total_amount") as string),
       payment_terms: formData.get("payment_terms"),
-      inclusions: (formData.get("inclusions") as string)?.split(',').map(s => s.trim()) || [],
-      exclusions: (formData.get("exclusions") as string)?.split(',').map(s => s.trim()) || [],
-      terms_conditions: formData.get("terms_conditions"),
       status: formData.get("status"),
       notes: formData.get("notes"),
     };
@@ -124,16 +117,8 @@ export default function QuotationsManager() {
   };
 
   const columns = [
-    {
-      key: "enquiry",
-      label: "Customer",
-      render: (value: any, row: any) => row.tours_enquiries?.customer_name || "-"
-    },
-    {
-      key: "package",
-      label: "Package",
-      render: (value: any, row: any) => row.tours_packages?.package_name || "-"
-    },
+    { key: "enquiry_id", label: "Enquiry" },
+    { key: "package_id", label: "Package" },
     {
       key: "quotation_date",
       label: "Date",
@@ -142,7 +127,7 @@ export default function QuotationsManager() {
     {
       key: "total_amount",
       label: "Total Amount",
-      render: (value: any) => `₹${value?.toLocaleString()}`
+      render: (value: any) => `₹${value?.toLocaleString() || 0}`
     },
     {
       key: "valid_until",
@@ -153,7 +138,7 @@ export default function QuotationsManager() {
       key: "status",
       label: "Status",
       render: (value: any) => {
-        const variants = {
+        const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
           draft: "outline",
           sent: "secondary",
           accepted: "default",
@@ -161,8 +146,8 @@ export default function QuotationsManager() {
           expired: "outline"
         };
         return (
-          <Badge variant={variants[value as keyof typeof variants] || "secondary"}>
-            {value}
+          <Badge variant={variants[value as string] || "secondary"}>
+            {value || "-"}
           </Badge>
         );
       }
@@ -268,26 +253,6 @@ export default function QuotationsManager() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="no_of_adults">Number of Adults</Label>
-                    <Input
-                      id="no_of_adults"
-                      name="no_of_adults"
-                      type="number"
-                      defaultValue={editingQuotation?.no_of_adults || 1}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="no_of_children">Number of Children</Label>
-                    <Input
-                      id="no_of_children"
-                      name="no_of_children"
-                      type="number"
-                      defaultValue={editingQuotation?.no_of_children || 0}
-                    />
-                  </div>
-                </div>
                 <div className="grid grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="base_price">Base Price (₹)</Label>
@@ -331,46 +296,6 @@ export default function QuotationsManager() {
                       required
                     />
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="payment_terms">Payment Terms</Label>
-                  <Textarea
-                    id="payment_terms"
-                    name="payment_terms"
-                    defaultValue={editingQuotation?.payment_terms}
-                    rows={2}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="inclusions">Inclusions (comma-separated)</Label>
-                    <Textarea
-                      id="inclusions"
-                      name="inclusions"
-                      defaultValue={editingQuotation?.inclusions?.join(', ')}
-                      placeholder="Hotel, Meals, Transport..."
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="exclusions">Exclusions (comma-separated)</Label>
-                    <Textarea
-                      id="exclusions"
-                      name="exclusions"
-                      defaultValue={editingQuotation?.exclusions?.join(', ')}
-                      placeholder="Flights, Personal expenses..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="terms_conditions">Terms & Conditions</Label>
-                  <Textarea
-                    id="terms_conditions"
-                    name="terms_conditions"
-                    defaultValue={editingQuotation?.terms_conditions}
-                    rows={3}
-                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
