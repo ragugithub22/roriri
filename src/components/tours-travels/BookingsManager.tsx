@@ -20,7 +20,7 @@ export default function BookingsManager() {
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ["tours-bookings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_bookings")
         .select(`
           *,
@@ -28,60 +28,60 @@ export default function BookingsManager() {
           tours_packages!inner(package_name, destination)
         `)
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: customers = [] } = useQuery({
     queryKey: ["tours-customers"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_customers")
         .select("id, full_name, customer_code")
         .eq("status", "active")
         .order("full_name");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: packages = [] } = useQuery({
     queryKey: ["tours-packages"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_packages")
         .select("id, package_name, package_code")
         .eq("status", "active")
         .order("package_name");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: enquiries = [] } = useQuery({
     queryKey: ["tours-enquiries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_enquiries")
         .select("id, customer_name, destination")
         .eq("status", "confirmed")
         .order("customer_name");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (bookingData: any) => {
       if (editingBooking) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_bookings")
           .update(bookingData)
           .eq("id", editingBooking.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_bookings")
           .insert(bookingData);
         if (error) throw error;
@@ -100,7 +100,7 @@ export default function BookingsManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_bookings").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_bookings").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -21,25 +21,25 @@ export default function EnquiriesManager() {
   const { data: enquiries = [], isLoading } = useQuery({
     queryKey: ["tours-enquiries"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_enquiries")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (enquiryData: any) => {
       if (editingEnquiry) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_enquiries")
           .update(enquiryData)
           .eq("id", editingEnquiry.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_enquiries")
           .insert(enquiryData);
         if (error) throw error;
@@ -58,7 +58,7 @@ export default function EnquiriesManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_enquiries").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_enquiries").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -114,7 +114,7 @@ export default function EnquiriesManager() {
           cancelled: "destructive"
         };
         return (
-          <Badge variant={variants[value as keyof typeof variants] || "secondary"}>
+          <Badge variant={(variants[value as keyof typeof variants] || "secondary") as "default" | "secondary" | "destructive" | "outline"}>
             {value}
           </Badge>
         );

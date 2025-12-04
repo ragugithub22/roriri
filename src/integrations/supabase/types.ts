@@ -3782,6 +3782,7 @@ export type Database = {
           guardian_name: string | null
           guardian_phone: string | null
           id: string
+          incharge_person_id: string | null
           password: string | null
           phone: string | null
           residence_type: string | null
@@ -3800,6 +3801,7 @@ export type Database = {
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
+          incharge_person_id?: string | null
           password?: string | null
           phone?: string | null
           residence_type?: string | null
@@ -3818,6 +3820,7 @@ export type Database = {
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
+          incharge_person_id?: string | null
           password?: string | null
           phone?: string | null
           residence_type?: string | null
@@ -3825,7 +3828,15 @@ export type Database = {
           student_code?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "students_incharge_person_id_fkey"
+            columns: ["incharge_person_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subjects: {
         Row: {

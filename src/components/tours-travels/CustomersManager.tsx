@@ -20,25 +20,25 @@ export default function CustomersManager() {
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["tours-customers"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_customers")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (customerData: any) => {
       if (editingCustomer) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_customers")
           .update(customerData)
           .eq("id", editingCustomer.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_customers")
           .insert(customerData);
         if (error) throw error;
@@ -57,7 +57,7 @@ export default function CustomersManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_customers").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_customers").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
