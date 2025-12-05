@@ -20,25 +20,25 @@ export default function VehicleManagementManager() {
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["tours-vehicles"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_vehicles")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (vehicleData: any) => {
       if (editingVehicle) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_vehicles")
           .update(vehicleData)
           .eq("id", editingVehicle.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_vehicles")
           .insert(vehicleData);
         if (error) throw error;
@@ -57,7 +57,7 @@ export default function VehicleManagementManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_vehicles").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_vehicles").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

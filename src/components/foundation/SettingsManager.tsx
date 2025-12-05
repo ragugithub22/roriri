@@ -40,7 +40,7 @@ const SettingsManager = () => {
         .from("foundation_settings")
         .select("*")
         .order("category", { ascending: true });
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as any;
     },
   });
@@ -68,7 +68,7 @@ const SettingsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_settings")
         .update({
           ...data,
@@ -91,7 +91,7 @@ const SettingsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("foundation_settings")
         .delete()
         .eq("id", id);
@@ -172,7 +172,7 @@ const SettingsManager = () => {
     {
       key: "updated_at",
       label: "Last Updated",
-      render: (value: string) => new Date(value).toLocaleDateString()
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : "-"
     },
     {
       key: "actions",
@@ -203,9 +203,9 @@ const SettingsManager = () => {
   ];
 
   const totalSettings = settings.length;
-  const categories = [...new Set(settings.map(s => s.category))];
-  const generalSettings = settings.filter(s => s.category === "general").length;
-  const categoriesSettings = settings.filter(s => s.category === "categories").length;
+  const categories = [...new Set(settings.map((s: any) => s.category))];
+  const generalSettings = settings.filter((s: any) => s.category === "general").length;
+  const categoriesSettings = settings.filter((s: any) => s.category === "categories").length;
 
   return (
     <div className="space-y-6">

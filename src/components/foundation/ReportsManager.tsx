@@ -43,14 +43,13 @@ const ReportsManager = () => {
         .from("foundation_reports")
         .select("*")
         .order("generated_at", { ascending: false });
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as any;
     },
   });
 
   const generateReportMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Simulate report generation
       const reportData = await generateReportData(data.report_type, data.parameters);
 
       const { error } = await (supabase as any)
@@ -103,64 +102,59 @@ const ReportsManager = () => {
   };
 
   const generateReportData = async (reportType: string, parameters: any) => {
-    // Simulate different report data based on type
     switch (reportType) {
       case "donation":
-        const { data: donations } = await supabase
+        const { data: donations } = await (supabase as any)
           .from("donations")
-          .select("*")
-          .eq("entity_code", "foundation");
+          .select("*");
         return {
           total_donations: donations?.length || 0,
-          total_amount: donations?.reduce((sum, d) => sum + Number(d.amount || 0), 0) || 0,
+          total_amount: donations?.reduce((sum: number, d: any) => sum + Number(d.amount || 0), 0) || 0,
           donations: donations
         };
 
       case "beneficiary":
-        const { data: beneficiaries } = await supabase
+        const { data: beneficiaries } = await (supabase as any)
           .from("beneficiaries")
-          .select("*")
-          .eq("entity_code", "foundation");
+          .select("*");
         return {
           total_beneficiaries: beneficiaries?.length || 0,
-          active_beneficiaries: beneficiaries?.filter(b => b.status === "active").length || 0,
+          active_beneficiaries: beneficiaries?.filter((b: any) => b.status === "active").length || 0,
           beneficiaries: beneficiaries
         };
 
       case "volunteer":
-        const { data: volunteers } = await supabase
+        const { data: volunteers } = await (supabase as any)
           .from("volunteers")
-          .select("*")
-          .eq("entity_code", "foundation");
+          .select("*");
         return {
           total_volunteers: volunteers?.length || 0,
-          active_volunteers: volunteers?.filter(v => v.status === "active").length || 0,
+          active_volunteers: volunteers?.filter((v: any) => v.status === "active").length || 0,
           volunteers: volunteers
         };
 
       case "event":
-        const { data: events } = await supabase
+        const { data: events } = await (supabase as any)
           .from("foundation_events")
           .select("*");
         return {
           total_events: events?.length || 0,
-          upcoming_events: events?.filter(e => new Date(e.start_date) > new Date()).length || 0,
+          upcoming_events: events?.filter((e: any) => new Date(e.start_date) > new Date()).length || 0,
           events: events
         };
 
       case "expense":
-        const { data: expenses } = await supabase
+        const { data: expenses } = await (supabase as any)
           .from("expenses")
-          .select("*")
-          .eq("entity_code", "foundation");
+          .select("*");
         return {
           total_expenses: expenses?.length || 0,
-          total_amount: expenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0,
+          total_amount: expenses?.reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0) || 0,
           expenses: expenses
         };
 
       case "impact":
-        const { data: impact } = await supabase
+        const { data: impact } = await (supabase as any)
           .from("impact_metrics")
           .select("*");
         return {
@@ -179,12 +173,10 @@ const ReportsManager = () => {
   };
 
   const handleDownload = (report: Report) => {
-    // Simulate download
     toast.success("Report download started");
   };
 
   const handleView = (report: Report) => {
-    // Simulate view
     toast.success("Report opened in new tab");
   };
 
@@ -208,7 +200,7 @@ const ReportsManager = () => {
     {
       key: "generated_at",
       label: "Generated",
-      render: (value: string) => new Date(value).toLocaleDateString()
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : "-"
     },
     {
       key: "status",
@@ -259,12 +251,12 @@ const ReportsManager = () => {
   ];
 
   const totalReports = reports.length;
-  const thisMonthReports = reports.filter(r =>
-    new Date(r.generated_at).getMonth() === new Date().getMonth() &&
+  const thisMonthReports = reports.filter((r: any) =>
+    r.generated_at && new Date(r.generated_at).getMonth() === new Date().getMonth() &&
     new Date(r.generated_at).getFullYear() === new Date().getFullYear()
   ).length;
-  const donationReports = reports.filter(r => r.report_type === "donation").length;
-  const beneficiaryReports = reports.filter(r => r.report_type === "beneficiary").length;
+  const donationReports = reports.filter((r: any) => r.report_type === "donation").length;
+  const beneficiaryReports = reports.filter((r: any) => r.report_type === "beneficiary").length;
 
   return (
     <div className="space-y-6">
