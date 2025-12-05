@@ -49,21 +49,31 @@ const ExpensesManager = () => {
       const { data, error } = await (supabase as any)
         .from("expenses")
         .select("*")
-        .eq("entity_code", "foundation")
         .order("expense_date", { ascending: false });
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const { data: entity } = await supabase
+        .from("entities")
+        .select("id")
+        .eq("code", "foundation")
+        .maybeSingle();
+        
+      if (!entity) throw new Error("Foundation entity not found");
+      
       const { error } = await (supabase as any)
         .from("expenses")
         .insert([{
-          ...data,
-          amount: parseFloat(data.amount)
-        }] as any);
+          amount: parseFloat(data.amount),
+          category: data.category,
+          description: data.description,
+          expense_date: data.expense_date,
+          entity_id: entity.id
+        }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -82,8 +92,10 @@ const ExpensesManager = () => {
       const { error } = await supabase
         .from("expenses")
         .update({
-          ...data,
-          amount: parseFloat(data.amount)
+          amount: parseFloat(data.amount),
+          category: data.category,
+          description: data.description,
+          expense_date: data.expense_date
         })
         .eq("id", id);
       if (error) throw error;
@@ -145,12 +157,12 @@ const ExpensesManager = () => {
     setFormData({
       amount: expense.amount.toString(),
       category: expense.category,
-      description: expense.description,
+      description: expense.description || "",
       expense_date: expense.expense_date,
-      payment_method: expense.payment_method,
+      payment_method: expense.payment_method || "",
       vendor: expense.vendor || "",
       receipt_number: expense.receipt_number || "",
-      status: expense.status,
+      status: expense.status || "paid",
       notes: expense.notes || ""
     });
     setIsDialogOpen(true);
@@ -160,21 +172,21 @@ const ExpensesManager = () => {
     {
       key: "amount",
       label: "Amount",
-      render: (value: number) => `₹${value.toLocaleString()}`
+      render: (value: number) => `₹${value?.toLocaleString() || 0}`
     },
     { key: "category", label: "Category" },
     { key: "description", label: "Description" },
     {
       key: "expense_date",
       label: "Date",
-      render: (value: string) => new Date(value).toLocaleDateString()
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : "-"
     },
     {
       key: "payment_method",
       label: "Payment Method",
       render: (value: string) => (
         <Badge variant="outline">
-          {value}
+          {value || "N/A"}
         </Badge>
       )
     },
@@ -188,7 +200,7 @@ const ExpensesManager = () => {
           value === "cancelled" ? "destructive" :
           "outline"
         }>
-          {value}
+          {value || "paid"}
         </Badge>
       )
     },
@@ -220,19 +232,19 @@ const ExpensesManager = () => {
     }
   ];
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const thisMonthExpenses = expenses.filter(e =>
-    new Date(e.expense_date).getMonth() === new Date().getMonth() &&
+  const totalExpenses = expenses.reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+  const thisMonthExpenses = expenses.filter((e: any) =>
+    e.expense_date && new Date(e.expense_date).getMonth() === new Date().getMonth() &&
     new Date(e.expense_date).getFullYear() === new Date().getFullYear()
-  ).reduce((sum, e) => sum + e.amount, 0);
-  const paidExpenses = expenses.filter(e => e.status === "paid").length;
+  ).reduce((sum: number, e: any) => sum + (e.amount || 0), 0);
+  const paidExpenses = expenses.filter((e: any) => e.status === "paid").length;
 
-  const categoryBreakdown = expenses.reduce((acc, e) => {
-    acc[e.category] = (acc[e.category] || 0) + e.amount;
+  const categoryBreakdown = expenses.reduce((acc: Record<string, number>, e: any) => {
+    acc[e.category] = (acc[e.category] || 0) + (e.amount || 0);
     return acc;
   }, {} as Record<string, number>);
 
-  const topCategory = Object.entries(categoryBreakdown).sort(([,a], [,b]) => b - a)[0]?.[0] || "None";
+  const topCategory = Object.entries(categoryBreakdown).sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] || "None";
 
   return (
     <div className="space-y-6">

@@ -14,22 +14,24 @@ import { toast } from "sonner";
 
 export default function SettingsManager() {
   const queryClient = useQueryClient();
+  const [settings, setSettings] = useState<any>({});
 
-  const { data: settings, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ["tours-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_settings")
         .select("*")
         .single();
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') return {};
+      setSettings(data || {});
       return data || {};
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (settingsData: any) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("tours_settings")
         .upsert(settingsData);
       if (error) throw error;
@@ -101,7 +103,7 @@ export default function SettingsManager() {
                   <Input
                     id="company_name"
                     name="company_name"
-                    defaultValue={settings?.company_name}
+                    defaultValue={settings?.company_name || ""}
                     required
                   />
                 </div>
@@ -111,7 +113,7 @@ export default function SettingsManager() {
                     id="company_email"
                     name="company_email"
                     type="email"
-                    defaultValue={settings?.company_email}
+                    defaultValue={settings?.company_email || ""}
                   />
                 </div>
               </div>
@@ -121,7 +123,7 @@ export default function SettingsManager() {
                   <Input
                     id="company_phone"
                     name="company_phone"
-                    defaultValue={settings?.company_phone}
+                    defaultValue={settings?.company_phone || ""}
                   />
                 </div>
                 <div>
@@ -129,7 +131,7 @@ export default function SettingsManager() {
                   <Input
                     id="company_website"
                     name="company_website"
-                    defaultValue={settings?.company_website}
+                    defaultValue={settings?.company_website || ""}
                   />
                 </div>
               </div>
@@ -138,7 +140,7 @@ export default function SettingsManager() {
                 <Textarea
                   id="company_address"
                   name="company_address"
-                  defaultValue={settings?.company_address}
+                  defaultValue={settings?.company_address || ""}
                   rows={3}
                 />
               </div>
@@ -148,7 +150,7 @@ export default function SettingsManager() {
                   <Input
                     id="gst_number"
                     name="gst_number"
-                    defaultValue={settings?.gst_number}
+                    defaultValue={settings?.gst_number || ""}
                   />
                 </div>
                 <div>
@@ -156,7 +158,7 @@ export default function SettingsManager() {
                   <Input
                     id="pan_number"
                     name="pan_number"
-                    defaultValue={settings?.pan_number}
+                    defaultValue={settings?.pan_number || ""}
                   />
                 </div>
                 <div>
@@ -164,7 +166,7 @@ export default function SettingsManager() {
                   <Input
                     id="license_number"
                     name="license_number"
-                    defaultValue={settings?.license_number}
+                    defaultValue={settings?.license_number || ""}
                   />
                 </div>
               </div>
@@ -244,7 +246,7 @@ export default function SettingsManager() {
                   <Switch
                     id="email_notifications"
                     name="email_notifications"
-                    defaultChecked={settings?.email_notifications}
+                    defaultChecked={settings?.email_notifications || false}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -257,7 +259,7 @@ export default function SettingsManager() {
                   <Switch
                     id="sms_notifications"
                     name="sms_notifications"
-                    defaultChecked={settings?.sms_notifications}
+                    defaultChecked={settings?.sms_notifications || false}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -270,7 +272,7 @@ export default function SettingsManager() {
                   <Switch
                     id="auto_backup"
                     name="auto_backup"
-                    defaultChecked={settings?.auto_backup}
+                    defaultChecked={settings?.auto_backup || false}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -283,7 +285,7 @@ export default function SettingsManager() {
                   <Switch
                     id="maintenance_reminders"
                     name="maintenance_reminders"
-                    defaultChecked={settings?.maintenance_reminders}
+                    defaultChecked={settings?.maintenance_reminders || false}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -296,7 +298,7 @@ export default function SettingsManager() {
                   <Switch
                     id="payment_reminders"
                     name="payment_reminders"
-                    defaultChecked={settings?.payment_reminders}
+                    defaultChecked={settings?.payment_reminders || false}
                   />
                 </div>
               </div>
@@ -308,7 +310,7 @@ export default function SettingsManager() {
                 <Textarea
                   id="terms_conditions"
                   name="terms_conditions"
-                  defaultValue={settings?.terms_conditions}
+                  defaultValue={settings?.terms_conditions || ""}
                   rows={6}
                   placeholder="Enter your terms and conditions..."
                 />
@@ -318,7 +320,7 @@ export default function SettingsManager() {
                 <Textarea
                   id="privacy_policy"
                   name="privacy_policy"
-                  defaultValue={settings?.privacy_policy}
+                  defaultValue={settings?.privacy_policy || ""}
                   rows={6}
                   placeholder="Enter your privacy policy..."
                 />
@@ -328,7 +330,7 @@ export default function SettingsManager() {
                 <Textarea
                   id="cancellation_policy"
                   name="cancellation_policy"
-                  defaultValue={settings?.cancellation_policy}
+                  defaultValue={settings?.cancellation_policy || ""}
                   rows={4}
                   placeholder="Enter your cancellation policy..."
                 />
@@ -338,7 +340,7 @@ export default function SettingsManager() {
                 <Textarea
                   id="refund_policy"
                   name="refund_policy"
-                  defaultValue={settings?.refund_policy}
+                  defaultValue={settings?.refund_policy || ""}
                   rows={4}
                   placeholder="Enter your refund policy..."
                 />

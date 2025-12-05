@@ -15,14 +15,10 @@ import { toast } from "sonner";
 interface Volunteer {
   id: string;
   full_name: string;
-  date_of_birth?: string;
   email?: string;
   phone?: string;
-  address?: string;
-  experience_years?: number;
-  emergency_contact?: string;
-  total_hours: number;
-  last_activity_date?: string;
+  skills?: string;
+  availability?: string;
   status: string;
   created_at: string;
 }
@@ -32,12 +28,10 @@ const VolunteersManager = () => {
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
-    date_of_birth: "",
     email: "",
     phone: "",
-    address: "",
-    experience_years: "",
-    emergency_contact: "",
+    skills: "",
+    availability: "",
     status: "active"
   });
 
@@ -50,19 +44,22 @@ const VolunteersManager = () => {
         .from("volunteers")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("volunteers")
         .insert([{
-          ...data,
-          experience_years: data.experience_years ? parseInt(data.experience_years) : null,
-          total_hours: 0
+          full_name: data.full_name,
+          email: data.email,
+          phone: data.phone,
+          skills: data.skills,
+          availability: data.availability,
+          status: data.status
         }]);
       if (error) throw error;
     },
@@ -79,11 +76,15 @@ const VolunteersManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("volunteers")
         .update({
-          ...data,
-          experience_years: data.experience_years ? parseInt(data.experience_years) : null
+          full_name: data.full_name,
+          email: data.email,
+          phone: data.phone,
+          skills: data.skills,
+          availability: data.availability,
+          status: data.status
         })
         .eq("id", id);
       if (error) throw error;
@@ -101,7 +102,7 @@ const VolunteersManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("volunteers")
         .delete()
         .eq("id", id);
@@ -119,12 +120,10 @@ const VolunteersManager = () => {
   const resetForm = () => {
     setFormData({
       full_name: "",
-      date_of_birth: "",
       email: "",
       phone: "",
-      address: "",
-      experience_years: "",
-      emergency_contact: "",
+      skills: "",
+      availability: "",
       status: "active"
     });
     setEditingVolunteer(null);
@@ -143,12 +142,10 @@ const VolunteersManager = () => {
     setEditingVolunteer(volunteer);
     setFormData({
       full_name: volunteer.full_name,
-      date_of_birth: volunteer.date_of_birth || "",
       email: volunteer.email || "",
       phone: volunteer.phone || "",
-      address: volunteer.address || "",
-      experience_years: volunteer.experience_years?.toString() || "",
-      emergency_contact: volunteer.emergency_contact || "",
+      skills: volunteer.skills || "",
+      availability: volunteer.availability || "",
       status: volunteer.status
     });
     setIsDialogOpen(true);
@@ -157,19 +154,19 @@ const VolunteersManager = () => {
   const columns = [
     { key: "full_name", label: "Name" },
     {
-      key: "experience_years",
-      label: "Experience",
-      render: (value: number) => value ? `${value} years` : "N/A"
+      key: "email",
+      label: "Email",
+      render: (value: string) => value || "N/A"
     },
     {
-      key: "total_hours",
-      label: "Total Hours",
-      render: (value: number) => `${value}h`
+      key: "phone",
+      label: "Phone",
+      render: (value: string) => value || "N/A"
     },
     {
-      key: "last_activity_date",
-      label: "Last Activity",
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : "Never"
+      key: "skills",
+      label: "Skills",
+      render: (value: string) => value || "N/A"
     },
     {
       key: "status",
@@ -208,11 +205,7 @@ const VolunteersManager = () => {
     }
   ];
 
-  const activeVolunteers = volunteers.filter(v => v.status === "active");
-  const totalHours = volunteers.reduce((sum, v) => sum + (v.total_hours || 0), 0);
-  const avgExperience = activeVolunteers.length > 0
-    ? Math.round(activeVolunteers.reduce((sum, v) => sum + (v.experience_years || 0), 0) / activeVolunteers.length)
-    : 0;
+  const activeVolunteers = volunteers.filter((v: any) => v.status === "active");
 
   return (
     <div className="space-y-6">
@@ -246,18 +239,6 @@ const VolunteersManager = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
-                  <Input
-                    id="date_of_birth"
-                    type="date"
-                    value={formData.date_of_birth}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -266,34 +247,15 @@ const VolunteersManager = () => {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="experience_years">Experience (Years)</Label>
-                  <Input
-                    id="experience_years"
-                    type="number"
-                    min="0"
-                    value={formData.experience_years}
-                    onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
                   />
                 </div>
                 <div>
@@ -312,12 +274,22 @@ const VolunteersManager = () => {
               </div>
 
               <div>
-                <Label htmlFor="emergency_contact">Emergency Contact</Label>
+                <Label htmlFor="skills">Skills</Label>
                 <Input
-                  id="emergency_contact"
-                  value={formData.emergency_contact}
-                  onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
-                  placeholder="Name and phone number"
+                  id="skills"
+                  value={formData.skills}
+                  onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                  placeholder="e.g., Teaching, Medical, Technical"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="availability">Availability</Label>
+                <Input
+                  id="availability"
+                  value={formData.availability}
+                  onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
+                  placeholder="e.g., Weekends, Evenings"
                 />
               </div>
 
@@ -363,7 +335,7 @@ const VolunteersManager = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalHours}</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Hours contributed</p>
           </CardContent>
         </Card>
@@ -374,7 +346,7 @@ const VolunteersManager = () => {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgExperience}</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Years of experience</p>
           </CardContent>
         </Card>

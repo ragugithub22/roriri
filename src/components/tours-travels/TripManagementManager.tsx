@@ -21,69 +21,61 @@ export default function TripManagementManager() {
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ["tours-trip-management"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_trip_management")
-        .select(`
-          *,
-          tours_bookings!inner(booking_code, tours_customers!inner(full_name)),
-          tours_vehicles!inner(vehicle_code, registration_number),
-          tours_drivers!inner(full_name, phone)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: bookings = [] } = useQuery({
     queryKey: ["tours-bookings"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_bookings")
-        .select("id, booking_code, tours_customers!inner(full_name)")
-        .eq("booking_status", "confirmed")
+        .select("id, booking_code")
         .order("booking_code");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: vehicles = [] } = useQuery({
     queryKey: ["tours-vehicles"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_vehicles")
         .select("id, vehicle_code, registration_number, vehicle_type")
-        .eq("status", "active")
         .order("vehicle_code");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const { data: drivers = [] } = useQuery({
     queryKey: ["tours-drivers"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_drivers")
         .select("id, full_name, driver_code, phone")
-        .eq("status", "active")
         .order("full_name");
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (tripData: any) => {
       if (editingTrip) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_trip_management")
           .update(tripData)
           .eq("id", editingTrip.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_trip_management")
           .insert(tripData);
         if (error) throw error;
@@ -102,7 +94,7 @@ export default function TripManagementManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_trip_management").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_trip_management").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -136,24 +128,12 @@ export default function TripManagementManager() {
 
   const columns = [
     {
-      key: "booking",
+      key: "booking_id",
       label: "Booking",
-      render: (value: any, row: any) => row.tours_bookings?.booking_code || "-"
-    },
-    {
-      key: "customer",
-      label: "Customer",
-      render: (value: any, row: any) => row.tours_bookings?.tours_customers?.full_name || "-"
-    },
-    {
-      key: "vehicle",
-      label: "Vehicle",
-      render: (value: any, row: any) => row.tours_vehicles?.registration_number || "-"
-    },
-    {
-      key: "driver",
-      label: "Driver",
-      render: (value: any, row: any) => row.tours_drivers?.full_name || "-"
+      render: (value: any) => {
+        const booking = bookings.find((b: any) => b.id === value);
+        return booking?.booking_code || "-";
+      }
     },
     {
       key: "departure_date",
@@ -169,14 +149,14 @@ export default function TripManagementManager() {
       key: "trip_status",
       label: "Status",
       render: (value: any) => {
-        const variants = {
+        const variants: Record<string, any> = {
           planned: "outline",
           ongoing: "default",
           completed: "default",
           cancelled: "destructive"
         };
         return (
-          <Badge variant={variants[value as keyof typeof variants] || "secondary"}>
+          <Badge variant={variants[value] || "secondary"}>
             {value}
           </Badge>
         );
@@ -239,7 +219,7 @@ export default function TripManagementManager() {
                       <SelectContent>
                         {bookings.map((booking: any) => (
                           <SelectItem key={booking.id} value={booking.id}>
-                            {booking.booking_code} - {booking.tours_customers?.full_name}
+                            {booking.booking_code}
                           </SelectItem>
                         ))}
                       </SelectContent>

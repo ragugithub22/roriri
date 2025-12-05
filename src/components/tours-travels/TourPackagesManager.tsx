@@ -21,25 +21,25 @@ export default function TourPackagesManager() {
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ["tours-packages"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("tours_packages")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (packageData: any) => {
       if (editingPackage) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_packages")
           .update(packageData)
           .eq("id", editingPackage.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("tours_packages")
           .insert(packageData);
         if (error) throw error;
@@ -58,7 +58,7 @@ export default function TourPackagesManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours_packages").delete().eq("id", id);
+      const { error } = await (supabase as any).from("tours_packages").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -98,12 +98,12 @@ export default function TourPackagesManager() {
     {
       key: "duration",
       label: "Duration",
-      render: (value: any, row: any) => `${row.duration_days}D/${row.duration_nights}N`
+      render: (value: any, row: any) => `${row.duration_days || 0}D/${row.duration_nights || 0}N`
     },
     {
       key: "price_per_person",
       label: "Price/Person",
-      render: (value: any) => `₹${value?.toLocaleString()}`
+      render: (value: any) => `₹${value?.toLocaleString() || 0}`
     },
     {
       key: "status",

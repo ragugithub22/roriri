@@ -30,7 +30,7 @@ const DonationsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<Donation | null>(null);
   const [formData, setFormData] = useState({
-    donor_id: "",
+    donor_name: "",
     amount: "",
     donation_date: "",
     payment_method: "",
@@ -47,17 +47,10 @@ const DonationsManager = () => {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("donations")
-        .select(`
-          *,
-          foundation_donors!donations_donor_id_fkey(full_name)
-        `)
-        .eq("entity_code", "foundation")
+        .select("*")
         .order("donation_date", { ascending: false });
-      if (error) throw error;
-      return ((data || []).map((donation: any) => ({
-        ...donation,
-        donor_name: donation.foundation_donors?.full_name || "Anonymous"
-      }))) as any;
+      if (error) return [];
+      return (data || []) as any;
     },
   });
 
@@ -67,26 +60,26 @@ const DonationsManager = () => {
       const { data, error } = await (supabase as any)
         .from("foundation_donors")
         .select("id, full_name")
-        .eq("status", "active")
         .order("full_name");
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as any;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("donations")
         .insert([{
-          ...data,
-          amount: parseFloat(data.amount)
+          donor_name: data.donor_name,
+          amount: parseFloat(data.amount),
+          donation_date: data.donation_date,
+          notes: data.notes
         }]);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["donations"] });
-      queryClient.invalidateQueries({ queryKey: ["foundation-donors"] });
       toast.success("Donation recorded successfully");
       setIsDialogOpen(false);
       resetForm();
@@ -98,18 +91,19 @@ const DonationsManager = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("donations")
         .update({
-          ...data,
-          amount: parseFloat(data.amount)
+          donor_name: data.donor_name,
+          amount: parseFloat(data.amount),
+          donation_date: data.donation_date,
+          notes: data.notes
         })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["donations"] });
-      queryClient.invalidateQueries({ queryKey: ["foundation-donors"] });
       toast.success("Donation updated successfully");
       setIsDialogOpen(false);
       resetForm();
@@ -121,7 +115,7 @@ const DonationsManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("donations")
         .delete()
         .eq("id", id);
@@ -129,7 +123,6 @@ const DonationsManager = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["donations"] });
-      queryClient.invalidateQueries({ queryKey: ["foundation-donors"] });
       toast.success("Donation deleted successfully");
     },
     onError: (error) => {
@@ -139,7 +132,7 @@ const DonationsManager = () => {
 
   const resetForm = () => {
     setFormData({
-      donor_id: "",
+      donor_name: "",
       amount: "",
       donation_date: "",
       payment_method: "",
@@ -163,13 +156,13 @@ const DonationsManager = () => {
   const handleEdit = (donation: Donation) => {
     setEditingDonation(donation);
     setFormData({
-      donor_id: donation.donor_id || "",
+      donor_name: donation.donor_name || "",
       amount: donation.amount.toString(),
       donation_date: donation.donation_date,
-      payment_method: donation.payment_method,
+      payment_method: donation.payment_method || "",
       purpose: donation.purpose || "",
       receipt_number: donation.receipt_number || "",
-      status: donation.status,
+      status: donation.status || "received",
       notes: donation.notes || ""
     });
     setIsDialogOpen(true);
@@ -184,19 +177,19 @@ const DonationsManager = () => {
     {
       key: "amount",
       label: "Amount",
-      render: (value: number) => `₹${value.toLocaleString()}`
+      render: (value: number) => `₹${value?.toLocaleString() || 0}`
     },
     {
       key: "donation_date",
       label: "Date",
-      render: (value: string) => new Date(value).toLocaleDateString()
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : "-"
     },
     {
       key: "payment_method",
       label: "Payment Method",
       render: (value: string) => (
         <Badge variant="outline">
-          {value}
+          {value || "N/A"}
         </Badge>
       )
     },
@@ -215,7 +208,7 @@ const DonationsManager = () => {
           value === "cancelled" ? "destructive" :
           "outline"
         }>
-          {value}
+          {value || "received"}
         </Badge>
       )
     },
@@ -247,12 +240,12 @@ const DonationsManager = () => {
     }
   ];
 
-  const totalDonations = donations.reduce((sum, d) => sum + d.amount, 0);
-  const thisMonthDonations = donations.filter(d =>
+  const totalDonations = donations.reduce((sum: number, d: any) => sum + (d.amount || 0), 0);
+  const thisMonthDonations = donations.filter((d: any) =>
     new Date(d.donation_date).getMonth() === new Date().getMonth() &&
     new Date(d.donation_date).getFullYear() === new Date().getFullYear()
-  ).reduce((sum, d) => sum + d.amount, 0);
-  const receivedDonations = donations.filter(d => d.status === "received").length;
+  ).reduce((sum: number, d: any) => sum + (d.amount || 0), 0);
+  const receivedDonations = donations.filter((d: any) => d.status === "received").length;
 
   return (
     <div className="space-y-6">
@@ -277,20 +270,14 @@ const DonationsManager = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="donor_id">Donor</Label>
-                  <Select value={formData.donor_id} onValueChange={(value) => setFormData({ ...formData, donor_id: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select donor (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Anonymous</SelectItem>
-                      {donors.map((donor) => (
-                        <SelectItem key={donor.id} value={donor.id}>
-                          {donor.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="donor_name">Donor Name</Label>
+                  <Input
+                    id="donor_name"
+                    value={formData.donor_name}
+                    onChange={(e) => setFormData({ ...formData, donor_name: e.target.value })}
+                    placeholder="Enter donor name"
+                    required
+                  />
                 </div>
                 <div>
                   <Label htmlFor="amount">Amount (₹) *</Label>

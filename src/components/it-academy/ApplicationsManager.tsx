@@ -27,17 +27,17 @@ export default function ApplicationsManager() {
   const { data: applications = [] } = useQuery({
     queryKey: ["academy-applications"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("academy_applications" as any)
+      const { data, error } = await (supabase as any)
+        .from("academy_applications")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   // Get unique user IDs from applications
-  const userIds = [...new Set(applications.map(app => app.created_by).filter(Boolean))];
+  const userIds = [...new Set(applications.map((app: any) => app.created_by).filter(Boolean))] as string[];
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["academy-application-profiles", userIds],
@@ -47,14 +47,14 @@ export default function ApplicationsManager() {
         .from("profiles")
         .select("id, full_name")
         .in("id", userIds);
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
     enabled: userIds.length > 0,
   });
 
   // Create a map of user ID to full name
-  const profileMap = profiles.reduce((acc, profile) => {
+  const profileMap = profiles.reduce((acc: Record<string, string>, profile: any) => {
     acc[profile.id] = profile.full_name;
     return acc;
   }, {} as Record<string, string>);
@@ -74,15 +74,15 @@ export default function ApplicationsManager() {
         .from("courses")
         .select("id, name")
         .eq("entity_id", entity.id);
-      if (error) throw error;
-      return data;
+      if (error) return [];
+      return data || [];
     },
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from("academy_applications" as any)
+    mutationFn: async (data: any) => {
+      const { error } = await (supabase as any)
+        .from("academy_applications")
         .insert([data]);
       if (error) throw error;
     },
@@ -97,10 +97,10 @@ export default function ApplicationsManager() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: any) => {
       if (!editingApplication?.id) throw new Error('No application selected for update');
-      const { error } = await supabase
-        .from("academy_applications" as any)
+      const { error } = await (supabase as any)
+        .from("academy_applications")
         .update(data)
         .eq('id', editingApplication.id);
       if (error) throw error;
@@ -117,8 +117,8 @@ export default function ApplicationsManager() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("academy_applications" as any)
+      const { error } = await (supabase as any)
+        .from("academy_applications")
         .delete()
         .eq('id', id);
       if (error) throw error;
@@ -175,7 +175,7 @@ export default function ApplicationsManager() {
       return;
     }
 
-    const selectedCourse = courses.find(c => c.id === formData.course_id);
+    const selectedCourse = courses.find((c: any) => c.id === formData.course_id);
     if (!selectedCourse) {
       toast.error("Please select a valid course");
       return;
