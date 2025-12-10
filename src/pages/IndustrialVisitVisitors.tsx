@@ -38,7 +38,7 @@ interface Visitor {
   college_name: string;
   date: string;
   department: string;
-  amount: number;
+  amount?: number;
   created_at: string;
 }
 
@@ -67,7 +67,11 @@ export default function IndustrialVisitVisitors() {
         .order("date", { ascending: false });
       
       if (error) throw error;
-      return data as Visitor[];
+      // Map to include amount field with default value
+      return (data || []).map(item => ({
+        ...item,
+        amount: (item as any).amount || 0
+      })) as Visitor[];
     },
   });
 

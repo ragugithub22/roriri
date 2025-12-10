@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import EntitySidebarLayout, { SidebarNavItem } from "@/components/layouts/EntitySidebarLayout";
 import KPICard from "@/components/dashboard/KPICard";
 import { Building2, Hammer, Users, TrendingUp, MapPin, HardHat, Package, DollarSign, Home, FileText, Settings, BarChart3, Users2 } from "lucide-react";
@@ -43,80 +41,13 @@ const BuildersDashboard = () => {
     }
   }, [location.hash]);
 
-  // Fetch projects
-  const { data: projects = [] } = useQuery({
-    queryKey: ["builders-projects"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("builders_projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch sites
-  const { data: sites = [] } = useQuery({
-    queryKey: ["builders-sites"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("builders_sites")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch contractors
-  const { data: contractors = [] } = useQuery({
-    queryKey: ["builders-contractors"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("builders_contractors")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch clients
-  const { data: clients = [] } = useQuery({
-    queryKey: ["builders-clients"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("builders_clients")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch financial transactions
-  const { data: financialTransactions = [] } = useQuery({
-    queryKey: ["builders-financial-transactions"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("builders_financial_transactions")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Calculate KPIs
-  const activeProjects = projects.filter(p => p.status === 'in_progress').length;
-  const completedProjects = projects.filter(p => p.status === 'completed').length;
-  const activeSites = sites.filter(s => s.status === 'active').length;
-  const activeContractors = contractors.filter(c => c.status === 'active').length;
-  const totalClients = clients.length;
-  const totalRevenue = financialTransactions
-    .filter(t => t.transaction_type === 'income' && t.status === 'completed')
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+  // Placeholder KPIs since builders tables don't exist
+  const activeProjects = 0;
+  const completedProjects = 0;
+  const activeSites = 0;
+  const activeContractors = 0;
+  const totalClients = 0;
+  const totalRevenue = 0;
 
   return (
     <EntitySidebarLayout

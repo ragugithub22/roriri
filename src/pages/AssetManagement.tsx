@@ -39,14 +39,14 @@ export default function AssetManagement() {
 
   const itemsPerPage = 7;
 
-  // Fetch IT Park entity
+  // Fetch IT Company entity
   const { data: itParkEntity } = useQuery({
     queryKey: ['it-park-entity'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('entities')
         .select('id')
-        .eq('code', 'it_park')
+        .eq('code', 'it_company')
         .single();
       
       if (error) throw error;

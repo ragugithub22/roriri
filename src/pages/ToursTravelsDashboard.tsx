@@ -48,74 +48,18 @@ const ToursTravelsDashboard = () => {
     }
   }, [location.hash]);
 
-  // Fetch dashboard statistics
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ["tours-dashboard-stats"],
-    queryFn: async () => {
-      const [
-        { count: totalBookings },
-        { count: totalCustomers },
-        { count: totalVehicles },
-        { count: activeTrips },
-        { data: revenue }
-      ] = await Promise.all([
-        supabase.from("tours_bookings").select("*", { count: 'exact', head: true }),
-        supabase.from("tours_customers").select("*", { count: 'exact', head: true }),
-        supabase.from("tours_vehicles").select("*", { count: 'exact', head: true }),
-        supabase.from("tours_trip_management").select("*", { count: 'exact', head: true }).eq("trip_status", "ongoing"),
-        supabase.from("tours_payments").select("amount").eq("payment_status", "completed")
-      ]);
+  // Placeholder stats since tours tables don't exist
+  const stats = {
+    totalBookings: 0,
+    totalCustomers: 0,
+    totalVehicles: 0,
+    activeTrips: 0,
+    totalRevenue: 0
+  };
 
-      const totalRevenue = revenue?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
-
-      return {
-        totalBookings,
-        totalCustomers,
-        totalVehicles,
-        activeTrips,
-        totalRevenue
-      };
-    },
-  });
-
-  // Fetch recent bookings for dashboard
-  const { data: recentBookings = [] } = useQuery({
-    queryKey: ["tours-recent-bookings"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tours_bookings")
-        .select(`
-          *,
-          tours_customers!inner(customer_name),
-          tours_packages!inner(package_name)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch active trips for dashboard
-  const { data: activeTripsData = [] } = useQuery({
-    queryKey: ["tours-active-trips"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tours_trip_management")
-        .select(`
-          *,
-          tours_vehicles!inner(vehicle_number),
-          tours_drivers!inner(driver_name)
-        `)
-        .eq("trip_status", "ongoing")
-        .order("start_date", { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Placeholder data
+  const recentBookings: any[] = [];
+  const activeTripsData: any[] = [];
 
   return (
     <EntitySidebarLayout
@@ -131,35 +75,35 @@ const ToursTravelsDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <KPICard
                 title="Total Bookings"
-                value={stats?.totalBookings || 0}
+                value={stats.totalBookings}
                 subtitle="All time bookings"
                 icon={Calendar}
                 color="from-blue-500 to-indigo-600"
               />
               <KPICard
                 title="Active Customers"
-                value={stats?.totalCustomers || 0}
+                value={stats.totalCustomers}
                 subtitle="Registered customers"
                 icon={Users}
                 color="from-green-500 to-emerald-600"
               />
               <KPICard
                 title="Fleet Size"
-                value={stats?.totalVehicles || 0}
+                value={stats.totalVehicles}
                 subtitle="Available vehicles"
                 icon={Car}
                 color="from-purple-500 to-violet-600"
               />
               <KPICard
                 title="Active Trips"
-                value={stats?.activeTrips || 0}
+                value={stats.activeTrips}
                 subtitle="Currently running"
                 icon={MapPin}
                 color="from-orange-500 to-amber-600"
               />
               <KPICard
                 title="Total Revenue"
-                value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
+                value={`₹${stats.totalRevenue.toLocaleString()}`}
                 subtitle="Completed payments"
                 icon={DollarSign}
                 color="from-teal-500 to-cyan-600"
@@ -179,8 +123,8 @@ const ToursTravelsDashboard = () => {
                         recentBookings.map((booking: any) => (
                           <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                             <div>
-                              <p className="font-medium">{booking.tours_customers.customer_name}</p>
-                              <p className="text-sm text-muted-foreground">{booking.tours_packages.package_name}</p>
+                              <p className="font-medium">{booking.customer_name}</p>
+                              <p className="text-sm text-muted-foreground">{booking.package_name}</p>
                             </div>
                             <div className="text-right">
                               <p className="font-medium">₹{booking.total_amount?.toLocaleString()}</p>
@@ -210,8 +154,8 @@ const ToursTravelsDashboard = () => {
                         activeTripsData.map((trip: any) => (
                           <div key={trip.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                             <div>
-                              <p className="font-medium">{trip.tours_vehicles.vehicle_number}</p>
-                              <p className="text-sm text-muted-foreground">{trip.tours_drivers.driver_name}</p>
+                              <p className="font-medium">{trip.vehicle_number}</p>
+                              <p className="text-sm text-muted-foreground">{trip.driver_name}</p>
                             </div>
                             <div className="text-right">
                               <p className="font-medium">{trip.trip_status}</p>

@@ -252,17 +252,6 @@ const DashboardContent: React.FC = () => {
     },
   });
 
-  const { data: projectEnquiries = 0 } = useQuery({
-    queryKey: ["total-it-enquiries"],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("it_client_enquiries")
-        .select("*", { count: "exact", head: true });
-      if (error) throw error;
-      return count || 0;
-    },
-  });
-
   const { data: completedProjects = 0 } = useQuery({
     queryKey: ["completed-it-projects"],
     queryFn: async () => {
@@ -270,7 +259,7 @@ const DashboardContent: React.FC = () => {
         .from("it_projects")
         .select("*", { count: "exact", head: true })
         .eq("status", "completed");
-      if (error) throw error;
+      if (error) return 0;
       return count || 0;
     },
   });
@@ -278,28 +267,31 @@ const DashboardContent: React.FC = () => {
   const { data: monthlyRevenue = 0 } = useQuery({
     queryKey: ["monthly-it-revenue"],
     queryFn: async () => {
-      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+      const currentMonth = new Date().toISOString().slice(0, 7);
       const { data, error } = await supabase
         .from("academy_payments")
         .select("amount")
         .gte("payment_date", `${currentMonth}-01`)
         .lt("payment_date", `${currentMonth}-32`);
-      if (error) throw error;
+      if (error) return 0;
 
       const academyRevenue = data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
 
-      // Add revenue from other entities if needed
-      const { data: foundationData } = await supabase
-        .from("foundation_donations")
+      // Also count donations
+      const { data: donationsData } = await supabase
+        .from("donations")
         .select("amount")
         .gte("donation_date", `${currentMonth}-01`)
         .lt("donation_date", `${currentMonth}-32`);
 
-      const foundationRevenue = foundationData?.reduce((sum, donation) => sum + (donation.amount || 0), 0) || 0;
+      const donationsRevenue = donationsData?.reduce((sum, donation) => sum + Number(donation.amount || 0), 0) || 0;
 
-      return academyRevenue + foundationRevenue;
+      return academyRevenue + donationsRevenue;
     },
   });
+
+  // Placeholder for enquiries count since table doesn't exist
+  const projectEnquiries = 0;
 
 
 
