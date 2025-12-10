@@ -77,8 +77,8 @@ export default function IndustrialVisitVisitorDetails() {
               <p className="font-semibold">{new Date(visitorRecord.date).toLocaleDateString()}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Amount</p>
-              <p className="font-semibold">₹{visitorRecord.amount}</p>
+              <p className="text-sm text-muted-foreground">Status</p>
+              <p className="font-semibold">{visitorRecord.status}</p>
             </div>
           </div>
         </div>

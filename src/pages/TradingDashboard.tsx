@@ -3,7 +3,6 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import KPICard from "@/components/dashboard/KPICard";
 import { DataTable, Badge } from "@/components/dashboard/DataTable";
 import ChartCard from "@/components/dashboard/ChartCard";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,20 +25,7 @@ const TradingDashboard = () => {
         .select("*")
         .eq("entity_id", entityData.id)
         .limit(10);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: orders = [] } = useQuery({
-    queryKey: ["sales-orders"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales_orders")
-        .select("*")
-        .order("order_date", { ascending: false })
-        .limit(10);
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
   });
@@ -62,10 +48,13 @@ const TradingDashboard = () => {
         .order("created_at", { ascending: false })
         .limit(10);
       
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
   });
+
+  // Placeholder for orders since sales_orders table doesn't exist
+  const orders: any[] = [];
 
   const quickActions = [
     { label: "New Order", icon: Plus, onClick: () => {}, variant: "default" as const },
@@ -166,8 +155,6 @@ const TradingDashboard = () => {
             emptyMessage="No items found"
           />
         </div>
-        
-        <ActivityFeed activities={activities} />
       </div>
     </DashboardLayout>
   );

@@ -153,8 +153,8 @@ export default function HostelResidentDetail({ residentId, residentType, onBack 
   }
 
   const residentName = type === "employee" 
-    ? (resident as any)?.profiles?.full_name 
-    : resident?.full_name;
+    ? (resident as any)?.profiles?.full_name || 'Unknown'
+    : (resident as any)?.full_name || 'Unknown';
 
   return (
     <div className="min-h-screen bg-background">

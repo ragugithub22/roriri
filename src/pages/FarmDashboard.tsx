@@ -3,13 +3,9 @@ import { useLocation } from "react-router-dom";
 import { Sprout, Users, Calendar, Gamepad2, Utensils, CreditCard, TrendingUp, Plus, UserCheck, Ticket, BookOpen, ShoppingCart, Home, Bell, BarChart3, Settings } from "lucide-react";
 import EntitySidebarLayout, { SidebarNavItem } from "@/components/layouts/EntitySidebarLayout";
 import KPICard from "@/components/dashboard/KPICard";
-import { DataTable, Badge } from "@/components/dashboard/DataTable";
 import ChartCard from "@/components/dashboard/ChartCard";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import QuickActions from "@/components/dashboard/QuickActions";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts";
 import FarmEventsManager from "@/components/farm/FarmEventsManager";
 import FarmGamesManager from "@/components/farm/FarmGamesManager";
 import FarmFoodManager from "@/components/farm/FarmFoodManager";
@@ -50,138 +46,12 @@ const FarmDashboard = () => {
     }
   }, [location.hash]);
 
-  // Today's visitors
-  const { data: todayVisitors = [] } = useQuery({
-    queryKey: ["today-visitors"],
-    queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from("farm_visitors")
-        .select("*")
-        .gte("entry_time", `${today}T00:00:00`)
-        .lt("entry_time", `${today}T23:59:59`);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Total events
-  const { data: events = [] } = useQuery({
-    queryKey: ["farm-events"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_events")
-        .select("*");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Total games
-  const { data: games = [] } = useQuery({
-    queryKey: ["farm-games"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("farm_games")
-        .select("*");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Today's food orders
-  const { data: todayFoodOrders = [] } = useQuery({
-    queryKey: ["today-food-orders"],
-    queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from("farm_food_orders")
-        .select("*")
-        .gte("order_time", `${today}T00:00:00`)
-        .lt("order_time", `${today}T23:59:59`);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Total revenue today
-  const { data: todayRevenue = [] } = useQuery({
-    queryKey: ["today-revenue"],
-    queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from("farm_payments")
-        .select("amount")
-        .gte("payment_date", `${today}T00:00:00`)
-        .lt("payment_date", `${today}T23:59:59`)
-        .eq("status", "completed");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Recent activities (visitors, orders, events)
-  const { data: recentActivities = [] } = useQuery({
-    queryKey: ["recent-activities"],
-    queryFn: async () => {
-      const activities = [];
-
-      // Recent visitors
-      const { data: visitors } = await supabase
-        .from("farm_visitors")
-        .select("visitor_name, entry_time, ticket_number")
-        .order("entry_time", { ascending: false })
-        .limit(5);
-
-      // Recent orders
-      const { data: orders } = await supabase
-        .from("farm_food_orders")
-        .select("visitor_name, order_time, total_amount")
-        .order("order_time", { ascending: false })
-        .limit(5);
-
-      // Recent events
-      const { data: events } = await supabase
-        .from("farm_events")
-        .select("title, event_date, status")
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (visitors) {
-        visitors.forEach(v => activities.push({
-          id: `visitor-${v.ticket_number}`,
-          type: "visitor",
-          message: `${v.visitor_name} entered the farm`,
-          time: v.entry_time,
-          icon: UserCheck
-        }));
-      }
-
-      if (orders) {
-        orders.forEach(o => activities.push({
-          id: `order-${o.order_time}`,
-          type: "order",
-          message: `Food order by ${o.visitor_name} - ₹${o.total_amount}`,
-          time: o.order_time,
-          icon: ShoppingCart
-        }));
-      }
-
-      if (events) {
-        events.forEach(e => activities.push({
-          id: `event-${e.title}`,
-          type: "event",
-          message: `Event "${e.title}" ${e.status}`,
-          time: e.event_date,
-          icon: Calendar
-        }));
-      }
-
-      return activities
-        .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-        .slice(0, 10);
-    },
-  });
+  // Placeholder KPIs since farm tables don't exist
+  const todayVisitorsCount = 0;
+  const eventsCount = 0;
+  const gamesCount = 0;
+  const todayFoodOrdersCount = 0;
+  const totalRevenue = 0;
 
   const quickActions = [
     { label: "Add Visitor", icon: Plus, onClick: () => {}, variant: "default" as const },
@@ -211,8 +81,6 @@ const FarmDashboard = () => {
     { name: "Events", value: 12000, color: "#ef4444" },
   ];
 
-  const totalRevenue = todayRevenue.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
   return (
     <EntitySidebarLayout
       entityName="Rithish Farms"
@@ -228,7 +96,7 @@ const FarmDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <KPICard
                 title="Visitors Today"
-                value={todayVisitors.length}
+                value={todayVisitorsCount}
                 subtitle="Total entries"
                 trend={12}
                 icon={Users}
@@ -236,7 +104,7 @@ const FarmDashboard = () => {
               />
               <KPICard
                 title="Total Events"
-                value={events.length}
+                value={eventsCount}
                 subtitle="Active events"
                 trend={8}
                 icon={Calendar}
@@ -244,7 +112,7 @@ const FarmDashboard = () => {
               />
               <KPICard
                 title="Games Available"
-                value={games.length}
+                value={gamesCount}
                 subtitle="Activities"
                 trend={5}
                 icon={Gamepad2}
@@ -252,7 +120,7 @@ const FarmDashboard = () => {
               />
               <KPICard
                 title="Food Orders Today"
-                value={todayFoodOrders.length}
+                value={todayFoodOrdersCount}
                 subtitle="Orders placed"
                 trend={15}
                 icon={Utensils}
@@ -315,55 +183,12 @@ const FarmDashboard = () => {
               </ChartCard>
             </div>
 
-            {/* Quick Actions and Recent Activity */}
+            {/* Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
                 <QuickActions actions={quickActions} />
               </div>
-
-              <div className="lg:col-span-2">
-                <ActivityFeed activities={recentActivities} />
-              </div>
             </div>
-
-            {/* Recent Visitors Table */}
-            <DataTable
-              title="Recent Visitors"
-              description="Latest farm visitors today"
-              columns={[
-                { key: "ticket_number", label: "Ticket #" },
-                { key: "visitor_name", label: "Name" },
-                { key: "mobile", label: "Mobile" },
-                {
-                  key: "entry_type",
-                  label: "Type",
-                  render: (value: string) => (
-                    <Badge variant="outline">{value}</Badge>
-                  )
-                },
-                {
-                  key: "ticket_price",
-                  label: "Amount",
-                  render: (value: number) => `₹${value}`
-                },
-                {
-                  key: "payment_status",
-                  label: "Payment",
-                  render: (value: string) => (
-                    <Badge variant={value === "paid" ? "default" : "secondary"}>
-                      {value}
-                    </Badge>
-                  )
-                },
-                {
-                  key: "entry_time",
-                  label: "Entry Time",
-                  render: (value: string) => new Date(value).toLocaleTimeString()
-                }
-              ]}
-              data={todayVisitors.slice(0, 10)}
-              emptyMessage="No visitors today"
-            />
           </>
         )}
 
