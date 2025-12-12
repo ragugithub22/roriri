@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, 
   User, 
@@ -11,13 +14,76 @@ import {
   AlertCircle, 
   MessageCircle,
   LogOut,
-  Briefcase
+  Briefcase,
+  Mail,
+  Phone,
+  MapPin
 } from 'lucide-react';
+
+interface EmployeeData {
+  id: string;
+  employee_code: string;
+  hire_date: string;
+  status: string;
+  residence_type: string;
+  profile_id: string;
+  profiles?: {
+    full_name: string;
+    email: string;
+    phone: string;
+    address: string;
+    dob: string;
+  } | null;
+  departments?: { name: string } | null;
+  positions?: { title: string } | null;
+}
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [employeeData, setEmployeeData] = useState<EmployeeData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployeeData();
+  }, []);
+
+  const fetchEmployeeData = async () => {
+    try {
+      // Get original_id from userSession
+      const userSession = localStorage.getItem('userSession');
+      if (!userSession) {
+        setLoading(false);
+        return;
+      }
+
+      const sessionData = JSON.parse(userSession);
+      const originalId = sessionData.originalId || sessionData.userId;
+
+      // Fetch employee data
+      const { data, error } = await supabase
+        .from('employees')
+        .select(`
+          *,
+          profiles(full_name, email, phone, address, dob),
+          departments(name),
+          positions(title)
+        `)
+        .eq('profile_id', originalId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching employee data:', error);
+      } else {
+        setEmployeeData(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -33,6 +99,135 @@ export default function EmployeeDashboard() {
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
   ];
+
+  const renderContent = () => {
+    if (loading) {
+      return <p className="text-muted-foreground">Loading...</p>;
+    }
+
+    switch (activeSection) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Department</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{employeeData?.departments?.name || 'Not Assigned'}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Position</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{employeeData?.positions?.title || 'Not Assigned'}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Residence Type</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold capitalize">{employeeData?.residence_type || 'N/A'}</p>
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Welcome, {employeeData?.profiles?.full_name || 'Employee'}!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Welcome to your Employee Dashboard. Here you can view your projects, 
+                  payroll details, submit daily updates, and communicate with your team.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
+                      {employeeData?.profiles?.full_name?.charAt(0) || 'E'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h2 className="mt-4 text-xl font-bold">{employeeData?.profiles?.full_name}</h2>
+                  <p className="text-muted-foreground">{employeeData?.employee_code}</p>
+                </div>
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      {employeeData?.profiles?.email || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      {employeeData?.profiles?.phone || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="font-medium">{employeeData?.profiles?.dob || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p className="font-medium flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      {employeeData?.profiles?.address || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Department</p>
+                    <p className="font-medium">{employeeData?.departments?.name || 'Not Assigned'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Position</p>
+                    <p className="font-medium">{employeeData?.positions?.title || 'Not Assigned'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Hire Date</p>
+                    <p className="font-medium">{employeeData?.hire_date || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Residence Type</p>
+                    <p className="font-medium capitalize">{employeeData?.residence_type || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      default:
+        return (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">
+                {activeSection === 'project-details' && 'View your assigned projects'}
+                {activeSection === 'payroll' && 'View your salary and payment details'}
+                {activeSection === 'daily-update' && 'Submit your daily work updates'}
+                {activeSection === 'complaint' && 'Submit and track complaints'}
+                {activeSection === 'chat-box' && 'Chat with colleagues and managers'}
+              </p>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -83,8 +278,8 @@ export default function EmployeeDashboard() {
                   <Briefcase className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">Employee Portal</h1>
-                  <p className="text-sm opacity-90">Dashboard & Work Management</p>
+                  <h1 className="text-2xl font-bold">{employeeData?.profiles?.full_name || 'Employee Portal'}</h1>
+                  <p className="text-sm opacity-90">{employeeData?.positions?.title || 'Dashboard & Work Management'}</p>
                 </div>
               </div>
 
@@ -106,17 +301,7 @@ export default function EmployeeDashboard() {
           <h2 className="text-3xl font-bold text-foreground mb-6">
             {menuItems.find(item => item.id === activeSection)?.label}
           </h2>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <p className="text-muted-foreground">
-              {activeSection === 'dashboard' && 'Welcome to your Employee Dashboard'}
-              {activeSection === 'profile' && 'View and manage your profile'}
-              {activeSection === 'project-details' && 'View your assigned projects'}
-              {activeSection === 'payroll' && 'View your salary and payment details'}
-              {activeSection === 'daily-update' && 'Submit your daily work updates'}
-              {activeSection === 'complaint' && 'Submit and track complaints'}
-              {activeSection === 'chat-box' && 'Chat with colleagues and managers'}
-            </p>
-          </div>
+          {renderContent()}
         </div>
       </main>
     </div>

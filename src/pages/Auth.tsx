@@ -138,7 +138,8 @@ export default function Auth() {
       localStorage.setItem('userSession', JSON.stringify({
         email: verifyData.email,
         role: verifyData.role,
-        userId: verifyData.userId
+        userId: verifyData.userId,
+        originalId: verifyData.userId
       }));
 
       toast.success('Logged in successfully');

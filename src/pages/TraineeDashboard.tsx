@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, 
   User, 
@@ -11,13 +14,65 @@ import {
   AlertCircle, 
   MessageCircle,
   LogOut,
-  GraduationCap
+  GraduationCap,
+  Mail,
+  Phone
 } from 'lucide-react';
+
+interface TraineeData {
+  id: string;
+  student_code: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  address: string;
+  status: string;
+  residence_type: string;
+  enrollment_date: string;
+}
 
 export default function TraineeDashboard() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [traineeData, setTraineeData] = useState<TraineeData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTraineeData();
+  }, []);
+
+  const fetchTraineeData = async () => {
+    try {
+      // Get original_id from userSession
+      const userSession = localStorage.getItem('userSession');
+      if (!userSession) {
+        setLoading(false);
+        return;
+      }
+
+      const sessionData = JSON.parse(userSession);
+      const originalId = sessionData.originalId || sessionData.userId;
+
+      // Fetch trainee data from students table
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', originalId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching trainee data:', error);
+      } else {
+        setTraineeData(data as TraineeData);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -33,6 +88,128 @@ export default function TraineeDashboard() {
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
   ];
+
+  const renderContent = () => {
+    if (loading) {
+      return <p className="text-muted-foreground">Loading...</p>;
+    }
+
+    switch (activeSection) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Student Code</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{traineeData?.student_code || 'N/A'}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Enrollment Date</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{traineeData?.enrollment_date || 'N/A'}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold capitalize">{traineeData?.status || 'Active'}</p>
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Welcome, {traineeData?.full_name || 'Trainee'}!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Welcome to your Trainee Dashboard. Here you can view your course details, 
+                  subjects, submit daily updates, and communicate with your instructors.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
+                      {traineeData?.full_name?.charAt(0) || 'T'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h2 className="mt-4 text-xl font-bold">{traineeData?.full_name}</h2>
+                  <p className="text-muted-foreground">{traineeData?.student_code}</p>
+                </div>
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      {traineeData?.email || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      {traineeData?.phone || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="font-medium">{traineeData?.date_of_birth || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p className="font-medium">{traineeData?.address || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Enrollment Date</p>
+                    <p className="font-medium">{traineeData?.enrollment_date || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Residence Type</p>
+                    <p className="font-medium capitalize">{traineeData?.residence_type || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <p className="font-medium capitalize">{traineeData?.status || 'Active'}</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      default:
+        return (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">
+                {activeSection === 'subject' && 'View your subjects and curriculum'}
+                {activeSection === 'application' && 'Manage your applications'}
+                {activeSection === 'daily-update' && 'Submit your daily work updates'}
+                {activeSection === 'complaint' && 'Submit and track complaints'}
+                {activeSection === 'chat-box' && 'Chat with instructors and peers'}
+              </p>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -83,7 +260,7 @@ export default function TraineeDashboard() {
                   <GraduationCap className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">Trainee Portal</h1>
+                  <h1 className="text-2xl font-bold">{traineeData?.full_name || 'Trainee Portal'}</h1>
                   <p className="text-sm opacity-90">Dashboard & Learning</p>
                 </div>
               </div>
@@ -106,17 +283,7 @@ export default function TraineeDashboard() {
           <h2 className="text-3xl font-bold text-foreground mb-6">
             {menuItems.find(item => item.id === activeSection)?.label}
           </h2>
-          <div className="bg-card rounded-lg border border-border p-6">
-            <p className="text-muted-foreground">
-              {activeSection === 'dashboard' && 'Welcome to your Trainee Dashboard'}
-              {activeSection === 'profile' && 'View and manage your profile'}
-              {activeSection === 'subject' && 'View your subjects and curriculum'}
-              {activeSection === 'application' && 'Manage your applications'}
-              {activeSection === 'daily-update' && 'Submit your daily work updates'}
-              {activeSection === 'complaint' && 'Submit and track complaints'}
-              {activeSection === 'chat-box' && 'Chat with instructors and peers'}
-            </p>
-          </div>
+          {renderContent()}
         </div>
       </main>
     </div>
