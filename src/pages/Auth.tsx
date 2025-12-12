@@ -60,15 +60,31 @@ export default function Auth() {
     }
 
     if (user) {
-      // Redirect Admin users to IT Park, regular users to user dashboard
-      if (isAdmin) {
-        navigate('/it-park', {
-          replace: true
-        });
+      // Check stored session for role-based routing
+      const storedSession = localStorage.getItem('userSession');
+      if (storedSession) {
+        const sessionData = JSON.parse(storedSession);
+        switch (sessionData.role) {
+          case 'super_admin':
+          case 'admin':
+            navigate('/it-park', { replace: true });
+            break;
+          case 'trainee':
+            navigate('/trainee-dashboard', { replace: true });
+            break;
+          case 'employee':
+            navigate('/employee-dashboard', { replace: true });
+            break;
+          case 'intern':
+            navigate('/intern-dashboard', { replace: true });
+            break;
+          default:
+            navigate('/user-dashboard', { replace: true });
+        }
+      } else if (isAdmin) {
+        navigate('/it-park', { replace: true });
       } else {
-        navigate('/user-dashboard', {
-          replace: true
-        });
+        navigate('/user-dashboard', { replace: true });
       }
     }
   }, [user, isAdmin, navigate, isAdminLoading]);
