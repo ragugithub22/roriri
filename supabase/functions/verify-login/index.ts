@@ -108,6 +108,45 @@ Deno.serve(async (req: Request) => {
 
     console.log('User role determined:', userRole);
 
+    // Check if user exists in auth.users, if not create them
+    // This ensures the user can sign in with Supabase Auth for RLS to work
+    const email = userLogin.email;
+    if (email) {
+      // Check if user exists in auth.users
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find((u: any) => u.email === email);
+      
+      if (!existingUser) {
+        console.log('Creating auth user for:', email);
+        // Create the user in auth.users
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email: email,
+          password: password,
+          email_confirm: true, // Auto-confirm the email
+          user_metadata: {
+            role: userRole,
+            original_id: userLogin.original_id
+          }
+        });
+        
+        if (createError) {
+          console.error('Error creating auth user:', createError);
+        } else {
+          console.log('Auth user created:', newUser?.user?.id);
+        }
+      } else {
+        // Update the user's password if it changed
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+          existingUser.id,
+          { password: password }
+        );
+        
+        if (updateError) {
+          console.error('Error updating auth user password:', updateError);
+        }
+      }
+    }
+
     // Return the user info and role
     return new Response(
       JSON.stringify({
