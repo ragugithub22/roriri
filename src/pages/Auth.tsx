@@ -101,7 +101,24 @@ export default function Auth() {
 
       console.log('Login verified successfully, role:', verifyData.role);
       
-      // Store session info for non-Supabase-Auth users
+      // Try to sign in with Supabase Auth using email and password
+      // This creates a proper session for RLS policies to work
+      if (verifyData.email) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: verifyData.email,
+          password: validated.password
+        });
+        
+        if (signInError) {
+          console.log('Supabase Auth sign-in failed, using custom session:', signInError.message);
+          // Fall back to custom session if Supabase Auth fails
+          // This might happen if the user doesn't exist in auth.users
+        } else {
+          console.log('Supabase Auth sign-in successful');
+        }
+      }
+      
+      // Store session info (role-based routing info)
       localStorage.setItem('userSession', JSON.stringify({
         email: verifyData.email,
         role: verifyData.role,

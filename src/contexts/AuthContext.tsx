@@ -26,37 +26,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isCustomLogin, setIsCustomLogin] = useState(false);
 
   useEffect(() => {
-    // Check for custom login session first
-    const customSession = localStorage.getItem('userSession');
-    if (customSession) {
-      try {
-        const sessionData = JSON.parse(customSession);
-        setUser(sessionData);
-        setIsCustomLogin(true);
-        setLoading(false);
-        return;
-      } catch (error) {
-        console.error('Error parsing custom session:', error);
-        localStorage.removeItem('userSession');
-      }
-    }
-
-    // Set up auth state listener for Supabase auth
+    // Set up auth state listener for Supabase auth FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsCustomLogin(false);
-        setLoading(false);
+        console.log('Auth state changed:', event, session?.user?.email);
+        if (session?.user) {
+          // Supabase auth takes priority - merge with custom session data for role
+          const customSession = localStorage.getItem('userSession');
+          let customUser: CustomUser | null = null;
+          if (customSession) {
+            try {
+              customUser = JSON.parse(customSession);
+            } catch (error) {
+              console.error('Error parsing custom session:', error);
+            }
+          }
+          
+          // Create a merged user object with Supabase user ID and custom role
+          setUser({
+            ...session.user,
+            id: session.user.id,
+            role: customUser?.role || 'user',
+          } as any);
+          setSession(session);
+          setIsCustomLogin(false);
+          setLoading(false);
+        } else {
+          // No Supabase session - check for custom login session
+          const customSession = localStorage.getItem('userSession');
+          if (customSession) {
+            try {
+              const sessionData = JSON.parse(customSession);
+              setUser({ ...sessionData, id: sessionData.userId });
+              setIsCustomLogin(true);
+            } catch (error) {
+              console.error('Error parsing custom session:', error);
+              localStorage.removeItem('userSession');
+            }
+          } else {
+            setUser(null);
+            setIsCustomLogin(false);
+          }
+          setSession(null);
+          setLoading(false);
+        }
       }
     );
 
     // Check for existing Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        const customSession = localStorage.getItem('userSession');
+        let customUser: CustomUser | null = null;
+        if (customSession) {
+          try {
+            customUser = JSON.parse(customSession);
+          } catch (error) {
+            console.error('Error parsing custom session:', error);
+          }
+        }
+        
         setSession(session);
-        setUser(session.user);
+        setUser({
+          ...session.user,
+          id: session.user.id,
+          role: customUser?.role || 'user',
+        } as any);
         setIsCustomLogin(false);
+      } else {
+        // No Supabase session - check for custom session
+        const customSession = localStorage.getItem('userSession');
+        if (customSession) {
+          try {
+            const sessionData = JSON.parse(customSession);
+            setUser({ ...sessionData, id: sessionData.userId });
+            setIsCustomLogin(true);
+          } catch (error) {
+            console.error('Error parsing custom session:', error);
+            localStorage.removeItem('userSession');
+          }
+        }
       }
       setLoading(false);
     });

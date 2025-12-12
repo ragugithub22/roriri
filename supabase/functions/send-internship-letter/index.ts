@@ -1,6 +1,9 @@
+// @ts-ignore: ESM imports work in Deno runtime
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+// @ts-ignore: ESM imports work in Deno runtime
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
+// @ts-ignore: Deno global is available in Supabase Edge Functions
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
