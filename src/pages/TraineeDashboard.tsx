@@ -5,6 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   LayoutDashboard, 
   User, 
@@ -16,7 +19,9 @@ import {
   LogOut,
   GraduationCap,
   Mail,
-  Phone
+  Phone,
+  Clock,
+  FileIcon
 } from 'lucide-react';
 
 interface TraineeData {
@@ -32,20 +37,62 @@ interface TraineeData {
   enrollment_date: string;
 }
 
+interface CourseData {
+  id: string;
+  name: string;
+  course_code: string;
+  description: string;
+  duration_weeks: number;
+  fees: number;
+}
+
+interface SubjectData {
+  id: string;
+  subject_code: string;
+  subject_name: string;
+  description: string;
+  hours: number;
+  status: string;
+}
+
+interface SyllabusData {
+  id: string;
+  subject_id: string;
+  week_number: number;
+  topic: string;
+  description: string;
+  learning_objectives: string;
+  resources: string;
+  pdf_url: string;
+}
+
+interface ApplicationData {
+  id: string;
+  application_name: string;
+  course_name: string;
+  duration: string;
+  description: string;
+  created_at: string;
+}
+
 export default function TraineeDashboard() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [traineeData, setTraineeData] = useState<TraineeData | null>(null);
+  const [courseData, setCourseData] = useState<CourseData | null>(null);
+  const [subjects, setSubjects] = useState<SubjectData[]>([]);
+  const [syllabus, setSyllabus] = useState<Record<string, SyllabusData[]>>({});
+  const [applications, setApplications] = useState<ApplicationData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTraineeData();
+    fetchAllData();
   }, []);
 
-  const fetchTraineeData = async () => {
+  const fetchAllData = async () => {
     try {
-      // Get original_id from userSession
       const userSession = localStorage.getItem('userSession');
       if (!userSession) {
         setLoading(false);
@@ -55,18 +102,77 @@ export default function TraineeDashboard() {
       const sessionData = JSON.parse(userSession);
       const originalId = sessionData.originalId || sessionData.userId;
 
-      // Fetch trainee data from students table
-      const { data, error } = await supabase
+      // Fetch trainee data
+      const { data: trainee, error: traineeError } = await supabase
         .from('students')
         .select('*')
         .eq('id', originalId)
         .single();
 
-      if (error) {
-        console.error('Error fetching trainee data:', error);
+      if (traineeError) {
+        console.error('Error fetching trainee data:', traineeError);
       } else {
-        setTraineeData(data as TraineeData);
+        setTraineeData(trainee as TraineeData);
       }
+
+      // Fetch course from academy_payments
+      const { data: payment, error: paymentError } = await supabase
+        .from('academy_payments')
+        .select('course_id, courses(id, name, course_code, description, duration_weeks, fees)')
+        .eq('student_id', originalId)
+        .limit(1)
+        .single();
+
+      if (!paymentError && payment?.courses) {
+        const course = payment.courses as unknown as CourseData;
+        setCourseData(course);
+
+        // Fetch subjects for this course
+        const { data: subjectsData, error: subjectsError } = await supabase
+          .from('subjects')
+          .select('*')
+          .eq('course_id', course.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: true });
+
+        if (!subjectsError && subjectsData) {
+          setSubjects(subjectsData as SubjectData[]);
+
+          // Fetch syllabus for all subjects
+          const subjectIds = subjectsData.map(s => s.id);
+          if (subjectIds.length > 0) {
+            const { data: syllabusData, error: syllabusError } = await supabase
+              .from('syllabus')
+              .select('*')
+              .in('subject_id', subjectIds)
+              .order('week_number', { ascending: true });
+
+            if (!syllabusError && syllabusData) {
+              // Group syllabus by subject_id
+              const grouped: Record<string, SyllabusData[]> = {};
+              syllabusData.forEach((item: SyllabusData) => {
+                if (!grouped[item.subject_id]) {
+                  grouped[item.subject_id] = [];
+                }
+                grouped[item.subject_id].push(item);
+              });
+              setSyllabus(grouped);
+            }
+          }
+        }
+      }
+
+      // Fetch applications for this user
+      const { data: apps, error: appsError } = await supabase
+        .from('academy_applications')
+        .select('*')
+        .eq('created_by', sessionData.userId)
+        .order('created_at', { ascending: false });
+
+      if (!appsError && apps) {
+        setApplications(apps as ApplicationData[]);
+      }
+
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -91,7 +197,7 @@ export default function TraineeDashboard() {
 
   const renderContent = () => {
     if (loading) {
-      return <p className="text-muted-foreground">Loading...</p>;
+      return <Skeleton className="h-96 w-full" />;
     }
 
     switch (activeSection) {
@@ -109,10 +215,10 @@ export default function TraineeDashboard() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Enrollment Date</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Course</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold">{traineeData?.enrollment_date || 'N/A'}</p>
+                  <p className="text-2xl font-bold">{courseData?.name || 'Not Assigned'}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -124,6 +230,44 @@ export default function TraineeDashboard() {
                 </CardContent>
               </Card>
             </div>
+            
+            {courseData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    Course Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Course Name</p>
+                      <p className="font-medium">{courseData.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Course Code</p>
+                      <p className="font-medium">{courseData.course_code}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Duration</p>
+                      <p className="font-medium">{courseData.duration_weeks} Weeks</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Subjects</p>
+                      <p className="font-medium">{subjects.length}</p>
+                    </div>
+                  </div>
+                  {courseData.description && (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">Description</p>
+                      <p className="text-sm">{courseData.description}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Welcome, {traineeData?.full_name || 'Trainee'}!</CardTitle>
@@ -131,7 +275,7 @@ export default function TraineeDashboard() {
               <CardContent>
                 <p className="text-muted-foreground">
                   Welcome to your Trainee Dashboard. Here you can view your course details, 
-                  subjects, submit daily updates, and communicate with your instructors.
+                  subjects, syllabus, and track your learning progress.
                 </p>
               </CardContent>
             </Card>
@@ -152,6 +296,9 @@ export default function TraineeDashboard() {
                   </Avatar>
                   <h2 className="mt-4 text-xl font-bold">{traineeData?.full_name}</h2>
                   <p className="text-muted-foreground">{traineeData?.student_code}</p>
+                  {courseData && (
+                    <p className="text-sm text-primary mt-1">{courseData.name}</p>
+                  )}
                 </div>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
@@ -194,15 +341,160 @@ export default function TraineeDashboard() {
           </Card>
         );
 
+      case 'subject':
+        return (
+          <div className="space-y-6">
+            {courseData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    {courseData.name} - Subjects
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {subjects.length > 0 ? (
+                    <Accordion type="single" collapsible className="w-full">
+                      {subjects.map((subject, index) => (
+                        <AccordionItem key={subject.id} value={subject.id}>
+                          <AccordionTrigger className="hover:no-underline">
+                            <div className="flex items-center gap-4">
+                              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                                {index + 1}
+                              </span>
+                              <div className="text-left">
+                                <p className="font-medium">{subject.subject_name}</p>
+                                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <Clock className="h-3 w-3" />
+                                  {subject.hours} Hours
+                                </p>
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="pl-12 space-y-4">
+                              {subject.description && (
+                                <p className="text-sm text-muted-foreground">{subject.description}</p>
+                              )}
+                              
+                              {/* Syllabus Table */}
+                              <div>
+                                <h4 className="font-medium mb-2">Syllabus</h4>
+                                {syllabus[subject.id]?.length > 0 ? (
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead className="w-20">Week</TableHead>
+                                        <TableHead>Topic</TableHead>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead className="w-20">PDF</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {syllabus[subject.id].map((item) => (
+                                        <TableRow key={item.id}>
+                                          <TableCell className="font-medium">
+                                            Week {item.week_number}
+                                          </TableCell>
+                                          <TableCell>{item.topic}</TableCell>
+                                          <TableCell className="text-sm text-muted-foreground">
+                                            {item.description || '-'}
+                                          </TableCell>
+                                          <TableCell>
+                                            {item.pdf_url ? (
+                                              <a 
+                                                href={item.pdf_url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-primary hover:underline flex items-center gap-1"
+                                              >
+                                                <FileIcon className="h-4 w-4" />
+                                                View
+                                              </a>
+                                            ) : (
+                                              <span className="text-muted-foreground">-</span>
+                                            )}
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No syllabus available</p>
+                                )}
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  ) : (
+                    <p className="text-muted-foreground text-center py-8">
+                      No subjects available for this course
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {!courseData && (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground text-center py-8">
+                    No course assigned yet. Please contact your administrator.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        );
+
+      case 'application':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>My Applications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {applications.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>S. No</TableHead>
+                      <TableHead>Application Name</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {applications.map((app, index) => (
+                      <TableRow key={app.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell className="font-medium">{app.application_name}</TableCell>
+                        <TableCell>{app.course_name}</TableCell>
+                        <TableCell>{app.duration}</TableCell>
+                        <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  No applications found
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        );
+
       default:
         return (
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">
-                {activeSection === 'subject' && 'View your subjects and curriculum'}
-                {activeSection === 'application' && 'Manage your applications'}
-                {activeSection === 'daily-update' && 'Submit your daily work updates'}
-                {activeSection === 'complaint' && 'Submit and track complaints'}
+                {activeSection === 'daily-update' && 'View your daily work updates'}
+                {activeSection === 'complaint' && 'View your complaints'}
                 {activeSection === 'chat-box' && 'Chat with instructors and peers'}
               </p>
             </CardContent>
@@ -261,7 +553,7 @@ export default function TraineeDashboard() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">{traineeData?.full_name || 'Trainee Portal'}</h1>
-                  <p className="text-sm opacity-90">Dashboard & Learning</p>
+                  <p className="text-sm opacity-90">{courseData?.name || 'Dashboard & Learning'}</p>
                 </div>
               </div>
 
