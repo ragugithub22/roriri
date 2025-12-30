@@ -32,7 +32,7 @@ const IndustrialVisit = ({ onNavigate }: IndustrialVisitProps) => {
     },
     {
       id: "visitors",
-      title: "Visitors",
+      title: "Industrial Visit",
       description: "Track and manage industrial visit visitors",
       icon: Users,
       color: "from-green-500 to-green-600",
