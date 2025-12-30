@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Users, FileText, DollarSign, QrCode } from "lucide-react";
+import { Users, FileText, DollarSign, QrCode, Briefcase, UserCheck } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 interface IndustrialVisitProps {
@@ -37,6 +37,22 @@ const IndustrialVisit = ({ onNavigate }: IndustrialVisitProps) => {
       icon: Users,
       color: "from-green-500 to-green-600",
       path: "/industrial-visit/visitors"
+    },
+    {
+      id: "interview",
+      title: "Interview",
+      description: "View and manage interview visitor registrations",
+      icon: Briefcase,
+      color: "from-orange-500 to-orange-600",
+      path: "/industrial-visit/interviews"
+    },
+    {
+      id: "normal-visitors",
+      title: "Normal Visitors",
+      description: "View and manage normal visitor registrations",
+      icon: UserCheck,
+      color: "from-teal-500 to-teal-600",
+      path: "/industrial-visit/normal-visitors"
     },
     {
       id: "payment-report",
