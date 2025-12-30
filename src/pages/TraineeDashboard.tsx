@@ -35,6 +35,9 @@ interface TraineeData {
   status: string;
   residence_type: string;
   enrollment_date: string;
+  gender: string;
+  password: string;
+  incharge_person_id: string | null;
 }
 
 interface CourseData {
@@ -44,6 +47,15 @@ interface CourseData {
   description: string;
   duration_weeks: number;
   fees: number;
+}
+
+interface PaymentData {
+  id: string;
+  payment_code: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  status: string;
 }
 
 interface SubjectData {
@@ -84,6 +96,8 @@ export default function TraineeDashboard() {
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [syllabus, setSyllabus] = useState<Record<string, SyllabusData[]>>({});
   const [applications, setApplications] = useState<ApplicationData[]>([]);
+  const [payments, setPayments] = useState<PaymentData[]>([]);
+  const [totalFees, setTotalFees] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
 
@@ -172,6 +186,21 @@ export default function TraineeDashboard() {
 
         if (!appsError && apps) {
           setApplications(apps as ApplicationData[]);
+        }
+      }
+
+      // Fetch all payments for this trainee
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('academy_payments')
+        .select('id, payment_code, amount, payment_date, payment_method, status')
+        .eq('student_id', originalId)
+        .order('payment_date', { ascending: false });
+
+      if (!paymentsError && paymentsData) {
+        setPayments(paymentsData as PaymentData[]);
+        // Calculate total fees from first payment (course enrollment)
+        if (paymentsData.length > 0) {
+          setTotalFees(paymentsData[0].amount || 0);
         }
       }
 
@@ -285,62 +314,171 @@ export default function TraineeDashboard() {
         );
 
       case 'profile':
+        const totalPaid = payments.reduce((sum, p) => p.status === 'paid' ? sum + p.amount : sum, 0);
+        const balanceAmount = totalFees - totalPaid;
+        
         return (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex flex-col items-center">
-                  <Avatar className="h-32 w-32">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
-                      {traineeData?.full_name?.charAt(0) || 'T'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h2 className="mt-4 text-xl font-bold">{traineeData?.full_name}</h2>
-                  <p className="text-muted-foreground">{traineeData?.student_code}</p>
-                  {courseData && (
-                    <p className="text-sm text-primary mt-1">{courseData.name}</p>
-                  )}
+          <div className="space-y-6">
+            {/* Profile Details Card */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Left side - Avatar */}
+                  <div className="flex flex-col items-center min-w-[180px]">
+                    <Avatar className="h-32 w-32 border-4 border-muted">
+                      <AvatarImage src="" />
+                      <AvatarFallback className="text-4xl bg-muted text-muted-foreground">
+                        {traineeData?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'T'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h2 className="mt-4 text-xl font-bold text-center">{traineeData?.full_name}</h2>
+                    {courseData && (
+                      <span className="mt-2 px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                        {courseData.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Right side - Details Grid */}
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Full Name</p>
+                      <p className="font-medium">{traineeData?.full_name || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Gender</p>
+                      <p className="font-medium capitalize">{traineeData?.gender || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Email</p>
+                      <p className="font-medium">{traineeData?.email || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Date of Birth</p>
+                      <p className="font-medium">{traineeData?.date_of_birth || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Phone</p>
+                      <p className="font-medium">{traineeData?.phone || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Username</p>
+                      <p className="font-medium">{traineeData?.student_code || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Password</p>
+                      <p className="font-medium">{traineeData?.password || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Enrollment Date</p>
+                      <p className="font-medium">{traineeData?.enrollment_date || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Status</p>
+                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                        traineeData?.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {traineeData?.status || 'Active'}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Residence Type</p>
+                      <p className="font-medium capitalize">{traineeData?.residence_type || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Course Duration</p>
+                      <p className="font-medium">{courseData ? `${courseData.duration_weeks} Weeks` : 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Course Fees</p>
+                      <p className="font-medium text-primary">₹{courseData?.fees?.toLocaleString() || '0'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Address</p>
+                      <p className="font-medium">{traineeData?.address || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">In-charge Name</p>
+                      <p className="font-medium">{traineeData?.incharge_person_id ? 'Assigned' : 'Not Assigned'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Course Trainer</p>
+                      <p className="font-medium">Not Assigned</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Total Fees</p>
+                      <p className="font-medium text-primary">₹{totalFees.toLocaleString()}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Total Paid Amount</p>
+                      <p className="font-medium text-green-600">₹{totalPaid.toLocaleString()}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Balance Amount</p>
+                      <p className="font-medium text-red-500">₹{balanceAmount.toLocaleString()}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      {traineeData?.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      {traineeData?.phone || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Date of Birth</p>
-                    <p className="font-medium">{traineeData?.date_of_birth || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Address</p>
-                    <p className="font-medium">{traineeData?.address || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Enrollment Date</p>
-                    <p className="font-medium">{traineeData?.enrollment_date || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Residence Type</p>
-                    <p className="font-medium capitalize">{traineeData?.residence_type || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <p className="font-medium capitalize">{traineeData?.status || 'Active'}</p>
-                  </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment History Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Payment History</CardTitle>
+                  {/* Add Payment button hidden for trainees */}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                {payments.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
+                          <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
+                          <TableCell className="capitalize">{payment.payment_method || 'N/A'}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                              payment.status === 'paid' 
+                                ? 'bg-green-100 text-green-800' 
+                                : payment.status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {payment.status}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="outline" size="sm" className="flex items-center gap-1">
+                              <FileIcon className="h-4 w-4" />
+                              Bill PDF
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No payment history found
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         );
 
       case 'subject':
