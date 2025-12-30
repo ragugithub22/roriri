@@ -278,34 +278,16 @@ export default function TraineeDashboard() {
         setComplaints(complaintsData as ComplaintData[]);
       }
 
-      // Fetch employees with Admin, Manager, HR, or Trainer roles for complaint recipient dropdown
-      // First get user_roles with the required roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['admin', 'manager', 'hr', 'trainer']);
+      // Fetch employees with Admin, Manager, HR, or Trainer roles using secure database function
+      const { data: recipientsData, error: recipientsError } = await supabase
+        .rpc('get_complaint_recipients');
 
-      if (!rolesError && rolesData && rolesData.length > 0) {
-        const validUserIds = rolesData.map((r: any) => r.user_id);
-
-        // Fetch employees whose profile_id matches the valid user IDs
-        const { data: employeesData, error: employeesError } = await supabase
-          .from('employees')
-          .select(`
-            id, 
-            profile_id, 
-            profiles(full_name)
-          `)
-          .eq('status', 'active')
-          .in('profile_id', validUserIds);
-
-        if (!employeesError && employeesData) {
-          const filteredEmployees = employeesData.map((emp: any) => ({
-            id: emp.id,
-            full_name: emp.profiles?.full_name || 'Unknown'
-          }));
-          setEmployees(filteredEmployees);
-        }
+      if (!recipientsError && recipientsData) {
+        const filteredEmployees = recipientsData.map((emp: any) => ({
+          id: emp.employee_id,
+          full_name: emp.full_name
+        }));
+        setEmployees(filteredEmployees);
       }
 
     } catch (error) {
