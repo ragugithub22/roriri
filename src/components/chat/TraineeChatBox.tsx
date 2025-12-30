@@ -40,49 +40,19 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  // Fetch contacts with roles: admin, manager, hr, trainer
+  // Fetch contacts using secure database function
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: ['chat-contacts-filtered'],
     queryFn: async () => {
-      // Get user_roles with the required roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['admin', 'manager', 'hr', 'trainer']);
-
-      if (rolesError) throw rolesError;
-      if (!rolesData || rolesData.length === 0) return [];
-
-      const validUserIds = rolesData.map(r => r.user_id);
-
-      // Fetch employees whose profile_id matches
-      const { data: employeesData, error: employeesError } = await supabase
-        .from('employees')
-        .select('id, profile_id')
-        .eq('status', 'active')
-        .in('profile_id', validUserIds);
-
-      if (employeesError) throw employeesError;
-      if (!employeesData || employeesData.length === 0) return [];
-
-      // Fetch profiles for these employees
-      const profileIds = employeesData.map(e => e.profile_id).filter(Boolean);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', profileIds);
-
-      if (profilesError) throw profilesError;
-
-      // Create lookup maps
-      const roleMap = new Map(rolesData.map(r => [r.user_id, r.role]));
-      const profileMap = new Map(profilesData?.map(p => [p.id, p.full_name]) || []);
+      const { data, error } = await supabase.rpc('get_chat_contacts');
       
-      return employeesData.map(emp => ({
-        id: emp.id,
-        profile_id: emp.profile_id || '',
-        full_name: profileMap.get(emp.profile_id || '') || 'Unknown',
-        role: roleMap.get(emp.profile_id || '') || 'Staff'
+      if (error) throw error;
+      
+      return (data || []).map((contact: { employee_id: string; profile_id: string; full_name: string; role: string }) => ({
+        id: contact.employee_id,
+        profile_id: contact.profile_id,
+        full_name: contact.full_name,
+        role: contact.role
       }));
     },
   });

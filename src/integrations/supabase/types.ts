@@ -4432,6 +4432,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_chat_contacts: {
+        Args: never
+        Returns: {
+          employee_id: string
+          full_name: string
+          profile_id: string
+          role: string
+        }[]
+      }
       get_complaint_recipients: {
         Args: never
         Returns: {
