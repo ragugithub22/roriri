@@ -94,13 +94,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "academy_complaints_complaint_from_fkey"
-            columns: ["complaint_from"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "academy_complaints_complaint_to_fkey"
             columns: ["complaint_to"]
             isOneToOne: false
