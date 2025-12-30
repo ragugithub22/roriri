@@ -71,6 +71,8 @@ import IndustrialVisitVisitors from "./pages/IndustrialVisitVisitors";
 import IndustrialVisitPaymentReport from "./pages/IndustrialVisitPaymentReport";
 import IndustrialVisitRegistration from "./pages/IndustrialVisitRegistration";
 import IndustrialVisitVisitorDetails from "./pages/IndustrialVisitVisitorDetails";
+import IndustrialVisitInterviews from "./pages/IndustrialVisitInterviews";
+import IndustrialVisitNormalVisitors from "./pages/IndustrialVisitNormalVisitors";
 import UserDashboard from "./pages/UserDashboard";
 import TraineeDashboard from "./pages/TraineeDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
@@ -155,6 +157,8 @@ const App = () => (
             <Route path="/industrial-visit" element={<ProtectedRoute><IndustrialVisit /></ProtectedRoute>} />
             <Route path="/industrial-visit/enquiry" element={<ProtectedRoute><IndustrialVisitEnquiry /></ProtectedRoute>} />
             <Route path="/industrial-visit/visitors" element={<ProtectedRoute><IndustrialVisitVisitors /></ProtectedRoute>} />
+            <Route path="/industrial-visit/interviews" element={<ProtectedRoute><IndustrialVisitInterviews /></ProtectedRoute>} />
+            <Route path="/industrial-visit/normal-visitors" element={<ProtectedRoute><IndustrialVisitNormalVisitors /></ProtectedRoute>} />
             <Route path="/industrial-visit/payment-report" element={<ProtectedRoute><IndustrialVisitPaymentReport /></ProtectedRoute>} />
             <Route path="/industrial-visit/registration" element={<IndustrialVisitRegistration />} />
             <Route path="/industrial-visit-registration/:visitorId?" element={<IndustrialVisitRegistration />} />
