@@ -279,40 +279,33 @@ export default function TraineeDashboard() {
       }
 
       // Fetch employees with Admin, Manager, HR, or Trainer roles for complaint recipient dropdown
-      const { data: employeesData, error: employeesError } = await supabase
-        .from('employees')
-        .select(`
-          id, 
-          profile_id, 
-          profiles(full_name, id)
-        `)
-        .eq('status', 'active');
+      // First get user_roles with the required roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'manager', 'hr', 'trainer']);
 
-      if (!employeesError && employeesData) {
-        // Get profile IDs to check their roles
-        const profileIds = employeesData
-          .filter((emp: any) => emp.profiles?.id)
-          .map((emp: any) => emp.profiles.id);
+      if (!rolesError && rolesData && rolesData.length > 0) {
+        const validUserIds = rolesData.map((r: any) => r.user_id);
 
-        // Fetch user roles for these profiles
-        const { data: rolesData } = await supabase
-          .from('user_roles')
-          .select('user_id, role')
-          .in('user_id', profileIds)
-          .in('role', ['admin', 'manager', 'hr', 'trainer']);
+        // Fetch employees whose profile_id matches the valid user IDs
+        const { data: employeesData, error: employeesError } = await supabase
+          .from('employees')
+          .select(`
+            id, 
+            profile_id, 
+            profiles(full_name)
+          `)
+          .eq('status', 'active')
+          .in('profile_id', validUserIds);
 
-        // Create a set of profile IDs that have the required roles
-        const validProfileIds = new Set(rolesData?.map((r: any) => r.user_id) || []);
-
-        // Filter employees to only those with valid roles
-        const filteredEmployees = employeesData
-          .filter((emp: any) => emp.profiles?.id && validProfileIds.has(emp.profiles.id))
-          .map((emp: any) => ({
+        if (!employeesError && employeesData) {
+          const filteredEmployees = employeesData.map((emp: any) => ({
             id: emp.id,
             full_name: emp.profiles?.full_name || 'Unknown'
           }));
-        
-        setEmployees(filteredEmployees);
+          setEmployees(filteredEmployees);
+        }
       }
 
     } catch (error) {
