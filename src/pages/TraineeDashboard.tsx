@@ -95,6 +95,21 @@ interface ApplicationData {
   created_at: string;
 }
 
+interface ComplaintData {
+  id: string;
+  date: string;
+  complaint_to: string | null;
+  complaint_text: string;
+  status: string | null;
+  reply: string | null;
+  recipient_name?: string;
+}
+
+interface EmployeeData {
+  id: string;
+  full_name: string;
+}
+
 interface DailyUpdateData {
   id: string;
   date: string;
@@ -115,17 +130,26 @@ export default function TraineeDashboard() {
   const [applications, setApplications] = useState<ApplicationData[]>([]);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [dailyUpdates, setDailyUpdates] = useState<DailyUpdateData[]>([]);
+  const [complaints, setComplaints] = useState<ComplaintData[]>([]);
+  const [employees, setEmployees] = useState<EmployeeData[]>([]);
   const [totalFees, setTotalFees] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [updateFormData, setUpdateFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     work_description: '',
     hours_spent: '',
     status: 'in_progress' as 'pending' | 'in_progress' | 'completed'
   });
+  const [complaintFormData, setComplaintFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    complaint_to: '',
+    complaint_text: ''
+  });
   const [savingUpdate, setSavingUpdate] = useState(false);
+  const [savingComplaint, setSavingComplaint] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -243,6 +267,31 @@ export default function TraineeDashboard() {
         setDailyUpdates(updatesData as DailyUpdateData[]);
       }
 
+      // Fetch complaints for this trainee
+      const { data: complaintsData, error: complaintsError } = await supabase
+        .from('academy_complaints')
+        .select('id, date, complaint_to, complaint_text, status, reply')
+        .eq('complaint_from', originalId)
+        .order('date', { ascending: false });
+
+      if (!complaintsError && complaintsData) {
+        setComplaints(complaintsData as ComplaintData[]);
+      }
+
+      // Fetch employees for complaint recipient dropdown
+      const { data: employeesData, error: employeesError } = await supabase
+        .from('employees')
+        .select('id, profile_id, profiles(full_name)')
+        .eq('status', 'active');
+
+      if (!employeesError && employeesData) {
+        const mappedEmployees = employeesData.map((emp: any) => ({
+          id: emp.id,
+          full_name: emp.profiles?.full_name || 'Unknown'
+        }));
+        setEmployees(mappedEmployees);
+      }
+
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -301,6 +350,55 @@ export default function TraineeDashboard() {
       toast({ title: 'Error', description: error.message || 'Failed to save update', variant: 'destructive' });
     } finally {
       setSavingUpdate(false);
+    }
+  };
+
+  const handleSaveComplaint = async () => {
+    if (!userId) {
+      toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
+      return;
+    }
+
+    if (!complaintFormData.complaint_to) {
+      toast({ title: 'Error', description: 'Please select complaint recipient', variant: 'destructive' });
+      return;
+    }
+
+    if (!complaintFormData.complaint_text.trim()) {
+      toast({ title: 'Error', description: 'Please enter complaint details', variant: 'destructive' });
+      return;
+    }
+
+    setSavingComplaint(true);
+    try {
+      const { data, error } = await supabase
+        .from('academy_complaints')
+        .insert({
+          complaint_from: userId,
+          complaint_to: complaintFormData.complaint_to,
+          complaint_text: complaintFormData.complaint_text,
+          date: complaintFormData.date,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const recipientName = employees.find(e => e.id === complaintFormData.complaint_to)?.full_name || 'Unknown';
+      setComplaints(prev => [{ ...data, recipient_name: recipientName } as ComplaintData, ...prev]);
+      setShowComplaintModal(false);
+      setComplaintFormData({
+        date: new Date().toISOString().split('T')[0],
+        complaint_to: '',
+        complaint_text: ''
+      });
+      toast({ title: 'Success', description: 'Complaint submitted successfully' });
+    } catch (error: any) {
+      console.error('Error saving complaint:', error);
+      toast({ title: 'Error', description: error.message || 'Failed to submit complaint', variant: 'destructive' });
+    } finally {
+      setSavingComplaint(false);
     }
   };
 
@@ -884,12 +982,128 @@ export default function TraineeDashboard() {
           </Card>
         );
 
+      case 'complaint':
+        return (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>My Complaints</CardTitle>
+                <Dialog open={showComplaintModal} onOpenChange={setShowComplaintModal}>
+                  <DialogTrigger asChild>
+                    <Button className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Complaint
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Complaint</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="complaint-date">Date</Label>
+                        <Input
+                          id="complaint-date"
+                          type="date"
+                          value={complaintFormData.date}
+                          onChange={(e) => setComplaintFormData(prev => ({ ...prev, date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="complaint-to">Complaint To</Label>
+                        <Select
+                          value={complaintFormData.complaint_to}
+                          onValueChange={(value) => setComplaintFormData(prev => ({ ...prev, complaint_to: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select recipient" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {employees.map((employee) => (
+                              <SelectItem key={employee.id} value={employee.id}>
+                                {employee.full_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="complaint-text">Complaint</Label>
+                        <Textarea
+                          id="complaint-text"
+                          placeholder="Describe your complaint..."
+                          value={complaintFormData.complaint_text}
+                          onChange={(e) => setComplaintFormData(prev => ({ ...prev, complaint_text: e.target.value }))}
+                          rows={4}
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 pt-4">
+                        <Button variant="outline" onClick={() => setShowComplaintModal(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleSaveComplaint} disabled={savingComplaint}>
+                          {savingComplaint ? 'Saving...' : 'Save'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {complaints.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>S. No</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Complaint To</TableHead>
+                      <TableHead>Complaint</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Reply</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {complaints.map((complaint, index) => (
+                      <TableRow key={complaint.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{complaint.date}</TableCell>
+                        <TableCell>
+                          {employees.find(e => e.id === complaint.complaint_to)?.full_name || 'Unknown'}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">{complaint.complaint_text}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            complaint.status === 'resolved' 
+                              ? 'bg-green-100 text-green-800'
+                              : complaint.status === 'in_progress'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {complaint.status || 'Pending'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {complaint.reply || '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  No complaints found. Click "Add Complaint" to submit one.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        );
+
       default:
         return (
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">
-                {activeSection === 'complaint' && 'View your complaints'}
                 {activeSection === 'chat-box' && 'Chat with instructors and peers'}
               </p>
             </CardContent>
