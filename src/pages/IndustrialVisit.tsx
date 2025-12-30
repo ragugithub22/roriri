@@ -19,7 +19,7 @@ const IndustrialVisit = ({ onNavigate }: IndustrialVisitProps) => {
     }
   };
 
-  const registrationUrl = `${window.location.origin}/industrial-visit-registration`;
+  const registrationUrl = `${window.location.origin}/industrial-visit/registration`;
 
   const cards = [
     {
