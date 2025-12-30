@@ -162,15 +162,17 @@ export default function TraineeDashboard() {
         }
       }
 
-      // Fetch applications for this user
-      const { data: apps, error: appsError } = await supabase
-        .from('academy_applications')
-        .select('*')
-        .eq('created_by', sessionData.userId)
-        .order('created_at', { ascending: false });
+      // Fetch applications for this trainee's course
+      if (payment?.course_id) {
+        const { data: apps, error: appsError } = await supabase
+          .from('academy_applications')
+          .select('*')
+          .eq('course_id', payment.course_id)
+          .order('created_at', { ascending: false });
 
-      if (!appsError && apps) {
-        setApplications(apps as ApplicationData[]);
+        if (!appsError && apps) {
+          setApplications(apps as ApplicationData[]);
+        }
       }
 
     } catch (error) {
