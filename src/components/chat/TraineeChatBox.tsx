@@ -58,25 +58,32 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
       // Fetch employees whose profile_id matches
       const { data: employeesData, error: employeesError } = await supabase
         .from('employees')
-        .select(`
-          id, 
-          profile_id, 
-          profiles(full_name)
-        `)
+        .select('id, profile_id')
         .eq('status', 'active')
         .in('profile_id', validUserIds);
 
       if (employeesError) throw employeesError;
+      if (!employeesData || employeesData.length === 0) return [];
 
-      // Map roles to employees
+      // Fetch profiles for these employees
+      const profileIds = employeesData.map(e => e.profile_id).filter(Boolean);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', profileIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create lookup maps
       const roleMap = new Map(rolesData.map(r => [r.user_id, r.role]));
+      const profileMap = new Map(profilesData?.map(p => [p.id, p.full_name]) || []);
       
-      return employeesData?.map(emp => ({
+      return employeesData.map(emp => ({
         id: emp.id,
-        profile_id: emp.profile_id,
-        full_name: emp.profiles?.full_name || 'Unknown',
-        role: roleMap.get(emp.profile_id) || 'Staff'
-      })) || [];
+        profile_id: emp.profile_id || '',
+        full_name: profileMap.get(emp.profile_id || '') || 'Unknown',
+        role: roleMap.get(emp.profile_id || '') || 'Staff'
+      }));
     },
   });
 
