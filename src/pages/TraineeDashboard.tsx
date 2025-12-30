@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   LayoutDashboard, 
   User, 
@@ -21,7 +21,8 @@ import {
   Mail,
   Phone,
   Clock,
-  FileIcon
+  FileIcon,
+  Eye
 } from 'lucide-react';
 
 interface TraineeData {
@@ -356,80 +357,90 @@ export default function TraineeDashboard() {
                 </CardHeader>
                 <CardContent>
                   {subjects.length > 0 ? (
-                    <Accordion type="single" collapsible className="w-full">
-                      {subjects.map((subject, index) => (
-                        <AccordionItem key={subject.id} value={subject.id}>
-                          <AccordionTrigger className="hover:no-underline">
-                            <div className="flex items-center gap-4">
-                              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                                {index + 1}
-                              </span>
-                              <div className="text-left">
-                                <p className="font-medium">{subject.subject_name}</p>
-                                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                  <Clock className="h-3 w-3" />
-                                  {subject.hours} Hours
-                                </p>
-                              </div>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="pl-12 space-y-4">
-                              {subject.description && (
-                                <p className="text-sm text-muted-foreground">{subject.description}</p>
-                              )}
-                              
-                              {/* Syllabus Table */}
-                              <div>
-                                <h4 className="font-medium mb-2">Syllabus</h4>
-                                {syllabus[subject.id]?.length > 0 ? (
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow>
-                                        <TableHead className="w-20">Week</TableHead>
-                                        <TableHead>Topic</TableHead>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead className="w-20">PDF</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                      {syllabus[subject.id].map((item) => (
-                                        <TableRow key={item.id}>
-                                          <TableCell className="font-medium">
-                                            Week {item.week_number}
-                                          </TableCell>
-                                          <TableCell>{item.topic}</TableCell>
-                                          <TableCell className="text-sm text-muted-foreground">
-                                            {item.description || '-'}
-                                          </TableCell>
-                                          <TableCell>
-                                            {item.pdf_url ? (
-                                              <a 
-                                                href={item.pdf_url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="text-primary hover:underline flex items-center gap-1"
-                                              >
-                                                <FileIcon className="h-4 w-4" />
-                                                View
-                                              </a>
-                                            ) : (
-                                              <span className="text-muted-foreground">-</span>
-                                            )}
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">No syllabus available</p>
-                                )}
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-16">S. No</TableHead>
+                          <TableHead>Subject Name</TableHead>
+                          <TableHead>Hours</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="w-24">Syllabus</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {subjects.map((subject, index) => (
+                          <TableRow key={subject.id}>
+                            <TableCell className="font-medium">{index + 1}</TableCell>
+                            <TableCell className="font-medium">{subject.subject_name}</TableCell>
+                            <TableCell>{subject.hours} Hours</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {subject.description || '-'}
+                            </TableCell>
+                            <TableCell>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                    <Eye className="h-4 w-4" />
+                                    View
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>{subject.subject_name} - Syllabus</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="mt-4">
+                                    {syllabus[subject.id]?.length > 0 ? (
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow>
+                                            <TableHead className="w-20">Week</TableHead>
+                                            <TableHead>Topic</TableHead>
+                                            <TableHead>Description</TableHead>
+                                            <TableHead className="w-20">PDF</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {syllabus[subject.id].map((item) => (
+                                            <TableRow key={item.id}>
+                                              <TableCell className="font-medium">
+                                                Week {item.week_number}
+                                              </TableCell>
+                                              <TableCell>{item.topic}</TableCell>
+                                              <TableCell className="text-sm text-muted-foreground">
+                                                {item.description || '-'}
+                                              </TableCell>
+                                              <TableCell>
+                                                {item.pdf_url ? (
+                                                  <a 
+                                                    href={item.pdf_url} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-primary hover:underline flex items-center gap-1"
+                                                  >
+                                                    <FileIcon className="h-4 w-4" />
+                                                    View
+                                                  </a>
+                                                ) : (
+                                                  <span className="text-muted-foreground">-</span>
+                                                )}
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    ) : (
+                                      <p className="text-muted-foreground text-center py-8">
+                                        No syllabus available for this subject
+                                      </p>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
                       No subjects available for this course
@@ -466,6 +477,7 @@ export default function TraineeDashboard() {
                       <TableHead>Application Name</TableHead>
                       <TableHead>Course</TableHead>
                       <TableHead>Duration</TableHead>
+                      <TableHead>Description</TableHead>
                       <TableHead>Date</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -476,6 +488,9 @@ export default function TraineeDashboard() {
                         <TableCell className="font-medium">{app.application_name}</TableCell>
                         <TableCell>{app.course_name}</TableCell>
                         <TableCell>{app.duration}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                          {app.description || '-'}
+                        </TableCell>
                         <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
                       </TableRow>
                     ))}
