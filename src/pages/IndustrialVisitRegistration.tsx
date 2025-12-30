@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,19 +14,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+
+type VisitType = "normal_visit" | "industrial_visit" | "interview" | "others" | "";
+
+interface FormData {
+  date: string;
+  visit_type: VisitType;
+  full_name: string;
+  reason: string;
+  address: string;
+  college_name: string;
+  department: string;
+  mobile: string;
+  email: string;
+}
 
 export default function IndustrialVisitRegistration() {
   const { visitorId } = useParams();
-  const navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
+    date: new Date().toISOString().split("T")[0],
+    visit_type: "",
     full_name: "",
+    reason: "",
+    address: "",
+    college_name: "",
+    department: "",
     mobile: "",
     email: "",
-    visitor_type: "",
-    whom_to_see: "",
-    purpose_of_visit: "",
   });
 
   const { data: visitorRecord } = useQuery({
@@ -46,22 +62,33 @@ export default function IndustrialVisitRegistration() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: FormData) => {
       const { error } = await supabase
         .from("industrial_visit_registrations")
-        .insert([{ ...data, visitor_record_id: visitorId || null }]);
+        .insert([{
+          full_name: data.full_name,
+          mobile: data.mobile || "N/A",
+          email: data.email || null,
+          visitor_type: data.visit_type,
+          purpose_of_visit: data.reason || `${data.visit_type} visit`,
+          whom_to_see: null,
+          visitor_record_id: visitorId || null,
+        }]);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Registration submitted successfully!");
       setIsSubmitted(true);
       setFormData({
+        date: new Date().toISOString().split("T")[0],
+        visit_type: "",
         full_name: "",
+        reason: "",
+        address: "",
+        college_name: "",
+        department: "",
         mobile: "",
         email: "",
-        visitor_type: "",
-        whom_to_see: "",
-        purpose_of_visit: "",
       });
     },
     onError: (error) => {
@@ -72,7 +99,193 @@ export default function IndustrialVisitRegistration() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.visit_type) {
+      toast.error("Please select a visit type");
+      return;
+    }
     registerMutation.mutate(formData);
+  };
+
+  const handleChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const renderTypeSpecificFields = () => {
+    switch (formData.visit_type) {
+      case "normal_visit":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Name *</Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => handleChange("full_name", e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reason">Reason *</Label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => handleChange("reason", e.target.value)}
+                rows={3}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address *</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                rows={2}
+                required
+              />
+            </div>
+          </>
+        );
+
+      case "industrial_visit":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Name *</Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => handleChange("full_name", e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="college_name">College Name *</Label>
+              <Input
+                id="college_name"
+                value={formData.college_name}
+                onChange={(e) => handleChange("college_name", e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="department">Department *</Label>
+              <Input
+                id="department"
+                value={formData.department}
+                onChange={(e) => handleChange("department", e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="mobile">Mobile Number *</Label>
+                <Input
+                  id="mobile"
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={(e) => handleChange("mobile", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </>
+        );
+
+      case "interview":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Name *</Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => handleChange("full_name", e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="mobile">Mobile Number *</Label>
+                <Input
+                  id="mobile"
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={(e) => handleChange("mobile", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address *</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                rows={2}
+                required
+              />
+            </div>
+          </>
+        );
+
+      case "others":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Name *</Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => handleChange("full_name", e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile Number</Label>
+              <Input
+                id="mobile"
+                type="tel"
+                value={formData.mobile}
+                onChange={(e) => handleChange("mobile", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reason">Purpose of Visit *</Label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => handleChange("reason", e.target.value)}
+                rows={3}
+                required
+              />
+            </div>
+          </>
+        );
+
+      default:
+        return null;
+    }
   };
 
   if (isSubmitted) {
@@ -105,95 +318,66 @@ export default function IndustrialVisitRegistration() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-2xl mx-auto">
         <div className="bg-card rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-bold mb-2">Industrial Visit Registration</h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            Please fill in your details to register for the industrial visit
-          </p>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold mb-2">Visitor Registration</h1>
+            <p className="text-sm text-muted-foreground">
+              Please fill in your details to register your visit
+            </p>
+          </div>
+
           {visitorRecord && (
             <div className="mb-6 p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">College: <span className="font-semibold text-foreground">{visitorRecord.college_name}</span></p>
-              <p className="text-sm text-muted-foreground">Department: <span className="font-semibold text-foreground">{visitorRecord.department}</span></p>
-              <p className="text-sm text-muted-foreground">Date: <span className="font-semibold text-foreground">{new Date(visitorRecord.date).toLocaleDateString()}</span></p>
+              <p className="text-sm text-muted-foreground">
+                College: <span className="font-semibold text-foreground">{visitorRecord.college_name}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Department: <span className="font-semibold text-foreground">{visitorRecord.department}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Date: <span className="font-semibold text-foreground">{new Date(visitorRecord.date).toLocaleDateString()}</span>
+              </p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="mobile">Mobile *</Label>
+                <Label htmlFor="date">Date *</Label>
                 <Input
-                  id="mobile"
-                  type="tel"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => handleChange("date", e.target.value)}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email (Optional)</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="visitor_type">Visitor Type *</Label>
+                <Label htmlFor="visit_type">Type *</Label>
                 <Select
-                  value={formData.visitor_type}
-                  onValueChange={(value) => setFormData({ ...formData, visitor_type: value })}
-                  required
+                  value={formData.visit_type}
+                  onValueChange={(value: VisitType) => handleChange("visit_type", value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Select visit type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Student">Student</SelectItem>
-                    <SelectItem value="Faculty">Faculty</SelectItem>
-                    <SelectItem value="Guest">Guest</SelectItem>
+                    <SelectItem value="normal_visit">Normal Visit</SelectItem>
+                    <SelectItem value="industrial_visit">Industrial Visit</SelectItem>
+                    <SelectItem value="interview">Interview</SelectItem>
+                    <SelectItem value="others">Others</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whom_to_see">Whom to See (Optional)</Label>
-                <Input
-                  id="whom_to_see"
-                  value={formData.whom_to_see}
-                  onChange={(e) => setFormData({ ...formData, whom_to_see: e.target.value })}
-                />
-              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="purpose_of_visit">Purpose of Visit *</Label>
-              <Textarea
-                id="purpose_of_visit"
-                value={formData.purpose_of_visit}
-                onChange={(e) => setFormData({ ...formData, purpose_of_visit: e.target.value })}
-                rows={4}
-                required
-              />
-            </div>
+            {renderTypeSpecificFields()}
 
-            <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-              {registerMutation.isPending ? "Submitting..." : "Submit Registration"}
-            </Button>
+            {formData.visit_type && (
+              <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+                {registerMutation.isPending ? "Submitting..." : "Submit Registration"}
+              </Button>
+            )}
           </form>
         </div>
       </div>
