@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { PaymentReceipt } from '@/components/it-academy/PaymentReceipt';
 import { 
   LayoutDashboard, 
   User, 
@@ -462,10 +464,28 @@ export default function TraineeDashboard() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <Button variant="outline" size="sm" className="flex items-center gap-1">
-                              <FileIcon className="h-4 w-4" />
-                              Bill PDF
-                            </Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                                  <FileIcon className="h-4 w-4" />
+                                  Bill PDF
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+                                <PaymentReceipt
+                                  receiptData={{
+                                    payment_code: payment.payment_code,
+                                    payment_date: payment.payment_date,
+                                    amount: payment.amount,
+                                    payment_method: payment.payment_method,
+                                    studentName: traineeData?.full_name || 'N/A',
+                                    courseName: courseData?.name || 'N/A',
+                                    totalFees: totalFees,
+                                    balance: totalFees - payments.reduce((sum, p) => p.status === 'paid' ? sum + p.amount : sum, 0),
+                                  }}
+                                />
+                              </DialogContent>
+                            </Dialog>
                           </TableCell>
                         </TableRow>
                       ))}
