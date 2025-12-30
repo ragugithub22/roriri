@@ -4406,6 +4406,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_complaint_recipients: {
+        Args: never
+        Returns: {
+          employee_id: string
+          full_name: string
+        }[]
+      }
       has_entity_access: {
         Args: { _entity_id: string; _user_id: string }
         Returns: boolean
