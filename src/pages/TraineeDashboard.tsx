@@ -278,18 +278,41 @@ export default function TraineeDashboard() {
         setComplaints(complaintsData as ComplaintData[]);
       }
 
-      // Fetch employees for complaint recipient dropdown
+      // Fetch employees with Admin, Manager, HR, or Trainer roles for complaint recipient dropdown
       const { data: employeesData, error: employeesError } = await supabase
         .from('employees')
-        .select('id, profile_id, profiles(full_name)')
+        .select(`
+          id, 
+          profile_id, 
+          profiles(full_name, id)
+        `)
         .eq('status', 'active');
 
       if (!employeesError && employeesData) {
-        const mappedEmployees = employeesData.map((emp: any) => ({
-          id: emp.id,
-          full_name: emp.profiles?.full_name || 'Unknown'
-        }));
-        setEmployees(mappedEmployees);
+        // Get profile IDs to check their roles
+        const profileIds = employeesData
+          .filter((emp: any) => emp.profiles?.id)
+          .map((emp: any) => emp.profiles.id);
+
+        // Fetch user roles for these profiles
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('user_id, role')
+          .in('user_id', profileIds)
+          .in('role', ['admin', 'manager', 'hr', 'trainer']);
+
+        // Create a set of profile IDs that have the required roles
+        const validProfileIds = new Set(rolesData?.map((r: any) => r.user_id) || []);
+
+        // Filter employees to only those with valid roles
+        const filteredEmployees = employeesData
+          .filter((emp: any) => emp.profiles?.id && validProfileIds.has(emp.profiles.id))
+          .map((emp: any) => ({
+            id: emp.id,
+            full_name: emp.profiles?.full_name || 'Unknown'
+          }));
+        
+        setEmployees(filteredEmployees);
       }
 
     } catch (error) {
