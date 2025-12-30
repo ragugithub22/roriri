@@ -69,7 +69,7 @@ export const navigationItems: NavigationItem[] = [
     adminOnly: true
   },
   {
-    label: "Industrial Visit",
+    label: "Visitors",
     path: "/industrial-visit",
     icon: Briefcase,
     adminOnly: true
