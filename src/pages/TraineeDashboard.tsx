@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PaymentReceipt } from '@/components/it-academy/PaymentReceipt';
 import { toast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
+import TraineeChatBox from '@/components/chat/TraineeChatBox';
 import { 
   LayoutDashboard, 
   User, 
@@ -1097,16 +1098,19 @@ export default function TraineeDashboard() {
           </Card>
         );
 
-      default:
-        return (
+      case 'chat-box':
+        return userId ? (
+          <TraineeChatBox currentUserId={userId} currentUserType="student" />
+        ) : (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-muted-foreground">
-                {activeSection === 'chat-box' && 'Chat with instructors and peers'}
-              </p>
+              <p className="text-muted-foreground">Loading chat...</p>
             </CardContent>
           </Card>
         );
+
+      default:
+        return null;
     }
   };
 
