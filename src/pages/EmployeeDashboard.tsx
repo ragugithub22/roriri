@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import EmployeeProjectDetails from '@/components/employee/EmployeeProjectDetails';
 import { 
   LayoutDashboard, 
   User, 
@@ -239,12 +240,22 @@ export default function EmployeeDashboard() {
           </div>
         );
 
+      case 'project-details':
+        return employeeData?.id ? (
+          <EmployeeProjectDetails employeeId={employeeData.id} />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load projects. Employee data not found.</p>
+            </CardContent>
+          </Card>
+        );
+
       default:
         return (
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">
-                {activeSection === 'project-details' && 'View your assigned projects'}
                 {activeSection === 'payroll' && 'View your salary and payment details'}
                 {activeSection === 'daily-update' && 'Submit your daily work updates'}
                 {activeSection === 'complaint' && 'Submit and track complaints'}
