@@ -158,10 +158,11 @@ export default function ITParkDashboard() {
     }
   }, [filteredNavItems, activeItem, location.state, navigate]);
 
-  const ActiveComponent = activeItem ? pageComponents[activeItem.path] ?? null : null;
+  // Check if activeItem path is in pageComponents, even for sub-paths like /industrial-visit/interviews
+  const ActiveComponent = activeItem?.path ? pageComponents[activeItem.path] ?? null : null;
 
   // Show dashboard content when no specific component is selected or for dashboard path
-  const shouldShowDashboard = !activeItem || activeItem.path === "/it-park" || !ActiveComponent;
+  const shouldShowDashboard = !activeItem || activeItem.path === "/it-park" || (!ActiveComponent && !activeItem.path.startsWith("/industrial-visit/"));
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -292,10 +293,30 @@ export default function ITParkDashboard() {
                 )
               ) : ActiveComponent ? (
                 ActiveComponent === IndustrialVisit ? (
-                  <IndustrialVisit onNavigate={(path) => setActiveItem({ path } as NavigationItem)} />
+                  <IndustrialVisit onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
+                ) : ActiveComponent === IndustrialVisitInterviews ? (
+                  <IndustrialVisitInterviews onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
+                ) : ActiveComponent === IndustrialVisitNormalVisitors ? (
+                  <IndustrialVisitNormalVisitors onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
+                ) : ActiveComponent === IndustrialVisitPaymentReport ? (
+                  <IndustrialVisitPaymentReport onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
                 ) : (
                   <ActiveComponent />
                 )
+              ) : activeItem?.path?.startsWith("/industrial-visit/") ? (
+                (() => {
+                  const SubComponent = pageComponents[activeItem.path];
+                  if (SubComponent === IndustrialVisitInterviews) {
+                    return <IndustrialVisitInterviews onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
+                  }
+                  if (SubComponent === IndustrialVisitNormalVisitors) {
+                    return <IndustrialVisitNormalVisitors onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
+                  }
+                  if (SubComponent === IndustrialVisitPaymentReport) {
+                    return <IndustrialVisitPaymentReport onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
+                  }
+                  return SubComponent ? <SubComponent /> : <DashboardContent />;
+                })()
               ) : shouldShowDashboard ? (
                 <DashboardContent />
               ) : null}
