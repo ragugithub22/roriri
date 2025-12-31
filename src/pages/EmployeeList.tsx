@@ -194,6 +194,19 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
             dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
           })
           .eq('id', userId);
+
+        // Sync credentials to user_login for existing profiles
+        if (data.username && data.password && data.email) {
+          await supabase
+            .from('user_login')
+            .upsert({
+              email: data.email,
+              username: data.username,
+              password: data.password,
+              user_type: 'profile',
+              original_id: userId
+            }, { onConflict: 'email' });
+        }
       } else {
         try {
           // Create user account via edge function
