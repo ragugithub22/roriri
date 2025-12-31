@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, DollarSign } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
-const IndustrialVisitPaymentReport = () => {
-  const navigate = useNavigate();
+interface IndustrialVisitPaymentReportProps {
+  onNavigate?: (path: string) => void;
+}
 
+const IndustrialVisitPaymentReport = ({ onNavigate }: IndustrialVisitPaymentReportProps) => {
   const { data: visitors = [], isLoading } = useQuery({
     queryKey: ["industrial-visit-payments"],
     queryFn: async () => {
@@ -24,13 +25,19 @@ const IndustrialVisitPaymentReport = () => {
 
   const totalAmount = visitors.reduce((sum, visitor) => sum + ((visitor as any).amount || 0), 0);
 
+  const handleBack = () => {
+    if (onNavigate) {
+      onNavigate("/industrial-visit");
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center gap-4 mb-6">
         <Button
           variant="outline"
           size="icon"
-          onClick={() => navigate("/industrial-visit")}
+          onClick={handleBack}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>

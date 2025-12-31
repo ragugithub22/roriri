@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, UserCheck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
-export default function IndustrialVisitNormalVisitors() {
-  const navigate = useNavigate();
+interface IndustrialVisitNormalVisitorsProps {
+  onNavigate?: (path: string) => void;
+}
 
+export default function IndustrialVisitNormalVisitors({ onNavigate }: IndustrialVisitNormalVisitorsProps) {
   const { data: normalVisitors = [], isLoading } = useQuery({
     queryKey: ["normal-visit-registrations"],
     queryFn: async () => {
@@ -23,10 +24,16 @@ export default function IndustrialVisitNormalVisitors() {
     },
   });
 
+  const handleBack = () => {
+    if (onNavigate) {
+      onNavigate("/industrial-visit");
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="icon" onClick={() => navigate("/industrial-visit")}>
+        <Button variant="outline" size="icon" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
