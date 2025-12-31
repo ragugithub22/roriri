@@ -12,6 +12,26 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft } from "lucide-react";
 
+interface VisitorDetails {
+  id: string;
+  college_name: string;
+  department: string;
+  date: string;
+  mobile: string | null;
+  address: string | null;
+  amount: number | null;
+  students_count: number;
+  staff_count: number;
+  status: string;
+}
+
+interface Registration {
+  id: string;
+  full_name: string;
+  email: string | null;
+  mobile: string;
+}
+
 export default function IndustrialVisitVisitorDetails() {
   const { visitorId } = useParams();
   const navigate = useNavigate();
@@ -26,7 +46,7 @@ export default function IndustrialVisitVisitorDetails() {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as VisitorDetails;
     },
   });
 
@@ -35,12 +55,12 @@ export default function IndustrialVisitVisitorDetails() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("industrial_visit_registrations")
-        .select("*")
+        .select("id, full_name, email, mobile")
         .eq("visitor_record_id", visitorId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data as Registration[];
     },
   });
 
@@ -62,8 +82,8 @@ export default function IndustrialVisitVisitorDetails() {
       </div>
 
       {visitorRecord && (
-        <div className="bg-card rounded-lg p-6 space-y-2">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="bg-card rounded-lg p-6 space-y-2 border">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">College Name</p>
               <p className="font-semibold">{visitorRecord.college_name}</p>
@@ -78,7 +98,7 @@ export default function IndustrialVisitVisitorDetails() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
-              <p className="font-semibold">{visitorRecord.status}</p>
+              <p className="font-semibold capitalize">{visitorRecord.status}</p>
             </div>
           </div>
         </div>
@@ -91,17 +111,16 @@ export default function IndustrialVisitVisitorDetails() {
             <TableHeader>
               <TableRow>
                 <TableHead>S. No</TableHead>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Mobile Number</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Reason</TableHead>
+                <TableHead>Mobile Number</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {registrations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    No registrations yet
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    No visitors registered yet
                   </TableCell>
                 </TableRow>
               ) : (
@@ -109,9 +128,8 @@ export default function IndustrialVisitVisitorDetails() {
                   <TableRow key={reg.id}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>{reg.full_name}</TableCell>
-                    <TableCell>{reg.mobile}</TableCell>
                     <TableCell>{reg.email || "-"}</TableCell>
-                    <TableCell>{reg.purpose_of_visit}</TableCell>
+                    <TableCell>{reg.mobile}</TableCell>
                   </TableRow>
                 ))
               )}
