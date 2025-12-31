@@ -28,6 +28,7 @@ interface FormData {
   department: string;
   mobile: string;
   email: string;
+  amount: string; // keep as string for input
 }
 
 export default function IndustrialVisitRegistration() {
@@ -43,6 +44,7 @@ export default function IndustrialVisitRegistration() {
     department: "",
     mobile: "",
     email: "",
+    amount: "",
   });
 
   const { data: visitorRecord } = useQuery({
@@ -63,17 +65,61 @@ export default function IndustrialVisitRegistration() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const { error } = await supabase
-        .from("industrial_visit_registrations")
-        .insert([{
+      let resolvedVisitorRecordId: string | null = visitorId || null;
+
+      // For industrial visits, ensure a master record exists so the admin table can list by
+      // College Name + Date (and show address/amount/etc.)
+      if (data.visit_type === "industrial_visit") {
+        if (!resolvedVisitorRecordId) {
+          const { data: existing, error: existingError } = await supabase
+            .from("industrial_visit_visitors")
+            .select("id")
+            .eq("college_name", data.college_name)
+            .eq("department", data.department)
+            .eq("date", data.date)
+            .maybeSingle();
+
+          if (existingError) throw existingError;
+          resolvedVisitorRecordId = existing?.id ?? null;
+        }
+
+        if (!resolvedVisitorRecordId) {
+          const parsedAmount = Number.parseFloat(data.amount || "0");
+          const { data: created, error: createError } = await supabase
+            .from("industrial_visit_visitors")
+            .insert([
+              {
+                college_name: data.college_name,
+                department: data.department,
+                date: data.date,
+                address: data.address,
+                mobile: data.mobile || null,
+                amount: Number.isFinite(parsedAmount) ? parsedAmount : 0,
+                status: "upcoming",
+                students_count: 0,
+                staff_count: 0,
+              },
+            ])
+            .select("id")
+            .single();
+
+          if (createError) throw createError;
+          resolvedVisitorRecordId = created.id;
+        }
+      }
+
+      const { error } = await supabase.from("industrial_visit_registrations").insert([
+        {
           full_name: data.full_name,
           mobile: data.mobile || "N/A",
           email: data.email || null,
           visitor_type: data.visit_type,
           purpose_of_visit: data.reason || `${data.visit_type} visit`,
           whom_to_see: null,
-          visitor_record_id: visitorId || null,
-        }]);
+          visitor_record_id: resolvedVisitorRecordId,
+        },
+      ]);
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -89,6 +135,7 @@ export default function IndustrialVisitRegistration() {
         department: "",
         mobile: "",
         email: "",
+        amount: "",
       });
     },
     onError: (error) => {
@@ -159,6 +206,7 @@ export default function IndustrialVisitRegistration() {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="college_name">College Name *</Label>
               <Input
@@ -168,6 +216,7 @@ export default function IndustrialVisitRegistration() {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="department">Department *</Label>
               <Input
@@ -177,6 +226,7 @@ export default function IndustrialVisitRegistration() {
                 required
               />
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="mobile">Mobile Number *</Label>
@@ -198,6 +248,28 @@ export default function IndustrialVisitRegistration() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Address *</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                rows={2}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                inputMode="decimal"
+                placeholder="0"
+                value={formData.amount}
+                onChange={(e) => handleChange("amount", e.target.value)}
+              />
             </div>
           </>
         );
