@@ -30,7 +30,7 @@ interface Message {
 
 interface TraineeChatBoxProps {
   currentUserId: string;
-  currentUserType: 'student' | 'employee';
+  currentUserType: 'student' | 'employee' | 'intern';
 }
 
 export default function TraineeChatBox({ currentUserId, currentUserType }: TraineeChatBoxProps) {
