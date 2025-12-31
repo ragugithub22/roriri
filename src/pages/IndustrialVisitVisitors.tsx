@@ -22,23 +22,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { Edit, Trash2, Eye, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 
 interface Visitor {
   id: string;
-  college_name: string;
-  date: string;
-  department: string;
-  amount?: number;
+  full_name: string;
+  mobile: string;
+  email: string | null;
+  visitor_type: string;
+  purpose_of_visit: string;
+  whom_to_see: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface IndustrialVisitVisitorsProps {
@@ -52,53 +46,37 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    college_name: "",
-    date: "",
-    department: "",
-    amount: 0,
+    full_name: "",
+    mobile: "",
+    email: "",
+    visitor_type: "",
+    purpose_of_visit: "",
   });
 
   const { data: visitors = [] } = useQuery({
-    queryKey: ["industrial-visit-visitors"],
+    queryKey: ["industrial-visit-registrations"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("industrial_visit_visitors")
+        .from("industrial_visit_registrations")
         .select("*")
-        .order("date", { ascending: false });
-      
-      if (error) throw error;
-      // Map to include amount field with default value
-      return (data || []).map(item => ({
-        ...item,
-        amount: (item as any).amount || 0
-      })) as Visitor[];
-    },
-  });
-
-  const { data: sliderImages = [] } = useQuery({
-    queryKey: ["industrial-visit-slider"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("industrial_visit_slider_images")
-        .select("*")
+        .eq("visitor_type", "industrial_visit")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+      return (data || []) as Visitor[];
     },
   });
-
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const { error } = await supabase
-        .from("industrial_visit_visitors")
+        .from("industrial_visit_registrations")
         .update(data)
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["industrial-visit-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["industrial-visit-registrations"] });
       toast.success("Visitor record updated successfully");
       setEditingVisitor(null);
       resetForm();
@@ -112,13 +90,13 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("industrial_visit_visitors")
+        .from("industrial_visit_registrations")
         .delete()
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["industrial-visit-visitors"] });
+      queryClient.invalidateQueries({ queryKey: ["industrial-visit-registrations"] });
       toast.success("Visitor record deleted successfully");
     },
     onError: (error) => {
@@ -129,10 +107,11 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
 
   const resetForm = () => {
     setFormData({
-      college_name: "",
-      date: "",
-      department: "",
-      amount: 0,
+      full_name: "",
+      mobile: "",
+      email: "",
+      visitor_type: "",
+      purpose_of_visit: "",
     });
   };
 
@@ -146,10 +125,11 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   const handleEdit = (visitor: Visitor) => {
     setEditingVisitor(visitor);
     setFormData({
-      college_name: visitor.college_name,
-      date: visitor.date,
-      department: visitor.department,
-      amount: visitor.amount,
+      full_name: visitor.full_name,
+      mobile: visitor.mobile,
+      email: visitor.email || "",
+      visitor_type: visitor.visitor_type,
+      purpose_of_visit: visitor.purpose_of_visit,
     });
   };
 
@@ -160,9 +140,13 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   };
 
   const filteredVisitors = visitors.filter((visitor) =>
-    visitor.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    visitor.department.toLowerCase().includes(searchTerm.toLowerCase())
+    visitor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    visitor.purpose_of_visit.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const formatVisitorType = (type: string) => {
+    return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
 
   const VisitorTable = ({ data }: { data: Visitor[] }) => (
     <div className="space-y-4">
@@ -183,71 +167,64 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
           <TableHeader>
             <TableRow>
               <TableHead>S. No</TableHead>
-              <TableHead>QR Code</TableHead>
-              <TableHead>College Name</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Amount</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Mobile</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Purpose</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No data available in table
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((visitor, index) => {
-                const registrationUrl = `${window.location.origin}/industrial-visit-registration/${visitor.id}`;
-                return (
-                  <TableRow key={visitor.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>
-                      <div className="p-2 bg-white rounded">
-                        <QRCodeSVG value={registrationUrl} size={64} />
-                      </div>
-                    </TableCell>
-                    <TableCell>{visitor.college_name}</TableCell>
-                    <TableCell>{new Date(visitor.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{visitor.department}</TableCell>
-                    <TableCell>₹{visitor.amount}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/industrial-visit-visitor-details/${visitor.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(visitor)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteMutation.mutate(visitor.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+              data.map((visitor, index) => (
+                <TableRow key={visitor.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{new Date(visitor.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{visitor.full_name}</TableCell>
+                  <TableCell>{visitor.mobile}</TableCell>
+                  <TableCell>{visitor.email || "N/A"}</TableCell>
+                  <TableCell>{visitor.purpose_of_visit}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/industrial-visit-visitor-details/${visitor.id}`)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(visitor)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteMutation.mutate(visitor.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
       </div>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <div>Showing 0 to {data.length} of {data.length} entries</div>
+        <div>Showing {data.length > 0 ? 1 : 0} to {data.length} of {data.length} entries</div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled>Prev</Button>
           <Button variant="outline" size="sm" disabled>Next</Button>
@@ -258,32 +235,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
 
   return (
     <div className="p-6 space-y-6">
-      {sliderImages.length > 0 && (
-        <div className="mb-8">
-          <Carousel
-            opts={{ align: "start", loop: true }}
-            plugins={[Autoplay({ delay: 3000 })]}
-            className="w-full"
-          >
-            <CarouselContent>
-              {sliderImages.map((image) => (
-                <CarouselItem key={image.id}>
-                  <div className="aspect-[21/9] relative rounded-lg overflow-hidden">
-                    <img
-                      src={image.image_url}
-                      alt="Industrial visit"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </div>
-      )}
-
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
@@ -294,8 +245,8 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Industrial Visit Visitors</h1>
-            <p className="text-muted-foreground mt-2">Manage upcoming and completed visits</p>
+            <h1 className="text-3xl font-bold">Industrial Visit</h1>
+            <p className="text-muted-foreground mt-2">Manage industrial visit registrations</p>
           </div>
         </div>
         <Dialog open={editingVisitor !== null} onOpenChange={(open) => {
@@ -314,41 +265,38 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="college_name">College Name *</Label>
+                  <Label htmlFor="full_name">Full Name *</Label>
                   <Input
-                    id="college_name"
-                    value={formData.college_name}
-                    onChange={(e) => setFormData({ ...formData, college_name: e.target.value })}
+                    id="full_name"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date *</Label>
+                  <Label htmlFor="mobile">Mobile *</Label>
                   <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    id="mobile"
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="department">Department *</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    required
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount *</Label>
+                  <Label htmlFor="purpose_of_visit">Purpose of Visit *</Label>
                   <Input
-                    id="amount"
-                    type="number"
-                    min="0"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                    id="purpose_of_visit"
+                    value={formData.purpose_of_visit}
+                    onChange={(e) => setFormData({ ...formData, purpose_of_visit: e.target.value })}
                     required
                   />
                 </div>
