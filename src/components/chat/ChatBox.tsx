@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Send, Search, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Contact {
   id: string;
@@ -30,11 +30,30 @@ interface Message {
 }
 
 export default function ChatBox() {
+  const { user } = useAuth();
   const [selectedUser, setSelectedUser] = useState<Contact | null>(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+
+  // Get current user's employee ID
+  const { data: currentEmployee } = useQuery({
+    queryKey: ['current-employee', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const currentUserId = currentEmployee?.id || user?.id;
 
   // Fetch employees
   const { data: employees = [] } = useQuery({
@@ -103,14 +122,14 @@ export default function ChatBox() {
 
   // Fetch messages for selected contact
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
-    queryKey: ['admin-chat-messages', selectedUser?.id],
+    queryKey: ['admin-chat-messages', selectedUser?.id, currentUserId],
     queryFn: async () => {
-      if (!selectedUser) return [];
+      if (!selectedUser || !currentUserId) return [];
 
       const { data, error } = await supabase
         .from('trainee_chat_messages')
         .select('*')
-        .or(`and(sender_id.eq.admin,recipient_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},recipient_id.eq.admin)`)
+        .or(`and(sender_id.eq.${currentUserId},recipient_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},recipient_id.eq.${currentUserId})`)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -122,7 +141,7 @@ export default function ChatBox() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      if (!selectedUser) throw new Error('No contact selected');
+      if (!selectedUser || !currentUserId) throw new Error('No contact selected or not logged in');
 
       // Map user type to sender_type format
       const recipientType = selectedUser.type === 'Trainee' ? 'student' : 
@@ -131,7 +150,7 @@ export default function ChatBox() {
       const { error } = await supabase
         .from('trainee_chat_messages')
         .insert({
-          sender_id: 'admin',
+          sender_id: currentUserId,
           sender_type: 'employee',
           recipient_id: selectedUser.id,
           recipient_type: recipientType,
@@ -155,7 +174,7 @@ export default function ChatBox() {
 
   // Real-time subscription for messages
   useEffect(() => {
-    if (!selectedUser) return;
+    if (!selectedUser || !currentUserId) return;
 
     const channel = supabase
       .channel('admin-chat-messages-realtime')
@@ -169,10 +188,10 @@ export default function ChatBox() {
         (payload) => {
           const newMessage = payload.new as Message;
           if (
-            (newMessage.sender_id === 'admin' && newMessage.recipient_id === selectedUser.id) ||
-            (newMessage.sender_id === selectedUser.id && newMessage.recipient_id === 'admin')
+            (newMessage.sender_id === currentUserId && newMessage.recipient_id === selectedUser.id) ||
+            (newMessage.sender_id === selectedUser.id && newMessage.recipient_id === currentUserId)
           ) {
-            queryClient.invalidateQueries({ queryKey: ['admin-chat-messages', selectedUser.id] });
+            queryClient.invalidateQueries({ queryKey: ['admin-chat-messages', selectedUser.id, currentUserId] });
           }
         }
       )
@@ -181,7 +200,7 @@ export default function ChatBox() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedUser, queryClient]);
+  }, [selectedUser, currentUserId, queryClient]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -306,7 +325,7 @@ export default function ChatBox() {
             ) : (
               <div className="space-y-4">
                 {messages.map((msg) => {
-                  const isOwnMessage = msg.sender_id === 'admin';
+                  const isOwnMessage = msg.sender_id === currentUserId;
                   return (
                     <div
                       key={msg.id}
