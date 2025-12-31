@@ -2012,33 +2012,42 @@ export type Database = {
       }
       industrial_visit_visitors: {
         Row: {
+          address: string | null
+          amount: number | null
           college_name: string
           created_at: string | null
           date: string
           department: string
           id: string
+          mobile: string | null
           staff_count: number
           status: string
           students_count: number
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
+          amount?: number | null
           college_name: string
           created_at?: string | null
           date: string
           department: string
           id?: string
+          mobile?: string | null
           staff_count?: number
           status: string
           students_count?: number
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
+          amount?: number | null
           college_name?: string
           created_at?: string | null
           date?: string
           department?: string
           id?: string
+          mobile?: string | null
           staff_count?: number
           status?: string
           students_count?: number
