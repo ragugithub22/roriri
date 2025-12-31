@@ -108,22 +108,21 @@ export default function IndustrialVisitRegistration() {
         }
       }
 
-      const { error } = await supabase.from("industrial_visit_registrations").insert([
-        {
+      const { error } = await supabase
+        .from("industrial_visit_registrations")
+        .insert([{
           full_name: data.full_name,
-          mobile: data.mobile || null,
+          mobile: data.mobile || "N/A",
           email: data.email || null,
           visitor_type: data.visit_type,
           purpose_of_visit: data.reason || `${data.visit_type} visit`,
           whom_to_see: null,
           visitor_record_id: resolvedVisitorRecordId,
-          // Save all type-specific fields
           address: data.address || null,
           college_name: data.college_name || null,
           department: data.department || null,
           reason: data.reason || null,
-        },
-      ]);
+        }]);
 
       if (error) throw error;
     },
