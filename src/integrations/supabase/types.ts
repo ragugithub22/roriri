@@ -1947,36 +1947,48 @@ export type Database = {
       }
       industrial_visit_registrations: {
         Row: {
+          address: string | null
+          college_name: string | null
           created_at: string | null
+          department: string | null
           email: string | null
           full_name: string
           id: string
           mobile: string
           purpose_of_visit: string
+          reason: string | null
           updated_at: string | null
           visitor_record_id: string | null
           visitor_type: string
           whom_to_see: string | null
         }
         Insert: {
+          address?: string | null
+          college_name?: string | null
           created_at?: string | null
+          department?: string | null
           email?: string | null
           full_name: string
           id?: string
           mobile: string
           purpose_of_visit: string
+          reason?: string | null
           updated_at?: string | null
           visitor_record_id?: string | null
           visitor_type: string
           whom_to_see?: string | null
         }
         Update: {
+          address?: string | null
+          college_name?: string | null
           created_at?: string | null
+          department?: string | null
           email?: string | null
           full_name?: string
           id?: string
           mobile?: string
           purpose_of_visit?: string
+          reason?: string | null
           updated_at?: string | null
           visitor_record_id?: string | null
           visitor_type?: string
