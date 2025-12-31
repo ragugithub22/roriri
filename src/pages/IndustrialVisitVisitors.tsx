@@ -18,10 +18,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Calendar, Edit, Trash2, Eye, Upload, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { Edit, Trash2, Eye, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -47,11 +46,8 @@ interface IndustrialVisitVisitorsProps {
 }
 
 export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitVisitorsProps) {
-  const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -92,24 +88,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const { error } = await supabase
-        .from("industrial_visit_visitors")
-        .insert([data]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["industrial-visit-visitors"] });
-      toast.success("Visitor record added successfully");
-      setIsAddOpen(false);
-      resetForm();
-    },
-    onError: (error) => {
-      toast.error("Failed to add visitor record");
-      console.error(error);
-    },
-  });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
@@ -162,8 +140,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
     e.preventDefault();
     if (editingVisitor) {
       updateMutation.mutate({ id: editingVisitor.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
     }
   };
 
@@ -175,43 +151,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
       department: visitor.department,
       amount: visitor.amount,
     });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingImage(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('industrial-visit-slider')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('industrial-visit-slider')
-        .getPublicUrl(filePath);
-
-      const { error: dbError } = await supabase
-        .from('industrial_visit_slider_images')
-        .insert([{ image_url: publicUrl }]);
-
-      if (dbError) throw dbError;
-
-      queryClient.invalidateQueries({ queryKey: ["industrial-visit-slider"] });
-      toast.success("Image uploaded successfully");
-      setIsUploadOpen(false);
-    } catch (error) {
-      toast.error("Failed to upload image");
-      console.error(error);
-    } finally {
-      setUploadingImage(false);
-    }
   };
 
   const handleBack = () => {
@@ -359,51 +298,17 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
             <p className="text-muted-foreground mt-2">Manage upcoming and completed visits</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Slider Image
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Upload Slider Image</DialogTitle>
-                <DialogDescription>
-                  Select an image to add to the slider
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={uploadingImage}
-                />
-                {uploadingImage && <p className="text-sm text-muted-foreground">Uploading...</p>}
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isAddOpen || !!editingVisitor} onOpenChange={(open) => {
-            setIsAddOpen(open);
-            if (!open) {
-              setEditingVisitor(null);
-              resetForm();
-            }
-          }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setIsAddOpen(true)}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Add Visitor
-            </Button>
-          </DialogTrigger>
+        <Dialog open={editingVisitor !== null} onOpenChange={(open) => {
+          if (!open) {
+            setEditingVisitor(null);
+            resetForm();
+          }
+        }}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingVisitor ? "Edit" : "Add"} Visitor Record</DialogTitle>
+              <DialogTitle>Edit Visitor Record</DialogTitle>
               <DialogDescription>
-                Enter the details for the industrial visit
+                Update the details for the industrial visit
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -453,7 +358,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setIsAddOpen(false);
                     setEditingVisitor(null);
                     resetForm();
                   }}
@@ -461,13 +365,12 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
                   Cancel
                 </Button>
                 <Button type="submit">
-                  {editingVisitor ? "Update" : "Add"} Visitor
+                  Update Visitor
                 </Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
-        </div>
       </div>
 
       <VisitorTable data={filteredVisitors} />
