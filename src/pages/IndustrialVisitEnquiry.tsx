@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +25,7 @@ import { toast } from "sonner";
 import { Edit, Trash2, Plus, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 
-interface IndustrialVisitEnquiry {
+interface IndustrialVisitEnquiryData {
   id: string;
   college_name: string;
   phone: string;
@@ -35,9 +34,12 @@ interface IndustrialVisitEnquiry {
   description: string | null;
 }
 
-const IndustrialVisitEnquiry = () => {
+interface IndustrialVisitEnquiryProps {
+  onNavigate?: (path: string) => void;
+}
+
+const IndustrialVisitEnquiry = ({ onNavigate }: IndustrialVisitEnquiryProps) => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -58,9 +60,15 @@ const IndustrialVisitEnquiry = () => {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as IndustrialVisitEnquiry[];
+      return data as IndustrialVisitEnquiryData[];
     },
   });
+
+  const handleBack = () => {
+    if (onNavigate) {
+      onNavigate("/industrial-visit");
+    }
+  };
 
   // Create mutation
   const createMutation = useMutation({
@@ -144,7 +152,7 @@ const IndustrialVisitEnquiry = () => {
     }
   };
 
-  const handleEdit = (enquiry: IndustrialVisitEnquiry) => {
+  const handleEdit = (enquiry: IndustrialVisitEnquiryData) => {
     setFormData({
       college_name: enquiry.college_name,
       phone: enquiry.phone,
@@ -169,7 +177,7 @@ const IndustrialVisitEnquiry = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

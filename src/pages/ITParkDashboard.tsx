@@ -294,6 +294,10 @@ export default function ITParkDashboard() {
               ) : ActiveComponent ? (
                 ActiveComponent === IndustrialVisit ? (
                   <IndustrialVisit onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
+                ) : ActiveComponent === IndustrialVisitEnquiry ? (
+                  <IndustrialVisitEnquiry onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
+                ) : ActiveComponent === IndustrialVisitVisitors ? (
+                  <IndustrialVisitVisitors onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
                 ) : ActiveComponent === IndustrialVisitInterviews ? (
                   <IndustrialVisitInterviews onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
                 ) : ActiveComponent === IndustrialVisitNormalVisitors ? (
@@ -306,6 +310,12 @@ export default function ITParkDashboard() {
               ) : activeItem?.path?.startsWith("/industrial-visit/") ? (
                 (() => {
                   const SubComponent = pageComponents[activeItem.path];
+                  if (SubComponent === IndustrialVisitEnquiry) {
+                    return <IndustrialVisitEnquiry onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
+                  }
+                  if (SubComponent === IndustrialVisitVisitors) {
+                    return <IndustrialVisitVisitors onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
+                  }
                   if (SubComponent === IndustrialVisitInterviews) {
                     return <IndustrialVisitInterviews onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
                   }
