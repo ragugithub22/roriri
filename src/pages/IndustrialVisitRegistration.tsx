@@ -65,49 +65,11 @@ export default function IndustrialVisitRegistration() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      let resolvedVisitorRecordId: string | null = visitorId || null;
+      // Use visitor record ID from URL if available (for industrial visits via QR)
+      // For other visit types, we don't link to a master record
+      const resolvedVisitorRecordId: string | null = visitorId || null;
 
-      // For industrial visits, ensure a master record exists so the admin table can list by
-      // College Name + Date (and show address/amount/etc.)
-      if (data.visit_type === "industrial_visit") {
-        if (!resolvedVisitorRecordId) {
-          const { data: existing, error: existingError } = await supabase
-            .from("industrial_visit_visitors")
-            .select("id")
-            .eq("college_name", data.college_name)
-            .eq("department", data.department)
-            .eq("date", data.date)
-            .maybeSingle();
-
-          if (existingError) throw existingError;
-          resolvedVisitorRecordId = existing?.id ?? null;
-        }
-
-        if (!resolvedVisitorRecordId) {
-          const parsedAmount = Number.parseFloat(data.amount || "0");
-          const { data: created, error: createError } = await supabase
-            .from("industrial_visit_visitors")
-            .insert([
-              {
-                college_name: data.college_name,
-                department: data.department,
-                date: data.date,
-                address: data.address,
-                mobile: data.mobile || null,
-                amount: Number.isFinite(parsedAmount) ? parsedAmount : 0,
-                status: "upcoming",
-                students_count: 0,
-                staff_count: 0,
-              },
-            ])
-            .select("id")
-            .single();
-
-          if (createError) throw createError;
-          resolvedVisitorRecordId = created.id;
-        }
-      }
-
+      // Insert the registration directly - RLS allows anonymous inserts
       const { error } = await supabase
         .from("industrial_visit_registrations")
         .insert([{
