@@ -4,10 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Eye } from "lucide-react";
+import { Users, Eye, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-const Employee = ({ onViewEmployee }: { onViewEmployee?: (id: string) => void }) => {
+interface EmployeeProps {
+  onViewEmployee?: (id: string) => void;
+  onViewPayroll?: (id: string) => void;
+}
+
+const Employee = ({ onViewEmployee, onViewPayroll }: EmployeeProps) => {
   const navigate = useNavigate();
   // First, get the IT company entity ID
   const { data: itCompanyEntity } = useQuery({
@@ -120,20 +126,40 @@ const Employee = ({ onViewEmployee }: { onViewEmployee?: (id: string) => void })
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (onViewEmployee) {
-                          onViewEmployee(employee.id);
-                        } else {
-                          navigate(`/employees/${employee.id}`);
-                        }
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              if (onViewPayroll) {
+                                onViewPayroll(employee.id);
+                              } else {
+                                navigate(`/payroll/${employee.id}`);
+                              }
+                            }}
+                          >
+                            <Wallet className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Payroll History</TooltipContent>
+                      </Tooltip>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (onViewEmployee) {
+                            onViewEmployee(employee.id);
+                          } else {
+                            navigate(`/employees/${employee.id}`);
+                          }
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
