@@ -151,65 +151,84 @@ export default function EmployeeDashboard() {
 
       case 'profile':
         return (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex flex-col items-center">
-                  <Avatar className="h-32 w-32">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
-                      {employeeData?.profiles?.full_name?.charAt(0) || 'E'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h2 className="mt-4 text-xl font-bold">{employeeData?.profiles?.full_name}</h2>
-                  <p className="text-muted-foreground">{employeeData?.employee_code}</p>
+          <div className="space-y-6">
+            {/* Profile Details Card */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Left side - Avatar */}
+                  <div className="flex flex-col items-center min-w-[180px]">
+                    <Avatar className="h-32 w-32 border-4 border-muted">
+                      <AvatarImage src="" />
+                      <AvatarFallback className="text-4xl bg-muted text-muted-foreground">
+                        {employeeData?.profiles?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'E'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h2 className="mt-4 text-xl font-bold text-center">{employeeData?.profiles?.full_name}</h2>
+                    {employeeData?.positions?.title && (
+                      <span className="mt-2 px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                        {employeeData?.positions?.title}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Right side - Details Grid */}
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Full Name</p>
+                      <p className="font-medium">{employeeData?.profiles?.full_name || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Employee Code</p>
+                      <p className="font-medium">{employeeData?.employee_code || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Email</p>
+                      <p className="font-medium">{employeeData?.profiles?.email || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Phone</p>
+                      <p className="font-medium">{employeeData?.profiles?.phone || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Date of Birth</p>
+                      <p className="font-medium">{employeeData?.profiles?.dob || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Address</p>
+                      <p className="font-medium">{employeeData?.profiles?.address || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Department</p>
+                      <p className="font-medium">{employeeData?.departments?.name || 'Not Assigned'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Position</p>
+                      <p className="font-medium">{employeeData?.positions?.title || 'Not Assigned'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Hire Date</p>
+                      <p className="font-medium">{employeeData?.hire_date || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Status</p>
+                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                        employeeData?.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {employeeData?.status || 'Active'}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Residence Type</p>
+                      <p className="font-medium capitalize">{employeeData?.residence_type || 'N/A'}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      {employeeData?.profiles?.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      {employeeData?.profiles?.phone || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Date of Birth</p>
-                    <p className="font-medium">{employeeData?.profiles?.dob || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Address</p>
-                    <p className="font-medium flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      {employeeData?.profiles?.address || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Department</p>
-                    <p className="font-medium">{employeeData?.departments?.name || 'Not Assigned'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Position</p>
-                    <p className="font-medium">{employeeData?.positions?.title || 'Not Assigned'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Hire Date</p>
-                    <p className="font-medium">{employeeData?.hire_date || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Residence Type</p>
-                    <p className="font-medium capitalize">{employeeData?.residence_type || 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       default:
