@@ -37,6 +37,7 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -57,6 +58,34 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
     },
   });
 
+  // Fetch unread message counts for each contact
+  const { data: unreadData, refetch: refetchUnread } = useQuery({
+    queryKey: ['unread-messages', currentUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainee_chat_messages')
+        .select('sender_id')
+        .eq('recipient_id', currentUserId)
+        .eq('read', false);
+
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data?.forEach((msg) => {
+        counts[msg.sender_id] = (counts[msg.sender_id] || 0) + 1;
+      });
+      return counts;
+    },
+    enabled: !!currentUserId,
+  });
+
+  // Update unread counts when data changes
+  useEffect(() => {
+    if (unreadData) {
+      setUnreadCounts(unreadData);
+    }
+  }, [unreadData]);
+
   // Fetch messages between current user and selected contact
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
     queryKey: ['chat-messages', currentUserId, selectedContact?.id],
@@ -76,6 +105,25 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
     },
     enabled: !!selectedContact,
   });
+
+  // Mark messages as read when selecting a contact
+  useEffect(() => {
+    const markAsRead = async () => {
+      if (!selectedContact || !currentUserId) return;
+      
+      await supabase
+        .from('trainee_chat_messages')
+        .update({ read: true })
+        .eq('sender_id', selectedContact.id)
+        .eq('recipient_id', currentUserId)
+        .eq('read', false);
+      
+      // Update local unread count
+      setUnreadCounts(prev => ({ ...prev, [selectedContact.id]: 0 }));
+    };
+    
+    markAsRead();
+  }, [selectedContact, currentUserId]);
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -107,12 +155,12 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
     },
   });
 
-  // Subscribe to real-time messages
+  // Global real-time subscription for ALL incoming messages
   useEffect(() => {
-    if (!selectedContact) return;
+    if (!currentUserId) return;
 
     const channel = supabase
-      .channel('trainee-chat-messages')
+      .channel('trainee-chat-global')
       .on(
         'postgres_changes',
         {
@@ -122,12 +170,38 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
         },
         (payload) => {
           const newMessage = payload.new as Message;
-          // Only update if message is between current user and selected contact
-          if (
-            (newMessage.sender_id === currentUserId && newMessage.recipient_id === selectedContact.id) ||
-            (newMessage.sender_id === selectedContact.id && newMessage.recipient_id === currentUserId)
-          ) {
-            queryClient.invalidateQueries({ queryKey: ['chat-messages', currentUserId, selectedContact.id] });
+          
+          // If message is for current user
+          if (newMessage.recipient_id === currentUserId) {
+            // Show toast notification if not from currently selected contact
+            if (!selectedContact || newMessage.sender_id !== selectedContact.id) {
+              // Find sender name from contacts
+              const sender = contacts.find(c => c.id === newMessage.sender_id);
+              toast({
+                title: 'New Message',
+                description: sender 
+                  ? `${sender.full_name}: ${newMessage.message.substring(0, 50)}${newMessage.message.length > 50 ? '...' : ''}`
+                  : newMessage.message.substring(0, 50),
+              });
+              
+              // Update unread count
+              setUnreadCounts(prev => ({
+                ...prev,
+                [newMessage.sender_id]: (prev[newMessage.sender_id] || 0) + 1
+              }));
+            } else {
+              // If from selected contact, refetch messages and mark as read
+              refetchMessages();
+              supabase
+                .from('trainee_chat_messages')
+                .update({ read: true })
+                .eq('id', newMessage.id);
+            }
+          }
+          
+          // If current user sent the message, refetch to show it
+          if (newMessage.sender_id === currentUserId) {
+            refetchMessages();
           }
         }
       )
@@ -136,7 +210,7 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedContact, currentUserId, queryClient]);
+  }, [currentUserId, selectedContact, contacts, refetchMessages]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -213,11 +287,18 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
                     selectedContact?.id === contact.id ? 'bg-accent' : ''
                   }`}
                 >
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {contact.full_name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {contact.full_name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {unreadCounts[contact.id] > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                        {unreadCounts[contact.id] > 9 ? '9+' : unreadCounts[contact.id]}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex-1 text-left min-w-0">
                     <p className="font-medium truncate">{contact.full_name}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${getRoleBadgeColor(contact.role)}`}>

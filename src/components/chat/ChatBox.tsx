@@ -34,6 +34,7 @@ export default function ChatBox() {
   const [selectedUser, setSelectedUser] = useState<Contact | null>(null);
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -120,6 +121,35 @@ export default function ChatBox() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Fetch unread message counts
+  const { data: unreadData } = useQuery({
+    queryKey: ['admin-unread-messages', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return {};
+      const { data, error } = await supabase
+        .from('trainee_chat_messages')
+        .select('sender_id')
+        .eq('recipient_id', currentUserId)
+        .eq('read', false);
+
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data?.forEach((msg) => {
+        counts[msg.sender_id] = (counts[msg.sender_id] || 0) + 1;
+      });
+      return counts;
+    },
+    enabled: !!currentUserId,
+  });
+
+  // Update unread counts when data changes
+  useEffect(() => {
+    if (unreadData) {
+      setUnreadCounts(unreadData);
+    }
+  }, [unreadData]);
+
   // Fetch messages for selected contact
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
     queryKey: ['admin-chat-messages', selectedUser?.id, currentUserId],
@@ -137,6 +167,25 @@ export default function ChatBox() {
     },
     enabled: !!selectedUser,
   });
+
+  // Mark messages as read when selecting a contact
+  useEffect(() => {
+    const markAsRead = async () => {
+      if (!selectedUser || !currentUserId) return;
+      
+      await supabase
+        .from('trainee_chat_messages')
+        .update({ read: true })
+        .eq('sender_id', selectedUser.id)
+        .eq('recipient_id', currentUserId)
+        .eq('read', false);
+      
+      // Update local unread count
+      setUnreadCounts(prev => ({ ...prev, [selectedUser.id]: 0 }));
+    };
+    
+    markAsRead();
+  }, [selectedUser, currentUserId]);
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -172,12 +221,12 @@ export default function ChatBox() {
     },
   });
 
-  // Real-time subscription for messages
+  // Global real-time subscription for ALL incoming messages
   useEffect(() => {
-    if (!selectedUser || !currentUserId) return;
+    if (!currentUserId) return;
 
     const channel = supabase
-      .channel('admin-chat-messages-realtime')
+      .channel('admin-chat-global')
       .on(
         'postgres_changes',
         {
@@ -187,11 +236,38 @@ export default function ChatBox() {
         },
         (payload) => {
           const newMessage = payload.new as Message;
-          if (
-            (newMessage.sender_id === currentUserId && newMessage.recipient_id === selectedUser.id) ||
-            (newMessage.sender_id === selectedUser.id && newMessage.recipient_id === currentUserId)
-          ) {
-            queryClient.invalidateQueries({ queryKey: ['admin-chat-messages', selectedUser.id, currentUserId] });
+          
+          // If message is for current user
+          if (newMessage.recipient_id === currentUserId) {
+            // Show toast notification if not from currently selected contact
+            if (!selectedUser || newMessage.sender_id !== selectedUser.id) {
+              // Find sender name from users
+              const sender = users.find(u => u.id === newMessage.sender_id);
+              toast({
+                title: 'New Message',
+                description: sender 
+                  ? `${sender.full_name}: ${newMessage.message.substring(0, 50)}${newMessage.message.length > 50 ? '...' : ''}`
+                  : newMessage.message.substring(0, 50),
+              });
+              
+              // Update unread count
+              setUnreadCounts(prev => ({
+                ...prev,
+                [newMessage.sender_id]: (prev[newMessage.sender_id] || 0) + 1
+              }));
+            } else {
+              // If from selected contact, refetch messages and mark as read
+              refetchMessages();
+              supabase
+                .from('trainee_chat_messages')
+                .update({ read: true })
+                .eq('id', newMessage.id);
+            }
+          }
+          
+          // If current user sent the message, refetch to show it
+          if (newMessage.sender_id === currentUserId) {
+            refetchMessages();
           }
         }
       )
@@ -200,7 +276,7 @@ export default function ChatBox() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedUser, currentUserId, queryClient]);
+  }, [currentUserId, selectedUser, users, refetchMessages]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -271,11 +347,18 @@ export default function ChatBox() {
                     selectedUser?.id === user.id && selectedUser?.type === user.type ? 'bg-accent' : ''
                   }`}
                 >
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-muted text-muted-foreground">
-                      {user.full_name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-muted text-muted-foreground">
+                        {user.full_name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {unreadCounts[user.id] > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                        {unreadCounts[user.id] > 9 ? '9+' : unreadCounts[user.id]}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex-1 text-left min-w-0">
                     <p className="font-medium text-foreground truncate">{user.full_name}</p>
                     <div className="flex items-center gap-2">
