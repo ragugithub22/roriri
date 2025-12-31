@@ -33,9 +33,12 @@ interface EmployeeData {
     phone: string;
     address: string;
     dob: string;
+    username: string;
+    password: string;
   } | null;
   departments?: { name: string } | null;
   positions?: { title: string } | null;
+  user_role?: string | null;
 }
 
 export default function EmployeeDashboard() {
@@ -66,7 +69,7 @@ export default function EmployeeDashboard() {
         .from('employees')
         .select(`
           *,
-          profiles(full_name, email, phone, address, dob),
+          profiles(full_name, email, phone, address, dob, username, password),
           departments(name),
           positions(title)
         `)
@@ -76,7 +79,14 @@ export default function EmployeeDashboard() {
       if (error) {
         console.error('Error fetching employee data:', error);
       } else {
-        setEmployeeData(data);
+        // Fetch user role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', originalId)
+          .maybeSingle();
+
+        setEmployeeData({ ...data, user_role: roleData?.role || null });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -165,9 +175,9 @@ export default function EmployeeDashboard() {
                       </AvatarFallback>
                     </Avatar>
                     <h2 className="mt-4 text-xl font-bold text-center">{employeeData?.profiles?.full_name}</h2>
-                    {employeeData?.positions?.title && (
-                      <span className="mt-2 px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
-                        {employeeData?.positions?.title}
+                    {employeeData?.user_role && (
+                      <span className="mt-2 px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full capitalize">
+                        {employeeData?.user_role}
                       </span>
                     )}
                   </div>
@@ -204,25 +214,23 @@ export default function EmployeeDashboard() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-primary">Position</p>
-                      <p className="font-medium">{employeeData?.positions?.title || 'Not Assigned'}</p>
+                      <p className="font-medium capitalize">{employeeData?.user_role || 'Not Assigned'}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-primary">Hire Date</p>
                       <p className="font-medium">{employeeData?.hire_date || 'N/A'}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-primary">Status</p>
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                        employeeData?.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {employeeData?.status || 'Active'}
-                      </span>
-                    </div>
-                    <div className="space-y-1">
                       <p className="text-sm text-primary">Residence Type</p>
                       <p className="font-medium capitalize">{employeeData?.residence_type || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Username</p>
+                      <p className="font-medium">{employeeData?.profiles?.username || 'N/A'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-primary">Password</p>
+                      <p className="font-medium">{employeeData?.profiles?.password || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
