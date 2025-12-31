@@ -33,6 +33,7 @@ import TaskDetails from "./TaskDetails";
 import ClientEnquiry from "./ClientEnquiry";
 import AllEnquiries from "./AllEnquiries";
 import EmployeeDetail from "./EmployeeDetail";
+import PayrollHistory from "./PayrollHistory";
 
 const sidebarItems = [
   { id: "dashboard", label: "Dashboard", icon: Laptop },
@@ -51,6 +52,7 @@ const ITDashboard = () => {
   const { signOut } = useAuth();
   const [activeItem, setActiveItem] = useState("dashboard");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedPayrollEmployeeId, setSelectedPayrollEmployeeId] = useState<string | null>(null);
 
   const handleLogout = async () => {
     await signOut();
@@ -68,12 +70,20 @@ const ITDashboard = () => {
       case "all-enquiries":
         return <AllEnquiries onBack={() => setActiveItem("enquiry-details")} />;
       case "employee":
-        return <Employee onViewEmployee={(id) => {
-          setSelectedEmployeeId(id);
-          setActiveItem("employee-detail");
-        }} />;
+        return <Employee 
+          onViewEmployee={(id) => {
+            setSelectedEmployeeId(id);
+            setActiveItem("employee-detail");
+          }}
+          onViewPayroll={(id) => {
+            setSelectedPayrollEmployeeId(id);
+            setActiveItem("payroll-history");
+          }}
+        />;
       case "employee-detail":
         return <EmployeeDetail employeeId={selectedEmployeeId} onBack={() => setActiveItem("employee")} />;
+      case "payroll-history":
+        return <PayrollHistory employeeId={selectedPayrollEmployeeId || undefined} onBack={() => setActiveItem("employee")} />;
       case "attendance":
         return <Attendance />;
       case "clients":

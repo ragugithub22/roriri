@@ -2901,6 +2901,7 @@ export type Database = {
         Row: {
           allowances: number | null
           basic_salary: number
+          bonus: number | null
           created_at: string | null
           deductions: number | null
           employee_id: string
@@ -2910,10 +2911,12 @@ export type Database = {
           period_end: string
           period_start: string
           status: Database["public"]["Enums"]["payment_status"] | null
+          working_days: number | null
         }
         Insert: {
           allowances?: number | null
           basic_salary: number
+          bonus?: number | null
           created_at?: string | null
           deductions?: number | null
           employee_id: string
@@ -2923,10 +2926,12 @@ export type Database = {
           period_end: string
           period_start: string
           status?: Database["public"]["Enums"]["payment_status"] | null
+          working_days?: number | null
         }
         Update: {
           allowances?: number | null
           basic_salary?: number
+          bonus?: number | null
           created_at?: string | null
           deductions?: number | null
           employee_id?: string
@@ -2936,6 +2941,7 @@ export type Database = {
           period_end?: string
           period_start?: string
           status?: Database["public"]["Enums"]["payment_status"] | null
+          working_days?: number | null
         }
         Relationships: [
           {
