@@ -328,6 +328,23 @@ export default function EmployeeList({ onViewEmployee }: EmployeeListProps = {})
       if (profileError) throw profileError;
       if (!updatedProfile?.id) throw new Error('Profile update not applied (no permission or no matching profile).');
 
+      // Sync to user_login table if username and password are provided
+      if (data.username && data.password && data.email) {
+        const { error: userLoginError } = await supabase
+          .from('user_login')
+          .upsert({
+            email: data.email,
+            username: data.username,
+            password: data.password,
+            user_type: 'profile',
+            original_id: editingEmployee.profile_id
+          }, { onConflict: 'email' });
+        
+        if (userLoginError) {
+          console.error('Error syncing to user_login:', userLoginError);
+        }
+      }
+
       // Update employee record and verify row affected
       const { data: updatedEmployee, error: employeeError } = await supabase
         .from('employees')
