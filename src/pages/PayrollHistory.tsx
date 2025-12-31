@@ -295,7 +295,6 @@ const PayrollHistory = ({ employeeId: propEmployeeId, onBack }: PayrollHistoryPr
                   <TableHead>Bonus</TableHead>
                   <TableHead>Allowances</TableHead>
                   <TableHead>Total Salary</TableHead>
-                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -310,11 +309,6 @@ const PayrollHistory = ({ employeeId: propEmployeeId, onBack }: PayrollHistoryPr
                     <TableCell>₹{(record.allowances || 0).toLocaleString('en-IN')}</TableCell>
                     <TableCell className="font-semibold">
                       ₹{record.net_salary?.toLocaleString('en-IN')}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={record.status === 'paid' ? 'default' : 'secondary'}>
-                        {record.status || 'pending'}
-                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))}

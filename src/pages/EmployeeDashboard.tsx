@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import EmployeeProjectDetails from '@/components/employee/EmployeeProjectDetails';
 import EmployeeDailyUpdate from '@/components/employee/EmployeeDailyUpdate';
 import EmployeeComplaint from '@/components/employee/EmployeeComplaint';
+import EmployeePayrollHistory from '@/components/employee/EmployeePayrollHistory';
 import TraineeChatBox from '@/components/chat/TraineeChatBox';
 import { 
   LayoutDashboard, 
@@ -287,13 +288,22 @@ export default function EmployeeDashboard() {
           </Card>
         );
 
+      case 'payroll':
+        return employeeData?.id ? (
+          <EmployeePayrollHistory employeeId={employeeData.id} />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load payroll. Employee data not found.</p>
+            </CardContent>
+          </Card>
+        );
+
       default:
         return (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-muted-foreground">
-                {activeSection === 'payroll' && 'View your salary and payment details'}
-              </p>
+              <p className="text-muted-foreground">Select a section from the menu.</p>
             </CardContent>
           </Card>
         );
