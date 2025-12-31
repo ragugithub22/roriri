@@ -42,7 +42,11 @@ interface Visitor {
   created_at: string;
 }
 
-export default function IndustrialVisitVisitors() {
+interface IndustrialVisitVisitorsProps {
+  onNavigate?: (path: string) => void;
+}
+
+export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitVisitorsProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
@@ -210,6 +214,12 @@ export default function IndustrialVisitVisitors() {
     }
   };
 
+  const handleBack = () => {
+    if (onNavigate) {
+      onNavigate("/industrial-visit");
+    }
+  };
+
   const filteredVisitors = visitors.filter((visitor) =>
     visitor.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     visitor.department.toLowerCase().includes(searchTerm.toLowerCase())
@@ -340,7 +350,7 @@ export default function IndustrialVisitVisitors() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => navigate("/industrial-visit")}
+            onClick={handleBack}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
