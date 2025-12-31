@@ -44,7 +44,17 @@ interface InternData {
   username: string;
   password: string;
   incharge_person_id: string | null;
+  course_id: string | null;
   courses?: { name: string; fees: number } | null;
+}
+
+interface ApplicationData {
+  id: string;
+  application_name: string;
+  course_name: string;
+  duration: string;
+  description: string | null;
+  created_at: string;
 }
 
 interface PaymentData {
@@ -88,6 +98,7 @@ export default function InternDashboard() {
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [dailyUpdates, setDailyUpdates] = useState<DailyUpdateData[]>([]);
   const [complaints, setComplaints] = useState<ComplaintData[]>([]);
+  const [applications, setApplications] = useState<ApplicationData[]>([]);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
   const [inchargeName, setInchargeName] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -160,6 +171,19 @@ export default function InternDashboard() {
             if (profile) {
               setInchargeName(profile.full_name);
             }
+          }
+        }
+
+        // Fetch applications related to the intern's course
+        if (intern?.course_id) {
+          const { data: applicationsData, error: applicationsError } = await supabase
+            .from('academy_applications')
+            .select('id, application_name, course_name, duration, description, created_at')
+            .eq('course_id', intern.course_id)
+            .order('created_at', { ascending: false });
+
+          if (!applicationsError && applicationsData) {
+            setApplications(applicationsData as ApplicationData[]);
           }
         }
       }
@@ -541,48 +565,38 @@ export default function InternDashboard() {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Internship Application Details</CardTitle>
+              <CardTitle>Applications for {internData?.courses?.name || 'Your Course'}</CardTitle>
             </CardHeader>
             <CardContent>
-              {internData ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Course</p>
-                    <p className="font-medium">{internData.courses?.name || 'Not Assigned'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Duration</p>
-                    <p className="font-medium">
-                      {internData.duration_value && internData.duration_unit 
-                        ? `${internData.duration_value} ${internData.duration_unit}`
-                        : 'N/A'}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Mode</p>
-                    <p className="font-medium capitalize">{internData.mode || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Joining Date</p>
-                    <p className="font-medium">{internData.joining_date || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                      internData.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {internData.status || 'Active'}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Fees</p>
-                    <p className="font-medium">₹{(internData.fees || internData.courses?.fees || 0).toLocaleString()}</p>
-                  </div>
-                </div>
+              {applications.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>S.No</TableHead>
+                      <TableHead>Application Name</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {applications.map((app, index) => (
+                      <TableRow key={app.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell className="font-medium">{app.application_name}</TableCell>
+                        <TableCell>{app.course_name}</TableCell>
+                        <TableCell>{app.duration}</TableCell>
+                        <TableCell>{app.description || '-'}</TableCell>
+                        <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               ) : (
-                <p className="text-muted-foreground">No application data found</p>
+                <p className="text-muted-foreground text-center py-8">
+                  No applications found for your course
+                </p>
               )}
             </CardContent>
           </Card>
