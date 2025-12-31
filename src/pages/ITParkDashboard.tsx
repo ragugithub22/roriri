@@ -21,6 +21,9 @@ import SettingsPage from "@/pages/SettingsPage";
 import IndustrialVisit from "@/pages/IndustrialVisit";
 import IndustrialVisitEnquiry from "@/pages/IndustrialVisitEnquiry";
 import IndustrialVisitVisitors from "@/pages/IndustrialVisitVisitors";
+import IndustrialVisitInterviews from "@/pages/IndustrialVisitInterviews";
+import IndustrialVisitNormalVisitors from "@/pages/IndustrialVisitNormalVisitors";
+import IndustrialVisitPaymentReport from "@/pages/IndustrialVisitPaymentReport";
 import LetterManagement from "@/pages/LetterManagement";
 import ChatBox from "@/components/chat/ChatBox";
 import KPICard from "@/components/dashboard/KPICard";
@@ -55,6 +58,9 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/industrial-visit": IndustrialVisit,
   "/industrial-visit/enquiry": IndustrialVisitEnquiry,
   "/industrial-visit/visitors": IndustrialVisitVisitors,
+  "/industrial-visit/interviews": IndustrialVisitInterviews,
+  "/industrial-visit/normal-visitors": IndustrialVisitNormalVisitors,
+  "/industrial-visit/payment-report": IndustrialVisitPaymentReport,
   "/reports": ReportsPage,
   "/settings": SettingsPage,
 };
