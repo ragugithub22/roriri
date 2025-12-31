@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import EmployeeProjectDetails from '@/components/employee/EmployeeProjectDetails';
+import EmployeeDailyUpdate from '@/components/employee/EmployeeDailyUpdate';
+import EmployeeComplaint from '@/components/employee/EmployeeComplaint';
+import TraineeChatBox from '@/components/chat/TraineeChatBox';
 import { 
   LayoutDashboard, 
   User, 
@@ -251,15 +254,45 @@ export default function EmployeeDashboard() {
           </Card>
         );
 
+      case 'daily-update':
+        return employeeData?.profile_id ? (
+          <EmployeeDailyUpdate userId={employeeData.profile_id} />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load daily updates. Employee data not found.</p>
+            </CardContent>
+          </Card>
+        );
+
+      case 'complaint':
+        return employeeData?.profile_id ? (
+          <EmployeeComplaint userId={employeeData.profile_id} />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load complaints. Employee data not found.</p>
+            </CardContent>
+          </Card>
+        );
+
+      case 'chat-box':
+        return employeeData?.profile_id ? (
+          <TraineeChatBox currentUserId={employeeData.profile_id} currentUserType="employee" />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Loading chat...</p>
+            </CardContent>
+          </Card>
+        );
+
       default:
         return (
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">
                 {activeSection === 'payroll' && 'View your salary and payment details'}
-                {activeSection === 'daily-update' && 'Submit your daily work updates'}
-                {activeSection === 'complaint' && 'Submit and track complaints'}
-                {activeSection === 'chat-box' && 'Chat with colleagues and managers'}
               </p>
             </CardContent>
           </Card>
