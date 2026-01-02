@@ -285,24 +285,37 @@ const DashboardContent: React.FC = () => {
   const { data: monthlyRevenue = 0 } = useQuery({
     queryKey: ["monthly-it-revenue"],
     queryFn: async () => {
-      const currentMonth = new Date().toISOString().slice(0, 7);
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString()
+        .split("T")[0];
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+        .toISOString()
+        .split("T")[0];
+
       const { data, error } = await supabase
         .from("academy_payments")
         .select("amount")
-        .gte("payment_date", `${currentMonth}-01`)
-        .lt("payment_date", `${currentMonth}-32`);
+        .gte("payment_date", startOfMonth)
+        .lt("payment_date", startOfNextMonth);
       if (error) return 0;
 
-      const academyRevenue = data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
+      const academyRevenue =
+        data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
 
       // Also count donations
-      const { data: donationsData } = await supabase
+      const { data: donationsData, error: donationsError } = await supabase
         .from("donations")
         .select("amount")
-        .gte("donation_date", `${currentMonth}-01`)
-        .lt("donation_date", `${currentMonth}-32`);
+        .gte("donation_date", startOfMonth)
+        .lt("donation_date", startOfNextMonth);
+      if (donationsError) return academyRevenue;
 
-      const donationsRevenue = donationsData?.reduce((sum, donation) => sum + Number(donation.amount || 0), 0) || 0;
+      const donationsRevenue =
+        donationsData?.reduce(
+          (sum, donation) => sum + Number(donation.amount || 0),
+          0
+        ) || 0;
 
       return academyRevenue + donationsRevenue;
     },
