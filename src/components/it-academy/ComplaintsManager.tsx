@@ -5,150 +5,213 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Eye } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { MessageSquareReply, Eye } from "lucide-react";
 import { toast } from "sonner";
+
+interface Complaint {
+  id: string;
+  date: string;
+  complaint_from: string | null;
+  complaint_to: string | null;
+  complaint_text: string;
+  status: string | null;
+  reply: string | null;
+  created_at: string;
+  trainee_name?: string;
+  recipient_name?: string;
+}
 
 export default function ComplaintsManager() {
   const queryClient = useQueryClient();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    complaint_from: '',
-    complaint_to: '',
-    complaint_description: '',
-    status: 'pending'
-  });
+  const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [replyText, setReplyText] = useState("");
 
-  const { data: complaints = [] } = useQuery({
-    queryKey: ["academy-complaints"],
+  // Fetch complaints raised by trainees (complaint_from is a student id)
+  const { data: complaints = [], isLoading } = useQuery({
+    queryKey: ["academy-complaints-from-trainees"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("academy_complaints" as any)
+      // First get all complaints
+      const { data: complaintsData, error: complaintsError } = await supabase
+        .from("academy_complaints")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+      
+      if (complaintsError) throw complaintsError;
+      if (!complaintsData) return [];
 
-  const { data: trainees = [] } = useQuery({
-    queryKey: ["academy-trainees"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+      // Get all student IDs from complaints
+      const studentIds = complaintsData
+        .map((c: any) => c.complaint_from)
+        .filter((id: string | null) => id !== null);
+
+      // Get all employee IDs from complaints
+      const employeeIds = complaintsData
+        .map((c: any) => c.complaint_to)
+        .filter((id: string | null) => id !== null);
+
+      // Fetch students (trainees)
+      const { data: students } = await supabase
         .from("students")
-        .select("id, full_name, student_code")
-        .order("full_name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: trainers = [] } = useQuery({
-    queryKey: ["academy-trainers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("it_trainers")
         .select("id, full_name")
-        .order("full_name");
-      if (error) throw error;
-      return data;
+        .in("id", studentIds.length > 0 ? studentIds : ['00000000-0000-0000-0000-000000000000']);
+
+      // Fetch employees
+      const { data: employees } = await supabase
+        .from("employees")
+        .select("id, profile_id")
+        .in("id", employeeIds.length > 0 ? employeeIds : ['00000000-0000-0000-0000-000000000000']);
+
+      // Get profile names for employees
+      const profileIds = employees?.map((e: any) => e.profile_id).filter(Boolean) || [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", profileIds.length > 0 ? profileIds : ['00000000-0000-0000-0000-000000000000']);
+
+      // Create lookup maps
+      const studentMap = new Map(students?.map((s: any) => [s.id, s.full_name]) || []);
+      const employeeProfileMap = new Map(employees?.map((e: any) => [e.id, e.profile_id]) || []);
+      const profileMap = new Map(profiles?.map((p: any) => [p.id, p.full_name]) || []);
+
+      // Filter only complaints from trainees (students) and enrich with names
+      const enrichedComplaints = complaintsData
+        .filter((complaint: any) => studentMap.has(complaint.complaint_from))
+        .map((complaint: any) => ({
+          ...complaint,
+          trainee_name: studentMap.get(complaint.complaint_from) || 'Unknown',
+          recipient_name: profileMap.get(employeeProfileMap.get(complaint.complaint_to) || '') || 'Unknown'
+        }));
+
+      return enrichedComplaints as Complaint[];
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+  const replyMutation = useMutation({
+    mutationFn: async ({ id, reply }: { id: string; reply: string }) => {
       const { error } = await supabase
-        .from("academy_complaints" as any)
-        .insert([data]);
+        .from("academy_complaints")
+        .update({ 
+          reply, 
+          status: 'resolved',
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["academy-complaints"] });
-      toast.success("Complaint submitted successfully");
-      handleCloseDialog();
+      queryClient.invalidateQueries({ queryKey: ["academy-complaints-from-trainees"] });
+      toast.success("Reply sent successfully");
+      handleCloseReplyDialog();
     },
     onError: (error) => {
-      toast.error("Failed to submit complaint: " + error.message);
+      toast.error("Failed to send reply: " + error.message);
     }
   });
 
-  const handleOpenDialog = () => {
-    setFormData({
-      complaint_from: '',
-      complaint_to: '',
-      complaint_description: '',
-      status: 'pending'
-    });
-    setIsDialogOpen(true);
+  const handleOpenReplyDialog = (complaint: Complaint) => {
+    setSelectedComplaint(complaint);
+    setReplyText(complaint.reply || "");
+    setIsReplyDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setFormData({
-      complaint_from: '',
-      complaint_to: '',
-      complaint_description: '',
-      status: 'pending'
-    });
+  const handleCloseReplyDialog = () => {
+    setIsReplyDialogOpen(false);
+    setSelectedComplaint(null);
+    setReplyText("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleOpenViewDialog = (complaint: Complaint) => {
+    setSelectedComplaint(complaint);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleCloseViewDialog = () => {
+    setIsViewDialogOpen(false);
+    setSelectedComplaint(null);
+  };
+
+  const handleSubmitReply = (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate(formData);
+    if (!selectedComplaint || !replyText.trim()) {
+      toast.error("Please enter a reply");
+      return;
+    }
+    replyMutation.mutate({ id: selectedComplaint.id, reply: replyText.trim() });
   };
-
-  // Check if user is admin (you may need to adjust this logic based on your role system)
-  const isAdmin = false; // Temporarily set to false for testing
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Complaints Management</CardTitle>
-          <CardDescription>View and manage complaints</CardDescription>
+          <CardTitle>Trainee Complaints</CardTitle>
+          <CardDescription>View and respond to complaints from trainees</CardDescription>
         </CardHeader>
         <CardContent>
-          {!isAdmin && (
-            <div className="flex justify-between items-center mb-4">
-              <div></div>
-              <Button onClick={handleOpenDialog}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Complaint
-              </Button>
-            </div>
-          )}
-
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>S. No</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Complaint From</TableHead>
+                <TableHead>Trainee Name</TableHead>
                 <TableHead>Complaint To</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {complaints.length === 0 ? (
+              {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No complaints found
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    Loading complaints...
+                  </TableCell>
+                </TableRow>
+              ) : complaints.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    No complaints from trainees found
                   </TableCell>
                 </TableRow>
               ) : (
-                complaints.map((complaint: any, index: number) => (
+                complaints.map((complaint, index) => (
                   <TableRow key={complaint.id}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{new Date(complaint.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>{complaint.complaint_from_name || 'N/A'}</TableCell>
-                    <TableCell>{complaint.complaint_to_name || 'N/A'}</TableCell>
+                    <TableCell>{new Date(complaint.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-medium">{complaint.trainee_name}</TableCell>
+                    <TableCell>{complaint.recipient_name}</TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        complaint.status === 'resolved' 
+                          ? 'bg-green-100 text-green-800'
+                          : complaint.status === 'in_progress'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {complaint.status || 'Pending'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          title="View Details"
+                          onClick={() => handleOpenViewDialog(complaint)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          title="Reply"
+                          onClick={() => handleOpenReplyDialog(complaint)}
+                        >
+                          <MessageSquareReply className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -158,54 +221,77 @@ export default function ComplaintsManager() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* View Complaint Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Add New Complaint</DialogTitle>
-            <DialogDescription>Submit a complaint</DialogDescription>
+            <DialogTitle>Complaint Details</DialogTitle>
+            <DialogDescription>
+              Complaint from {selectedComplaint?.trainee_name}
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="complaint_to">Complaint To</Label>
-                <Select
-                  value={formData.complaint_to}
-                  onValueChange={(value) => setFormData({ ...formData, complaint_to: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {trainees.map((trainee: any) => (
-                      <SelectItem key={trainee.id} value={trainee.id}>
-                        {trainee.full_name} (Trainee)
-                      </SelectItem>
-                    ))}
-                    {trainers.map((trainer: any) => (
-                      <SelectItem key={trainer.id} value={trainer.id}>
-                        {trainer.full_name} (Trainer)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="text-muted-foreground text-sm">Date</Label>
+              <p className="font-medium">{selectedComplaint?.date && new Date(selectedComplaint.date).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground text-sm">Complaint To</Label>
+              <p className="font-medium">{selectedComplaint?.recipient_name}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground text-sm">Complaint</Label>
+              <p className="font-medium whitespace-pre-wrap">{selectedComplaint?.complaint_text}</p>
+            </div>
+            {selectedComplaint?.reply && (
+              <div>
+                <Label className="text-muted-foreground text-sm">Reply</Label>
+                <p className="font-medium whitespace-pre-wrap">{selectedComplaint.reply}</p>
               </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseViewDialog}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      {/* Reply Dialog */}
+      <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Reply to Complaint</DialogTitle>
+            <DialogDescription>
+              Responding to {selectedComplaint?.trainee_name}'s complaint
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmitReply}>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label className="text-muted-foreground text-sm">Original Complaint</Label>
+                <p className="text-sm bg-muted p-3 rounded-md mt-1">{selectedComplaint?.complaint_text}</p>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="complaint_description">Complaint Description</Label>
+                <Label htmlFor="reply">Your Reply</Label>
                 <Textarea
-                  id="complaint_description"
-                  value={formData.complaint_description}
-                  onChange={(e) => setFormData({ ...formData, complaint_description: e.target.value })}
+                  id="reply"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Enter your reply to the trainee..."
                   rows={4}
                   required
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>
+              <Button type="button" variant="outline" onClick={handleCloseReplyDialog}>
                 Cancel
               </Button>
-              <Button type="submit">Submit Complaint</Button>
+              <Button type="submit" disabled={replyMutation.isPending}>
+                {replyMutation.isPending ? 'Sending...' : 'Send Reply'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
