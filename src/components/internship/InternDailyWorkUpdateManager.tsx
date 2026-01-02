@@ -27,43 +27,35 @@ const InternDailyWorkUpdateManager = () => {
       if (updatesError) throw updatesError;
       if (!updatesData || updatesData.length === 0) return [];
 
-      // Get user_ids from updates
+      // NOTE: We intentionally do NOT rely on user_login here because it can be RLS-restricted.
+      // Daily updates for interns store the intern's internship_candidates.id in daily_work_updates.user_id.
       const userIds = updatesData.map((u) => u.user_id).filter(Boolean);
+      const placeholderId = "00000000-0000-0000-0000-000000000000";
 
-      // Check user_login to find interns - match by original_id
-      const { data: userLogins } = await supabase
-        .from("user_login")
-        .select("email, original_id, user_type")
-        .eq("user_type", "internship_candidate")
-        .in("original_id", userIds);
-
-      // Get intern names
-      const internIds = userLogins?.map((ul) => ul.original_id).filter(Boolean) || [];
-      const { data: interns } = await supabase
+      const { data: interns, error: internsError } = await supabase
         .from("internship_candidates")
         .select("id, name")
-        .in("id", internIds.length > 0 ? internIds : ["00000000-0000-0000-0000-000000000000"]);
+        .in("id", userIds.length > 0 ? userIds : [placeholderId]);
 
-      // Create maps
-      const originalIdToUserType = new Map(userLogins?.map((ul) => [ul.original_id, ul.user_type]) || []);
+      if (internsError) throw internsError;
+
       const internNameMap = new Map(interns?.map((i) => [i.id, i.name]) || []);
 
       // Filter and enrich updates for interns only
       const internUpdates: InternDailyUpdate[] = [];
 
       for (const update of updatesData) {
-        // Check if user_id is an intern original_id
-        if (originalIdToUserType.get(update.user_id) === "internship_candidate") {
-          const internName = internNameMap.get(update.user_id) || "Unknown";
-          internUpdates.push({
-            id: update.id,
-            date: update.date,
-            work_description: update.work_description,
-            hours_spent: update.hours_spent,
-            status: update.status,
-            intern_name: internName,
-          });
-        }
+        const internName = internNameMap.get(update.user_id);
+        if (!internName) continue;
+
+        internUpdates.push({
+          id: update.id,
+          date: update.date,
+          work_description: update.work_description,
+          hours_spent: update.hours_spent,
+          status: update.status,
+          intern_name: internName,
+        });
       }
 
       return internUpdates;

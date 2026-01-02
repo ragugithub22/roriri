@@ -27,43 +27,35 @@ export default function DailyWorkUpdateManager() {
       if (updatesError) throw updatesError;
       if (!updatesData || updatesData.length === 0) return [];
 
-      // Get user_ids from updates
+      // NOTE: We intentionally do NOT rely on user_login here because it can be RLS-restricted.
+      // Daily updates for trainees store the trainee's student.id in daily_work_updates.user_id.
       const userIds = updatesData.map((u) => u.user_id).filter(Boolean);
+      const placeholderId = "00000000-0000-0000-0000-000000000000";
 
-      // Check user_login to find students (trainees) - match by original_id
-      const { data: userLogins } = await supabase
-        .from("user_login")
-        .select("email, original_id, user_type")
-        .eq("user_type", "student")
-        .in("original_id", userIds);
-
-      // Get student names
-      const studentIds = userLogins?.map((ul) => ul.original_id).filter(Boolean) || [];
-      const { data: students } = await supabase
+      const { data: students, error: studentsError } = await supabase
         .from("students")
         .select("id, full_name")
-        .in("id", studentIds.length > 0 ? studentIds : ["00000000-0000-0000-0000-000000000000"]);
+        .in("id", userIds.length > 0 ? userIds : [placeholderId]);
 
-      // Create maps
-      const originalIdToUserType = new Map(userLogins?.map((ul) => [ul.original_id, ul.user_type]) || []);
+      if (studentsError) throw studentsError;
+
       const studentNameMap = new Map(students?.map((s) => [s.id, s.full_name]) || []);
 
       // Filter and enrich updates for trainees only
       const traineeUpdates: TraineeDailyUpdate[] = [];
 
       for (const update of updatesData) {
-        // Check if user_id is a student original_id
-        if (originalIdToUserType.get(update.user_id) === "student") {
-          const traineeName = studentNameMap.get(update.user_id) || "Unknown";
-          traineeUpdates.push({
-            id: update.id,
-            date: update.date,
-            work_description: update.work_description,
-            hours_spent: update.hours_spent,
-            status: update.status,
-            trainee_name: traineeName,
-          });
-        }
+        const traineeName = studentNameMap.get(update.user_id);
+        if (!traineeName) continue;
+
+        traineeUpdates.push({
+          id: update.id,
+          date: update.date,
+          work_description: update.work_description,
+          hours_spent: update.hours_spent,
+          status: update.status,
+          trainee_name: traineeName,
+        });
       }
 
       return traineeUpdates;
