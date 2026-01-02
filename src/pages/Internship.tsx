@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, MessageSquare, BookOpen, CreditCard, FileText, MessageCircle, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, MessageSquare, BookOpen, CreditCard, FileText, MessageCircle, ArrowLeft, ClipboardList } from "lucide-react";
 import CandidatePage from "./internship/CandidatePage";
 import EnquiryPage from "./internship/EnquiryPage";
 import CoursePage from "./internship/CoursePage";
@@ -8,6 +8,7 @@ import IDCardPage from "./internship/IDCardPage";
 import ChatBoxPage from "./internship/ChatBoxPage";
 import InternshipDashboard from "./internship/InternshipDashboard";
 import InternDetails from "./internship/InternDetails";
+import ITDailyWorkUpdateManager from "@/components/it-company/ITDailyWorkUpdateManager";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +19,7 @@ const internshipItems = [
   { id: "course", label: "Course", icon: BookOpen },
   { id: "payment-report", label: "Payment Report", icon: CreditCard },
   { id: "id-card", label: "ID Card Details", icon: FileText },
+  { id: "daily-work-update", label: "Daily Work Update", icon: ClipboardList },
   { id: "chat", label: "Chat Box", icon: MessageCircle },
 ];
 
@@ -57,6 +59,8 @@ const Internship = () => {
         return <IDCardPage />;
       case "chat":
         return <ChatBoxPage />;
+      case "daily-work-update":
+        return <ITDailyWorkUpdateManager />;
       default:
         return <InternshipDashboard />;
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle, LogOut, AlertCircle } from "lucide-react";
+import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle, LogOut, AlertCircle, ClipboardList } from "lucide-react";
 import ITComplaintsManager from "@/components/it-company/ITComplaintsManager";
+import ITDailyWorkUpdateManager from "@/components/it-company/ITDailyWorkUpdateManager";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +47,7 @@ const sidebarItems = [
   { id: "internship", label: "Internship", icon: Code },
   { id: "enquiry-details", label: "Enquiry Details", icon: FileText },
   { id: "coordinator", label: "Coordinator", icon: Target },
+  { id: "daily-work-update", label: "Daily Work Update", icon: ClipboardList },
   { id: "complaints", label: "Complaints", icon: AlertCircle },
 ];
 
@@ -100,6 +102,8 @@ const ITDashboard = () => {
         return <MOU />;
       case "meeting-details":
         return <MeetingDetails />;
+      case "daily-work-update":
+        return <ITDailyWorkUpdateManager />;
       case "complaints":
         return <ITComplaintsManager />;
       default:
