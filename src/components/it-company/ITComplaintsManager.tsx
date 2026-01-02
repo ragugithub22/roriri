@@ -62,14 +62,14 @@ const ITComplaintsManager = () => {
         .select("id, name")
         .in("id", senderIds.length > 0 ? senderIds : [placeholderId]);
 
-      // Fetch employees (senders who are employees)
-      const { data: employeeSenders } = await supabase
+      // Fetch employees - employees use profile_id as complaint_from
+      const { data: employees } = await supabase
         .from("employees")
         .select("id, profile_id")
-        .in("id", senderIds.length > 0 ? senderIds : [placeholderId]);
+        .in("profile_id", senderIds.length > 0 ? senderIds : [placeholderId]);
 
       // Get profile IDs for employee senders
-      const senderProfileIds = employeeSenders?.map((e: any) => e.profile_id).filter(Boolean) || [];
+      const senderProfileIds = employees?.map((e: any) => e.profile_id).filter(Boolean) || [];
 
       // Fetch profiles for employee senders
       const { data: senderProfiles } = await supabase
@@ -77,7 +77,7 @@ const ITComplaintsManager = () => {
         .select("id, full_name")
         .in("id", senderProfileIds.length > 0 ? senderProfileIds : [placeholderId]);
 
-      // Fetch employees (recipients)
+      // Fetch recipient employees
       const { data: recipientEmployees } = await supabase
         .from("employees")
         .select("id, profile_id")
@@ -94,7 +94,8 @@ const ITComplaintsManager = () => {
 
       // Create lookup maps
       const internMap = new Map(interns?.map((i: any) => [i.id, i.name]) || []);
-      const employeeSenderProfileMap = new Map(employeeSenders?.map((e: any) => [e.id, e.profile_id]) || []);
+      // Map profile_id to employee info for matching complaint_from
+      const employeeByProfileId = new Map(employees?.map((e: any) => [e.profile_id, e]) || []);
       const senderProfileMap = new Map(senderProfiles?.map((p: any) => [p.id, p.full_name]) || []);
       const recipientEmployeeProfileMap = new Map(recipientEmployees?.map((e: any) => [e.id, e.profile_id]) || []);
       const recipientProfileMap = new Map(recipientProfiles?.map((p: any) => [p.id, p.full_name]) || []);
@@ -103,12 +104,12 @@ const ITComplaintsManager = () => {
       const enrichedComplaints = complaintsData
         .filter((complaint: any) => {
           const isIntern = internMap.has(complaint.complaint_from);
-          const isEmployee = employeeSenderProfileMap.has(complaint.complaint_from);
+          const isEmployee = employeeByProfileId.has(complaint.complaint_from);
           return isIntern || isEmployee;
         })
         .map((complaint: any) => {
           const isIntern = internMap.has(complaint.complaint_from);
-          const isEmployee = employeeSenderProfileMap.has(complaint.complaint_from);
+          const isEmployee = employeeByProfileId.has(complaint.complaint_from);
           
           let senderName = 'Unknown';
           let senderType = 'Unknown';
@@ -117,8 +118,7 @@ const ITComplaintsManager = () => {
             senderName = internMap.get(complaint.complaint_from) || 'Unknown';
             senderType = 'Intern';
           } else if (isEmployee) {
-            const profileId = employeeSenderProfileMap.get(complaint.complaint_from);
-            senderName = senderProfileMap.get(profileId) || 'Unknown';
+            senderName = senderProfileMap.get(complaint.complaint_from) || 'Unknown';
             senderType = 'Employee';
           }
           
