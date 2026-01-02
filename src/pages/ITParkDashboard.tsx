@@ -26,6 +26,7 @@ import IndustrialVisitNormalVisitors from "@/pages/IndustrialVisitNormalVisitors
 import IndustrialVisitPaymentReport from "@/pages/IndustrialVisitPaymentReport";
 import LetterManagement from "@/pages/LetterManagement";
 import ChatBox from "@/components/chat/ChatBox";
+import UsersManager from "@/components/it-park/UsersManager";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ const pageComponents: Record<string, ComponentType | null> = {
   "/entities": EntitiesManagement,
   "/letters": LetterManagement,
   "/chat": ChatBox,
+  "/users": UsersManager,
   "/industrial-visit": IndustrialVisit,
   "/industrial-visit/enquiry": IndustrialVisitEnquiry,
   "/industrial-visit/visitors": IndustrialVisitVisitors,

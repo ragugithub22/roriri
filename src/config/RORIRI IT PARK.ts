@@ -1,4 +1,4 @@
-import { LucideIcon, Users, Building2, Briefcase, GraduationCap, Heart, Sprout, ShoppingCart, Factory, Laptop, Plane, BarChart3, Settings, FileText, Shield, LogOut, FileCheck, Home, Package, MessageCircle } from "lucide-react";
+import { LucideIcon, Users, UserCog, Building2, Briefcase, GraduationCap, Heart, Sprout, ShoppingCart, Factory, Laptop, Plane, BarChart3, Settings, FileText, Shield, LogOut, FileCheck, Home, Package, MessageCircle } from "lucide-react";
 
 export interface NavigationItem {
   label: string;
@@ -66,6 +66,12 @@ export const navigationItems: NavigationItem[] = [
     label: "Chat Box",
     path: "/chat",
     icon: MessageCircle,
+    adminOnly: true
+  },
+  {
+    label: "Users",
+    path: "/users",
+    icon: UserCog,
     adminOnly: true
   },
   {
