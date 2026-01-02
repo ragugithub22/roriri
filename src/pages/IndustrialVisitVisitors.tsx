@@ -13,17 +13,16 @@ import {
 } from "@/components/ui/table";
 import { Eye, ArrowLeft } from "lucide-react";
 
-interface IndustrialVisit {
+interface IndustrialVisitRegistration {
   id: string;
-  college_name: string;
-  department: string;
-  date: string;
-  mobile: string | null;
+  full_name: string;
+  mobile: string;
+  email: string | null;
+  college_name: string | null;
+  department: string | null;
   address: string | null;
-  amount: number | null;
-  students_count: number;
-  staff_count: number;
-  status: string;
+  visitor_type: string;
+  purpose_of_visit: string;
   created_at: string | null;
 }
 
@@ -35,15 +34,15 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: visitors = [] } = useQuery({
-    queryKey: ["industrial-visit-visitors"],
+    queryKey: ["industrial-visit-registrations"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("industrial_visit_visitors")
+        .from("industrial_visit_registrations")
         .select("*")
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return (data || []) as IndustrialVisit[];
+      return (data || []) as IndustrialVisitRegistration[];
     },
   });
 
@@ -53,15 +52,16 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
     }
   };
 
-  const handleView = (visitor: IndustrialVisit) => {
+  const handleView = (visitor: IndustrialVisitRegistration) => {
     if (onNavigate) {
       onNavigate(`/industrial-visit-visitor-details/${visitor.id}`);
     }
   };
 
   const filteredVisitors = visitors.filter((visitor) =>
-    visitor.college_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    visitor.department.toLowerCase().includes(searchTerm.toLowerCase())
+    (visitor.full_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (visitor.college_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (visitor.department?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -101,18 +101,17 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
               <TableRow>
                 <TableHead>S. No</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>College Name</TableHead>
-                <TableHead>Department</TableHead>
+                <TableHead>Full Name</TableHead>
+                <TableHead>Visitor Type</TableHead>
                 <TableHead>Mobile No</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>College Name</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredVisitors.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No data available in table
                   </TableCell>
                 </TableRow>
@@ -120,12 +119,11 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
                 filteredVisitors.map((visitor, index) => (
                   <TableRow key={visitor.id}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{new Date(visitor.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{visitor.college_name}</TableCell>
-                    <TableCell>{visitor.department}</TableCell>
+                    <TableCell>{visitor.created_at ? new Date(visitor.created_at).toLocaleDateString() : "-"}</TableCell>
+                    <TableCell>{visitor.full_name}</TableCell>
+                    <TableCell>{visitor.visitor_type?.replace("_", " ") || "-"}</TableCell>
                     <TableCell>{visitor.mobile || "-"}</TableCell>
-                    <TableCell>{visitor.address || "-"}</TableCell>
-                    <TableCell>₹{(visitor.amount || 0).toLocaleString()}</TableCell>
+                    <TableCell>{visitor.college_name || "-"}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
