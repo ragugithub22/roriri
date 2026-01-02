@@ -142,9 +142,9 @@ const ITDailyWorkUpdateManager = () => {
         })
       );
 
-      // Filter to only show Employee and Intern updates
+      // Filter to only show Employee updates (profile user_type)
       return enrichedUpdates.filter(
-        (u) => u.sender_type === "Employee" || u.sender_type === "Intern"
+        (u) => u.sender_type === "Employee"
       ) as DailyUpdate[];
     },
   });
@@ -180,7 +180,6 @@ const ITDailyWorkUpdateManager = () => {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead>Work Description</TableHead>
                 <TableHead>Hours</TableHead>
                 <TableHead>Status</TableHead>
@@ -193,11 +192,6 @@ const ITDailyWorkUpdateManager = () => {
                     {format(new Date(update.date), "dd MMM yyyy")}
                   </TableCell>
                   <TableCell>{update.sender_name}</TableCell>
-                  <TableCell>
-                    <Badge variant={update.sender_type === "Intern" ? "secondary" : "outline"}>
-                      {update.sender_type}
-                    </Badge>
-                  </TableCell>
                   <TableCell className="max-w-xs truncate">
                     {update.work_description}
                   </TableCell>

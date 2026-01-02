@@ -8,7 +8,7 @@ import IDCardPage from "./internship/IDCardPage";
 import ChatBoxPage from "./internship/ChatBoxPage";
 import InternshipDashboard from "./internship/InternshipDashboard";
 import InternDetails from "./internship/InternDetails";
-import ITDailyWorkUpdateManager from "@/components/it-company/ITDailyWorkUpdateManager";
+import InternDailyWorkUpdateManager from "@/components/internship/InternDailyWorkUpdateManager";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -60,7 +60,7 @@ const Internship = () => {
       case "chat":
         return <ChatBoxPage />;
       case "daily-work-update":
-        return <ITDailyWorkUpdateManager />;
+        return <InternDailyWorkUpdateManager />;
       default:
         return <InternshipDashboard />;
     }
