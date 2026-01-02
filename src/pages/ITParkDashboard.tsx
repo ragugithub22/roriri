@@ -78,6 +78,7 @@ export default function ITParkDashboard() {
   const [selectedResidentType, setSelectedResidentType] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string>("");
   const [selectedVisitGroup, setSelectedVisitGroup] = useState<{
     date: string;
     collegeName: string | null;
@@ -305,11 +306,18 @@ export default function ITParkDashboard() {
                 selectedUserId ? (
                   <UserModulesPage
                     userId={selectedUserId}
-                    onBack={() => setSelectedUserId(null)}
+                    userName={selectedUserName}
+                    onBack={() => {
+                      setSelectedUserId(null);
+                      setSelectedUserName("");
+                    }}
                   />
                 ) : (
                   <UsersManager
-                    onViewUser={(id) => setSelectedUserId(id)}
+                    onViewUser={(id, name) => {
+                      setSelectedUserId(id);
+                      setSelectedUserName(name || "");
+                    }}
                   />
                 )
               ) : ActiveComponent ? (

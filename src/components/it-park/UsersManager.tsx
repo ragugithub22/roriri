@@ -84,7 +84,7 @@ const userTypes = [
 ];
 
 interface UsersManagerProps {
-  onViewUser?: (userId: string) => void;
+  onViewUser?: (userId: string, userName?: string) => void;
 }
 
 export default function UsersManager({ onViewUser }: UsersManagerProps) {
@@ -461,7 +461,7 @@ export default function UsersManager({ onViewUser }: UsersManagerProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => onViewUser?.(user.id)}
+                            onClick={() => onViewUser?.(user.id, user.name)}
                             title="View Modules"
                           >
                             <Eye className="h-4 w-4" />
