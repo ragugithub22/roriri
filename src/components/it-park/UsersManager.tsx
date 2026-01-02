@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,8 +83,11 @@ const userTypes = [
   { value: "others", label: "Others" },
 ];
 
-export default function UsersManager() {
-  const navigate = useNavigate();
+interface UsersManagerProps {
+  onViewUser?: (userId: string) => void;
+}
+
+export default function UsersManager({ onViewUser }: UsersManagerProps) {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -459,7 +461,7 @@ export default function UsersManager() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/it-park/user/${user.id}/modules`)}
+                            onClick={() => onViewUser?.(user.id)}
                             title="View Modules"
                           >
                             <Eye className="h-4 w-4" />

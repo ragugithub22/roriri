@@ -27,6 +27,7 @@ import IndustrialVisitPaymentReport from "@/pages/IndustrialVisitPaymentReport";
 import LetterManagement from "@/pages/LetterManagement";
 import ChatBox from "@/components/chat/ChatBox";
 import UsersManager from "@/components/it-park/UsersManager";
+import UserModulesPage from "@/pages/UserModulesPage";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,7 @@ export default function ITParkDashboard() {
   const [selectedResidentId, setSelectedResidentId] = useState<string | null>(null);
   const [selectedResidentType, setSelectedResidentType] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
     queryKey: ['is-admin', (user as any)?.id || (user as any)?.userId],
@@ -291,6 +293,17 @@ export default function ITParkDashboard() {
                 ) : (
                   <EmployeeList
                     onViewEmployee={(id) => setSelectedEmployeeId(id)}
+                  />
+                )
+              ) : activeItem?.path === "/users" ? (
+                selectedUserId ? (
+                  <UserModulesPage
+                    userId={selectedUserId}
+                    onBack={() => setSelectedUserId(null)}
+                  />
+                ) : (
+                  <UsersManager
+                    onViewUser={(id) => setSelectedUserId(id)}
                   />
                 )
               ) : ActiveComponent ? (
