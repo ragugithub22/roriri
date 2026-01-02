@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle, LogOut } from "lucide-react";
+import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle, LogOut, AlertCircle } from "lucide-react";
+import ITComplaintsManager from "@/components/it-company/ITComplaintsManager";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,6 +46,7 @@ const sidebarItems = [
   { id: "internship", label: "Internship", icon: Code },
   { id: "enquiry-details", label: "Enquiry Details", icon: FileText },
   { id: "coordinator", label: "Coordinator", icon: Target },
+  { id: "complaints", label: "Complaints", icon: AlertCircle },
 ];
 
 const ITDashboard = () => {
@@ -98,6 +100,8 @@ const ITDashboard = () => {
         return <MOU />;
       case "meeting-details":
         return <MeetingDetails />;
+      case "complaints":
+        return <ITComplaintsManager />;
       default:
         return <DashboardContent />;
     }
