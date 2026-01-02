@@ -34,11 +34,12 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: visitors = [] } = useQuery({
-    queryKey: ["industrial-visit-registrations"],
+    queryKey: ["industrial-visit-registrations-only"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("industrial_visit_registrations")
         .select("*")
+        .eq("visitor_type", "industrial_visit")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
