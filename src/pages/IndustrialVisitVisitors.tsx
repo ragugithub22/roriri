@@ -11,6 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Eye, ArrowLeft } from "lucide-react";
 
 interface IndustrialVisitRegistration {
@@ -26,12 +32,22 @@ interface IndustrialVisitRegistration {
   created_at: string | null;
 }
 
+interface GroupedVisit {
+  date: string;
+  college_name: string | null;
+  address: string | null;
+  visitor_type: string;
+  count: number;
+}
+
 interface IndustrialVisitVisitorsProps {
   onNavigate?: (path: string) => void;
 }
 
 export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitVisitorsProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState<GroupedVisit | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: visitors = [] } = useQuery({
     queryKey: ["industrial-visit-registrations-only"],
@@ -47,22 +63,81 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
     },
   });
 
+  // Group visitors by date, college_name, and address
+  const groupedVisitors: GroupedVisit[] = visitors.reduce((acc: GroupedVisit[], visitor) => {
+    const date = visitor.created_at ? new Date(visitor.created_at).toLocaleDateString() : "-";
+    const existingGroup = acc.find(
+      g => g.date === date && 
+           g.college_name === visitor.college_name && 
+           g.address === visitor.address
+    );
+    
+    if (existingGroup) {
+      existingGroup.count++;
+    } else {
+      acc.push({
+        date,
+        college_name: visitor.college_name,
+        address: visitor.address,
+        visitor_type: visitor.visitor_type,
+        count: 1,
+      });
+    }
+    return acc;
+  }, []);
+
+  // Fetch records matching the selected group
+  const { data: groupRecords = [] } = useQuery({
+    queryKey: ["industrial-visit-group", selectedGroup?.date, selectedGroup?.college_name, selectedGroup?.address],
+    queryFn: async () => {
+      if (!selectedGroup) return [];
+      
+      let query = supabase
+        .from("industrial_visit_registrations")
+        .select("*")
+        .eq("visitor_type", "industrial_visit");
+
+      // Filter by college_name
+      if (selectedGroup.college_name) {
+        query = query.eq("college_name", selectedGroup.college_name);
+      } else {
+        query = query.is("college_name", null);
+      }
+
+      // Filter by address
+      if (selectedGroup.address) {
+        query = query.eq("address", selectedGroup.address);
+      } else {
+        query = query.is("address", null);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      
+      // Filter by date on client side since we're comparing formatted dates
+      return (data || []).filter((record: IndustrialVisitRegistration) => {
+        const recordDate = record.created_at ? new Date(record.created_at).toLocaleDateString() : "-";
+        return recordDate === selectedGroup.date;
+      }) as IndustrialVisitRegistration[];
+    },
+    enabled: !!selectedGroup,
+  });
+
   const handleBack = () => {
     if (onNavigate) {
       onNavigate("/industrial-visit");
     }
   };
 
-  const handleView = (visitor: IndustrialVisitRegistration) => {
-    if (onNavigate) {
-      onNavigate(`/industrial-visit-visitor-details/${visitor.id}`);
-    }
+  const handleView = (group: GroupedVisit) => {
+    setSelectedGroup(group);
+    setIsDialogOpen(true);
   };
 
-  const filteredVisitors = visitors.filter((visitor) =>
-    (visitor.full_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-    (visitor.college_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-    (visitor.department?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+  const filteredVisitors = groupedVisitors.filter((group) =>
+    (group.college_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (group.address?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -102,34 +177,32 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
               <TableRow>
                 <TableHead>S. No</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Full Name</TableHead>
                 <TableHead>Visitor Type</TableHead>
-                <TableHead>Mobile No</TableHead>
                 <TableHead>College Name</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredVisitors.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No data available in table
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredVisitors.map((visitor, index) => (
-                  <TableRow key={visitor.id}>
+                filteredVisitors.map((group, index) => (
+                  <TableRow key={`${group.date}-${group.college_name}-${group.address}-${index}`}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{visitor.created_at ? new Date(visitor.created_at).toLocaleDateString() : "-"}</TableCell>
-                    <TableCell>{visitor.full_name}</TableCell>
-                    <TableCell>{visitor.visitor_type?.replace("_", " ") || "-"}</TableCell>
-                    <TableCell>{visitor.mobile || "-"}</TableCell>
-                    <TableCell>{visitor.college_name || "-"}</TableCell>
+                    <TableCell>{group.date}</TableCell>
+                    <TableCell>{group.visitor_type?.replace("_", " ") || "-"}</TableCell>
+                    <TableCell>{group.college_name || "-"}</TableCell>
+                    <TableCell>{group.address || "-"}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleView(visitor)}
+                        onClick={() => handleView(group)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -149,6 +222,56 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
           </div>
         </div>
       </div>
+
+      {/* Dialog to show grouped records */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Industrial Visit Records
+              {selectedGroup && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  ({selectedGroup.date} - {selectedGroup.college_name || "N/A"})
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>S. No</TableHead>
+                  <TableHead>Full Name</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Purpose of Visit</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {groupRecords.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No records found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  groupRecords.map((record, index) => (
+                    <TableRow key={record.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{record.full_name}</TableCell>
+                      <TableCell>{record.mobile || "-"}</TableCell>
+                      <TableCell>{record.email || "-"}</TableCell>
+                      <TableCell>{record.department || "-"}</TableCell>
+                      <TableCell>{record.purpose_of_visit || "-"}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
