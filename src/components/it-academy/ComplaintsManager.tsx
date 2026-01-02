@@ -30,7 +30,7 @@ export default function ComplaintsManager() {
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  // Fetch complaints raised by trainees (complaint_from is a student id)
+  // Fetch complaints raised by trainees (from students or internship_candidates)
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: ["academy-complaints-from-trainees"],
     queryFn: async () => {
@@ -41,48 +41,59 @@ export default function ComplaintsManager() {
         .order("created_at", { ascending: false });
       
       if (complaintsError) throw complaintsError;
-      if (!complaintsData) return [];
+      if (!complaintsData || complaintsData.length === 0) return [];
 
-      // Get all student IDs from complaints
-      const studentIds = complaintsData
+      // Get all sender IDs from complaints
+      const senderIds = complaintsData
         .map((c: any) => c.complaint_from)
         .filter((id: string | null) => id !== null);
 
-      // Get all employee IDs from complaints
-      const employeeIds = complaintsData
+      // Get all recipient IDs from complaints
+      const recipientIds = complaintsData
         .map((c: any) => c.complaint_to)
         .filter((id: string | null) => id !== null);
 
-      // Fetch students (trainees)
+      const placeholderId = '00000000-0000-0000-0000-000000000000';
+
+      // Fetch students (IT Academy trainees)
       const { data: students } = await supabase
         .from("students")
         .select("id, full_name")
-        .in("id", studentIds.length > 0 ? studentIds : ['00000000-0000-0000-0000-000000000000']);
+        .in("id", senderIds.length > 0 ? senderIds : [placeholderId]);
 
-      // Fetch employees
+      // Fetch internship candidates (interns)
+      const { data: interns } = await supabase
+        .from("internship_candidates")
+        .select("id, name")
+        .in("id", senderIds.length > 0 ? senderIds : [placeholderId]);
+
+      // Fetch employees (recipients)
       const { data: employees } = await supabase
         .from("employees")
         .select("id, profile_id")
-        .in("id", employeeIds.length > 0 ? employeeIds : ['00000000-0000-0000-0000-000000000000']);
+        .in("id", recipientIds.length > 0 ? recipientIds : [placeholderId]);
 
       // Get profile names for employees
       const profileIds = employees?.map((e: any) => e.profile_id).filter(Boolean) || [];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, full_name")
-        .in("id", profileIds.length > 0 ? profileIds : ['00000000-0000-0000-0000-000000000000']);
+        .in("id", profileIds.length > 0 ? profileIds : [placeholderId]);
 
       // Create lookup maps
       const studentMap = new Map(students?.map((s: any) => [s.id, s.full_name]) || []);
+      const internMap = new Map(interns?.map((i: any) => [i.id, i.name]) || []);
       const employeeProfileMap = new Map(employees?.map((e: any) => [e.id, e.profile_id]) || []);
       const profileMap = new Map(profiles?.map((p: any) => [p.id, p.full_name]) || []);
 
-      // Filter only complaints from trainees (students) and enrich with names
+      // Enrich complaints with names - include complaints from students OR interns
       const enrichedComplaints = complaintsData
-        .filter((complaint: any) => studentMap.has(complaint.complaint_from))
+        .filter((complaint: any) => 
+          studentMap.has(complaint.complaint_from) || internMap.has(complaint.complaint_from)
+        )
         .map((complaint: any) => ({
           ...complaint,
-          trainee_name: studentMap.get(complaint.complaint_from) || 'Unknown',
+          trainee_name: studentMap.get(complaint.complaint_from) || internMap.get(complaint.complaint_from) || 'Unknown',
           recipient_name: profileMap.get(employeeProfileMap.get(complaint.complaint_to) || '') || 'Unknown'
         }));
 
