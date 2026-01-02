@@ -21,6 +21,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import IndustrialVisit from "@/pages/IndustrialVisit";
 import IndustrialVisitEnquiry from "@/pages/IndustrialVisitEnquiry";
 import IndustrialVisitVisitors from "@/pages/IndustrialVisitVisitors";
+import IndustrialVisitGroupDetails from "@/pages/IndustrialVisitGroupDetails";
 import IndustrialVisitInterviews from "@/pages/IndustrialVisitInterviews";
 import IndustrialVisitNormalVisitors from "@/pages/IndustrialVisitNormalVisitors";
 import IndustrialVisitPaymentReport from "@/pages/IndustrialVisitPaymentReport";
@@ -77,6 +78,11 @@ export default function ITParkDashboard() {
   const [selectedResidentType, setSelectedResidentType] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedVisitGroup, setSelectedVisitGroup] = useState<{
+    date: string;
+    collegeName: string | null;
+    address: string | null;
+  } | null>(null);
 
   const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
     queryKey: ['is-admin', (user as any)?.id || (user as any)?.userId],
@@ -312,7 +318,19 @@ export default function ITParkDashboard() {
                 ) : ActiveComponent === IndustrialVisitEnquiry ? (
                   <IndustrialVisitEnquiry onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
                 ) : ActiveComponent === IndustrialVisitVisitors ? (
-                  <IndustrialVisitVisitors onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
+                  selectedVisitGroup ? (
+                    <IndustrialVisitGroupDetails
+                      date={selectedVisitGroup.date}
+                      collegeName={selectedVisitGroup.collegeName}
+                      address={selectedVisitGroup.address}
+                      onBack={() => setSelectedVisitGroup(null)}
+                    />
+                  ) : (
+                    <IndustrialVisitVisitors
+                      onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)}
+                      onViewGroup={(date, collegeName, address) => setSelectedVisitGroup({ date, collegeName, address })}
+                    />
+                  )
                 ) : ActiveComponent === IndustrialVisitInterviews ? (
                   <IndustrialVisitInterviews onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />
                 ) : ActiveComponent === IndustrialVisitNormalVisitors ? (
@@ -329,7 +347,19 @@ export default function ITParkDashboard() {
                     return <IndustrialVisitEnquiry onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
                   }
                   if (SubComponent === IndustrialVisitVisitors) {
-                    return <IndustrialVisitVisitors onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;
+                    return selectedVisitGroup ? (
+                      <IndustrialVisitGroupDetails
+                        date={selectedVisitGroup.date}
+                        collegeName={selectedVisitGroup.collegeName}
+                        address={selectedVisitGroup.address}
+                        onBack={() => setSelectedVisitGroup(null)}
+                      />
+                    ) : (
+                      <IndustrialVisitVisitors
+                        onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)}
+                        onViewGroup={(date, collegeName, address) => setSelectedVisitGroup({ date, collegeName, address })}
+                      />
+                    );
                   }
                   if (SubComponent === IndustrialVisitInterviews) {
                     return <IndustrialVisitInterviews onNavigate={(path) => setActiveItem({ path, label: path, icon: Building2 } as NavigationItem)} />;

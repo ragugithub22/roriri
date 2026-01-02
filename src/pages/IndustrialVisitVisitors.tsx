@@ -11,12 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Eye, ArrowLeft } from "lucide-react";
 
 interface IndustrialVisitRegistration {
@@ -42,12 +36,11 @@ interface GroupedVisit {
 
 interface IndustrialVisitVisitorsProps {
   onNavigate?: (path: string) => void;
+  onViewGroup?: (date: string, collegeName: string | null, address: string | null) => void;
 }
 
-export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitVisitorsProps) {
+export default function IndustrialVisitVisitors({ onNavigate, onViewGroup }: IndustrialVisitVisitorsProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState<GroupedVisit | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: visitors = [] } = useQuery({
     queryKey: ["industrial-visit-registrations-only"],
@@ -86,44 +79,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
     return acc;
   }, []);
 
-  // Fetch records matching the selected group
-  const { data: groupRecords = [] } = useQuery({
-    queryKey: ["industrial-visit-group", selectedGroup?.date, selectedGroup?.college_name, selectedGroup?.address],
-    queryFn: async () => {
-      if (!selectedGroup) return [];
-      
-      let query = supabase
-        .from("industrial_visit_registrations")
-        .select("*")
-        .eq("visitor_type", "industrial_visit");
-
-      // Filter by college_name
-      if (selectedGroup.college_name) {
-        query = query.eq("college_name", selectedGroup.college_name);
-      } else {
-        query = query.is("college_name", null);
-      }
-
-      // Filter by address
-      if (selectedGroup.address) {
-        query = query.eq("address", selectedGroup.address);
-      } else {
-        query = query.is("address", null);
-      }
-
-      const { data, error } = await query.order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      
-      // Filter by date on client side since we're comparing formatted dates
-      return (data || []).filter((record: IndustrialVisitRegistration) => {
-        const recordDate = record.created_at ? new Date(record.created_at).toLocaleDateString() : "-";
-        return recordDate === selectedGroup.date;
-      }) as IndustrialVisitRegistration[];
-    },
-    enabled: !!selectedGroup,
-  });
-
   const handleBack = () => {
     if (onNavigate) {
       onNavigate("/industrial-visit");
@@ -131,8 +86,9 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
   };
 
   const handleView = (group: GroupedVisit) => {
-    setSelectedGroup(group);
-    setIsDialogOpen(true);
+    if (onViewGroup) {
+      onViewGroup(group.date, group.college_name, group.address);
+    }
   };
 
   const filteredVisitors = groupedVisitors.filter((group) =>
@@ -222,56 +178,6 @@ export default function IndustrialVisitVisitors({ onNavigate }: IndustrialVisitV
           </div>
         </div>
       </div>
-
-      {/* Dialog to show grouped records */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Industrial Visit Records
-              {selectedGroup && (
-                <span className="text-sm font-normal text-muted-foreground ml-2">
-                  ({selectedGroup.date} - {selectedGroup.college_name || "N/A"})
-                </span>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>S. No</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Purpose of Visit</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupRecords.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No records found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  groupRecords.map((record, index) => (
-                    <TableRow key={record.id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{record.full_name}</TableCell>
-                      <TableCell>{record.mobile || "-"}</TableCell>
-                      <TableCell>{record.email || "-"}</TableCell>
-                      <TableCell>{record.department || "-"}</TableCell>
-                      <TableCell>{record.purpose_of_visit || "-"}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
