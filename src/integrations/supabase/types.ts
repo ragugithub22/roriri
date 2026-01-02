@@ -4305,9 +4305,12 @@ export type Database = {
       }
       user_login: {
         Row: {
+          address: string | null
           created_at: string | null
           email: string
           id: string
+          mobile_number: string | null
+          name: string | null
           original_id: string
           password: string
           updated_at: string | null
@@ -4315,9 +4318,12 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          address?: string | null
           created_at?: string | null
           email: string
           id?: string
+          mobile_number?: string | null
+          name?: string | null
           original_id: string
           password: string
           updated_at?: string | null
@@ -4325,9 +4331,12 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          address?: string | null
           created_at?: string | null
           email?: string
           id?: string
+          mobile_number?: string | null
+          name?: string | null
           original_id?: string
           password?: string
           updated_at?: string | null
