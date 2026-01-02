@@ -77,13 +77,10 @@ const initialFormData: UserFormData = {
 };
 
 const userTypes = [
-  { value: "admin", label: "Admin" },
-  { value: "super_admin", label: "Super Admin" },
-  { value: "employee", label: "Employee" },
-  { value: "trainee", label: "Trainee" },
-  { value: "intern", label: "Intern" },
-  { value: "staff", label: "Staff" },
-  { value: "manager", label: "Manager" },
+  { value: "college", label: "College" },
+  { value: "school", label: "School" },
+  { value: "institute", label: "Institute" },
+  { value: "others", label: "Others" },
 ];
 
 export default function UsersManager() {
