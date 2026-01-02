@@ -91,13 +91,14 @@ export default function UsersManager() {
   const [formData, setFormData] = useState<UserFormData>(initialFormData);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch users from user_login table
+  // Fetch users from user_login table (only College, School, Institute, Others types)
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["it-park-users"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_login")
         .select("*")
+        .in("user_type", ["college", "school", "institute", "others"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -119,6 +120,9 @@ export default function UsersManager() {
           password: data.password,
           user_type: data.user_type,
           original_id: originalId,
+          name: data.name,
+          address: data.address,
+          mobile_number: data.mobile_number,
         })
         .select()
         .single();
@@ -146,6 +150,9 @@ export default function UsersManager() {
           username: data.username,
           password: data.password,
           user_type: data.user_type,
+          name: data.name,
+          address: data.address,
+          mobile_number: data.mobile_number,
         })
         .eq("id", id);
 
@@ -214,17 +221,14 @@ export default function UsersManager() {
 
   const getTypeBadge = (type: string) => {
     const variants: Record<string, string> = {
-      admin: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-      super_admin: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-      employee: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      trainee: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-      intern: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      staff: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-      manager: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
+      college: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      school: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      institute: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+      others: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
     };
     return (
       <Badge className={variants[type] || "bg-gray-100 text-gray-800"}>
-        {type?.replace("_", " ").toUpperCase() || "N/A"}
+        {type?.charAt(0).toUpperCase() + type?.slice(1) || "N/A"}
       </Badge>
     );
   };
@@ -421,17 +425,19 @@ export default function UsersManager() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Created At</TableHead>
+                  <TableHead>Username</TableHead>
+                  <TableHead>Password</TableHead>
+                  <TableHead>Mobile Number</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <p className="text-muted-foreground">No users found</p>
                     </TableCell>
                   </TableRow>
@@ -439,13 +445,13 @@ export default function UsersManager() {
                   filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        {user.username}
+                        {user.name || "-"}
                       </TableCell>
-                      <TableCell>{user.email || "-"}</TableCell>
                       <TableCell>{getTypeBadge(user.user_type)}</TableCell>
-                      <TableCell>
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </TableCell>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.password}</TableCell>
+                      <TableCell>{user.mobile_number || "-"}</TableCell>
+                      <TableCell>{user.address || "-"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
