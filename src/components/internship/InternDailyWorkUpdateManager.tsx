@@ -27,23 +27,15 @@ const InternDailyWorkUpdateManager = () => {
       if (updatesError) throw updatesError;
       if (!updatesData || updatesData.length === 0) return [];
 
-      // Get user_ids
+      // Get user_ids from updates
       const userIds = updatesData.map((u) => u.user_id).filter(Boolean);
 
-      // Find profiles for these user_ids
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .in("id", userIds);
-
-      const profileEmails = profiles?.map((p) => p.email).filter(Boolean) || [];
-
-      // Check user_login to find interns (internship_candidate)
+      // Check user_login to find interns - match by original_id
       const { data: userLogins } = await supabase
         .from("user_login")
         .select("email, original_id, user_type")
         .eq("user_type", "internship_candidate")
-        .in("email", profileEmails.length > 0 ? profileEmails : ["placeholder@example.com"]);
+        .in("original_id", userIds);
 
       // Get intern names
       const internIds = userLogins?.map((ul) => ul.original_id).filter(Boolean) || [];
@@ -53,19 +45,16 @@ const InternDailyWorkUpdateManager = () => {
         .in("id", internIds.length > 0 ? internIds : ["00000000-0000-0000-0000-000000000000"]);
 
       // Create maps
-      const profileEmailMap = new Map(profiles?.map((p) => [p.id, p.email]) || []);
-      const emailToInternId = new Map(userLogins?.map((ul) => [ul.email, ul.original_id]) || []);
+      const originalIdToUserType = new Map(userLogins?.map((ul) => [ul.original_id, ul.user_type]) || []);
       const internNameMap = new Map(interns?.map((i) => [i.id, i.name]) || []);
-      const emailToUserType = new Map(userLogins?.map((ul) => [ul.email, ul.user_type]) || []);
 
       // Filter and enrich updates for interns only
       const internUpdates: InternDailyUpdate[] = [];
 
       for (const update of updatesData) {
-        const email = profileEmailMap.get(update.user_id);
-        if (email && emailToUserType.get(email) === "internship_candidate") {
-          const internId = emailToInternId.get(email);
-          const internName = internId ? internNameMap.get(internId) || "Unknown" : "Unknown";
+        // Check if user_id is an intern original_id
+        if (originalIdToUserType.get(update.user_id) === "internship_candidate") {
+          const internName = internNameMap.get(update.user_id) || "Unknown";
           internUpdates.push({
             id: update.id,
             date: update.date,

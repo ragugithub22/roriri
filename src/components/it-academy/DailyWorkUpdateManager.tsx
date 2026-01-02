@@ -27,23 +27,15 @@ export default function DailyWorkUpdateManager() {
       if (updatesError) throw updatesError;
       if (!updatesData || updatesData.length === 0) return [];
 
-      // Get user_ids
+      // Get user_ids from updates
       const userIds = updatesData.map((u) => u.user_id).filter(Boolean);
 
-      // Find profiles for these user_ids
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, email, full_name")
-        .in("id", userIds);
-
-      const profileEmails = profiles?.map((p) => p.email).filter(Boolean) || [];
-
-      // Check user_login to find students (trainees)
+      // Check user_login to find students (trainees) - match by original_id
       const { data: userLogins } = await supabase
         .from("user_login")
         .select("email, original_id, user_type")
         .eq("user_type", "student")
-        .in("email", profileEmails.length > 0 ? profileEmails : ["placeholder@example.com"]);
+        .in("original_id", userIds);
 
       // Get student names
       const studentIds = userLogins?.map((ul) => ul.original_id).filter(Boolean) || [];
@@ -53,19 +45,16 @@ export default function DailyWorkUpdateManager() {
         .in("id", studentIds.length > 0 ? studentIds : ["00000000-0000-0000-0000-000000000000"]);
 
       // Create maps
-      const profileEmailMap = new Map(profiles?.map((p) => [p.id, p.email]) || []);
-      const emailToStudentId = new Map(userLogins?.map((ul) => [ul.email, ul.original_id]) || []);
+      const originalIdToUserType = new Map(userLogins?.map((ul) => [ul.original_id, ul.user_type]) || []);
       const studentNameMap = new Map(students?.map((s) => [s.id, s.full_name]) || []);
-      const emailToUserType = new Map(userLogins?.map((ul) => [ul.email, ul.user_type]) || []);
 
       // Filter and enrich updates for trainees only
       const traineeUpdates: TraineeDailyUpdate[] = [];
 
       for (const update of updatesData) {
-        const email = profileEmailMap.get(update.user_id);
-        if (email && emailToUserType.get(email) === "student") {
-          const studentId = emailToStudentId.get(email);
-          const traineeName = studentId ? studentNameMap.get(studentId) || "Unknown" : "Unknown";
+        // Check if user_id is a student original_id
+        if (originalIdToUserType.get(update.user_id) === "student") {
+          const traineeName = studentNameMap.get(update.user_id) || "Unknown";
           traineeUpdates.push({
             id: update.id,
             date: update.date,
