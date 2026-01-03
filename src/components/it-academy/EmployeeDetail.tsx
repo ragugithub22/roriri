@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, Phone, Calendar, MapPin, Briefcase } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Calendar, MapPin, Briefcase, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -47,10 +47,24 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
         .maybeSingle();
 
       return { ...data, user_role: roleData?.role };
+    },
+  });
 
+  // Fetch all additional roles for the employee
+  const { data: userRoles } = useQuery({
+    queryKey: ['user-roles', employee?.profile_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          *,
+          entities:entity_id (name)
+        `)
+        .eq('user_id', employee?.profile_id);
       if (error) throw error;
       return data;
     },
+    enabled: !!employee?.profile_id,
   });
 
   if (isLoading) {
@@ -192,6 +206,39 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Additional Roles Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Star className="h-5 w-5" />
+            Additional Roles
+          </CardTitle>
+          <CardDescription>All roles assigned to this employee</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {userRoles && userRoles.length > 0 ? (
+            <div className="space-y-3">
+              {userRoles.map((role: any) => (
+                <div key={role.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <Badge variant="default" className="text-sm">
+                    {role.role?.toUpperCase()}
+                  </Badge>
+                  {role.entities ? (
+                    <Badge variant="secondary">{role.entities.name}</Badge>
+                  ) : (
+                    <Badge variant="outline">All Entities</Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-muted-foreground text-center py-4">
+              No additional roles assigned
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
