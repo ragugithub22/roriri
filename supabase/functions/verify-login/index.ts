@@ -104,6 +104,9 @@ Deno.serve(async (req: Request) => {
     } else if (userLogin.user_type === 'internship_candidate') {
       // Internship candidates are interns
       userRole = 'intern';
+    } else if (userLogin.user_type === 'College' || userLogin.user_type === 'School' || userLogin.user_type === 'Institute') {
+      // College, School, or Institute users go to institute dashboard
+      userRole = 'college';
     }
 
     console.log('User role determined:', userRole);

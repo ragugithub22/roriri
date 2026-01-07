@@ -77,6 +77,7 @@ import UserDashboard from "./pages/UserDashboard";
 import TraineeDashboard from "./pages/TraineeDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import InternDashboard from "./pages/InternDashboard";
+import InstituteDashboard from "./pages/institute/InstituteDashboard";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/trainee-dashboard" element={<ProtectedRoute><TraineeDashboard /></ProtectedRoute>} />
             <Route path="/employee-dashboard" element={<ProtectedRoute><EmployeeDashboard /></ProtectedRoute>} />
             <Route path="/intern-dashboard" element={<ProtectedRoute><InternDashboard /></ProtectedRoute>} />
+            <Route path="/institute-dashboard" element={<ProtectedRoute><InstituteDashboard /></ProtectedRoute>} />
             <Route path="/academy" element={<ProtectedRoute><AcademyDashboard /></ProtectedRoute>} />
             <Route path="/it-academy" element={<ProtectedRoute><ITAcademyDashboard /></ProtectedRoute>} />
             <Route path="/foundation" element={<ProtectedRoute><FoundationDashboard /></ProtectedRoute>} />
