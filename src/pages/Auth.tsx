@@ -78,6 +78,9 @@ export default function Auth() {
           case 'intern':
             navigate('/intern-dashboard', { replace: true });
             break;
+          case 'college':
+            navigate('/institute-dashboard', { replace: true });
+            break;
           default:
             navigate('/user-dashboard', { replace: true });
         }
@@ -159,6 +162,9 @@ export default function Auth() {
           break;
         case 'intern':
           window.location.href = '/intern-dashboard';
+          break;
+        case 'college':
+          window.location.href = '/institute-dashboard';
           break;
         default:
           window.location.href = '/user-dashboard';
