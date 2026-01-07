@@ -11,10 +11,11 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 interface Contact {
-  id: string;
+  id: string; // profile_id - used for message matching
+  employee_id: string;
+  profile_id: string;
   full_name: string;
   role: string;
-  profile_id: string;
 }
 
 interface Message {
@@ -50,7 +51,8 @@ export default function TraineeChatBox({ currentUserId, currentUserType }: Train
       if (error) throw error;
       
       return (data || []).map((contact: { employee_id: string; profile_id: string; full_name: string; role: string }) => ({
-        id: contact.employee_id,
+        id: contact.profile_id, // Use profile_id for message matching since admin sends to profile_id
+        employee_id: contact.employee_id,
         profile_id: contact.profile_id,
         full_name: contact.full_name,
         role: contact.role
