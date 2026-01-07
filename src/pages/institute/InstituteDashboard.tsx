@@ -8,9 +8,11 @@ import {
   FileText, 
   Receipt, 
   MessageSquare, 
-  LogOut 
+  LogOut,
+  ArrowLeft
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -23,10 +25,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarInset,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import InstituteDashboardHome from "./InstituteDashboardHome";
 import InstituteIndustrialVisit from "./InstituteIndustrialVisit";
 import InstituteInternship from "./InstituteInternship";
@@ -77,96 +76,108 @@ const InstituteDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <InstituteDashboardContent
-        activeItem={activeItem}
-        setActiveItem={setActiveItem}
-        renderActiveComponent={renderActiveComponent}
-        handleLogout={handleLogout}
-      />
-    </SidebarProvider>
-  );
-};
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full">
+        <Sidebar collapsible="icon" className="border-r">
+          <SidebarHeader className="h-[73px] border-b bg-gradient-to-b from-cyan-600 to-teal-600 flex items-center px-4">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-6 w-6 text-white" />
+              <h1 className="text-lg font-bold text-white">Institute Portal</h1>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider">
+                Navigation
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {sidebarItems.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        onClick={() => setActiveItem(item.id)}
+                        className={`hover:bg-gradient-to-r hover:from-cyan-600 hover:to-teal-600 hover:text-white ${
+                          activeItem === item.id ? "bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold" : ""
+                        }`}
+                        isActive={activeItem === item.id}
+                        tooltip={item.label}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
 
-const InstituteDashboardContent = ({
-  activeItem,
-  setActiveItem,
-  renderActiveComponent,
-  handleLogout,
-}: {
-  activeItem: string;
-  setActiveItem: (item: string) => void;
-  renderActiveComponent: () => React.ReactNode;
-  handleLogout: () => void;
-}) => {
-  const sidebar = useSidebar();
-
-  return (
-    <div className="flex min-h-screen w-full">
-      <Sidebar collapsible="icon" className="border-r">
-        <SidebarHeader className="h-[73px] border-b bg-gradient-to-b from-emerald-600 to-emerald-700 flex items-center px-4">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-white shrink-0" />
-            {sidebar.open && <h1 className="text-lg font-bold text-white">Institute Dashboard</h1>}
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-xs uppercase tracking-wider">
-              Navigation
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {sidebarItems.map((item) => (
-                  <SidebarMenuItem key={item.id}>
+            <SidebarGroup className="mt-auto">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setActiveItem(item.id)}
-                      className={`hover:bg-gradient-to-r hover:from-emerald-600 hover:to-emerald-700 hover:text-white ${
-                        activeItem === item.id ? "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold" : ""
-                      }`}
-                      isActive={activeItem === item.id}
-                      tooltip={item.label}
+                      onClick={handleLogout}
+                      className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950 dark:hover:text-red-400"
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
 
-          <SidebarGroup className="mt-auto">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={handleLogout}
-                    className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950 dark:hover:text-red-400"
+        <SidebarInset className="flex-1">
+          {/* Header - matching IT Park Dashboard */}
+          <header className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white py-6 px-6 shadow-md">
+            <div className="container mx-auto max-w-7xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => navigate("/auth")}
+                    className="text-white hover:bg-white/20"
                   >
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white/20">
+                      <Building2 className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold">Institute Portal</h1>
+                      <p className="text-sm opacity-90">Dashboard & Analytics</p>
+                    </div>
+                  </div>
+                </div>
 
-      <SidebarInset className="flex-1">
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <h1 className="text-lg font-semibold">
-            {sidebarItems.find(item => item.id === activeItem)?.label || "Dashboard"}
-          </h1>
-        </header>
-        <div className="flex-1 p-6">
-          {renderActiveComponent()}
-        </div>
-      </SidebarInset>
-    </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="text-white hover:bg-white/20"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="p-6 bg-background min-h-[calc(100vh-73px)]">
+            <div className="space-y-6">
+              {renderActiveComponent()}
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
