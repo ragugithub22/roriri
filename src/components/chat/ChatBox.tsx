@@ -56,17 +56,18 @@ export default function ChatBox() {
 
   const currentUserId = currentEmployee?.id || user?.id;
 
-  // Fetch employees
+  // Fetch employees - use profile_id as ID since EmployeeDashboard uses profile_id for chat
   const { data: employees = [] } = useQuery({
     queryKey: ['chat-employees'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, profiles:profile_id(full_name, email)')
+        .select('id, profile_id, profiles:profile_id(full_name, email)')
         .order('profiles(full_name)');
       if (error) throw error;
       return data?.map(emp => ({
-        id: emp.id,
+        id: emp.profile_id, // Use profile_id since EmployeeDashboard uses profile_id for chat
+        employee_id: emp.id,
         full_name: emp.profiles?.full_name || 'Unknown',
         email: emp.profiles?.email || '',
         type: 'Employee' as const
