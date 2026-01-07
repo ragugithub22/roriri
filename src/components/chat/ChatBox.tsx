@@ -39,23 +39,23 @@ export default function ChatBox() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  // Get current user's employee ID
-  const { data: currentEmployee } = useQuery({
-    queryKey: ['current-employee', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('profile_id', user.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  // Get current admin's profile_id from session - this is what we use for messaging
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const currentUserId = currentEmployee?.id || user?.id;
+  useEffect(() => {
+    const userSession = localStorage.getItem('userSession');
+    if (userSession) {
+      try {
+        const sessionData = JSON.parse(userSession);
+        // Use originalId or userId from the session - this is the profile_id for admin
+        setCurrentUserId(sessionData.originalId || sessionData.userId);
+      } catch (error) {
+        console.error('Error parsing user session:', error);
+      }
+    } else if (user?.id) {
+      setCurrentUserId(user.id);
+    }
+  }, [user?.id]);
 
   // Fetch employees - use profile_id as ID since EmployeeDashboard uses profile_id for chat
   const { data: employees = [] } = useQuery({
@@ -196,7 +196,7 @@ export default function ChatBox() {
 
       // Map user type to sender_type format
       const recipientType = selectedUser.type === 'Trainee' ? 'student' : 
-                           selectedUser.type === 'Intern' ? 'student' : 'employee';
+                           selectedUser.type === 'Intern' ? 'intern' : 'employee';
 
       const { error } = await supabase
         .from('trainee_chat_messages')
