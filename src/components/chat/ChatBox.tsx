@@ -12,7 +12,8 @@ import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Contact {
-  id: string;
+  id: string; // The ID used for messaging (profile_id for employees, student_id for trainees, intern_id for interns)
+  employee_id?: string; // Only for employees
   full_name: string;
   email: string;
   type: 'Employee' | 'Trainee' | 'Intern';
