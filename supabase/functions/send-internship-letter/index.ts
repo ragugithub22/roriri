@@ -30,8 +30,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending email to:", recipientEmail, "Subject:", subject);
 
+    // Note: Resend requires a verified domain for 'from' address
+    // Using onboarding@resend.dev for testing - in production, use a verified domain
+    // Gmail addresses cannot be used as 'from' address in Resend
     const emailResponse = await resend.emails.send({
-      from: "Roriri Software Solutions <onboarding@resend.dev>",
+      from: "RORIRI Software Solutions <onboarding@resend.dev>",
+      reply_to: "roririsoftpvtltd@gmail.com",
       to: [recipientEmail],
       subject: subject,
       html: letterHTML,
