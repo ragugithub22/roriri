@@ -29,40 +29,17 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const { data: isAdmin, isLoading: isAdminLoading } = useQuery({
-    queryKey: ['is-admin', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      
-      // First check if this is the super admin by email or username
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username, email')
-        .eq('id', user.id)
-        .single();
-      
-      if (profile && (profile.username === 'admin' || profile.email === 'admin@roririsoft.com')) {
-        return true;
-      }
-      
-      // Otherwise check role-based admin status
-      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
-      if (error) return false;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
+  // Only redirect if user is already logged in when visiting /auth page
+  // Skip if we're in the middle of a login process
   useEffect(() => {
-    if (!user || isAdminLoading || typeof isAdmin === "undefined") {
-      return;
-    }
-
-    if (user) {
-      // Check stored session for role-based routing
-      const storedSession = localStorage.getItem('userSession');
-      if (storedSession) {
+    if (isLoggingIn || !user) return;
+    
+    // Check stored session for role-based routing
+    const storedSession = localStorage.getItem('userSession');
+    if (storedSession) {
+      try {
         const sessionData = JSON.parse(storedSession);
         switch (sessionData.role) {
           case 'super_admin':
@@ -84,13 +61,13 @@ export default function Auth() {
           default:
             navigate('/user-dashboard', { replace: true });
         }
-      } else if (isAdmin) {
-        navigate('/it-park', { replace: true });
-      } else {
+      } catch {
         navigate('/user-dashboard', { replace: true });
       }
+    } else {
+      navigate('/user-dashboard', { replace: true });
     }
-  }, [user, isAdmin, navigate, isAdminLoading]);
+  }, [user, navigate, isLoggingIn]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -99,6 +76,7 @@ export default function Auth() {
         password
       });
       setLoading(true);
+      setIsLoggingIn(true);
       
       console.log('Attempting login with:', validated.email);
 
@@ -115,6 +93,7 @@ export default function Auth() {
       if (verifyError || !verifyData?.success) {
         toast.error('Invalid credentials');
         setLoading(false);
+        setIsLoggingIn(false);
         return;
       }
 
@@ -147,27 +126,26 @@ export default function Auth() {
 
       toast.success('Logged in successfully');
       
-      // Route based on role from user_type in user_login table
-      // Use window.location.href to force page reload so AuthContext can read localStorage
+      // Route based on role - use navigate instead of window.location.href to avoid double redirect
       switch (verifyData.role) {
         case 'super_admin':
         case 'admin':
-          window.location.href = '/it-park';
+          navigate('/it-park', { replace: true });
           break;
         case 'trainee':
-          window.location.href = '/trainee-dashboard';
+          navigate('/trainee-dashboard', { replace: true });
           break;
         case 'employee':
-          window.location.href = '/employee-dashboard';
+          navigate('/employee-dashboard', { replace: true });
           break;
         case 'intern':
-          window.location.href = '/intern-dashboard';
+          navigate('/intern-dashboard', { replace: true });
           break;
         case 'college':
-          window.location.href = '/institute-dashboard';
+          navigate('/institute-dashboard', { replace: true });
           break;
         default:
-          window.location.href = '/user-dashboard';
+          navigate('/user-dashboard', { replace: true });
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -176,6 +154,7 @@ export default function Auth() {
         toast.error('An error occurred during login');
         console.error('Login error:', error);
       }
+      setIsLoggingIn(false);
     } finally {
       setLoading(false);
     }
