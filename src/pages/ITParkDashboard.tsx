@@ -134,16 +134,16 @@ export default function ITParkDashboard() {
   ];
 
   const filteredNavItems = useMemo(() => {
-    // While loading admin status, show all items to avoid flickering
-    if (isAdminLoading) {
-      return navigationItems.filter(item => !entityPaths.includes(item.path));
-    }
-    
     return navigationItems.filter(item => {
+      // Always hide entity paths (they have their own dashboards)
       if (entityPaths.includes(item.path)) {
         return false;
       }
+      // Always show logout
       if (item.isLogout) return true;
+      // While loading admin status, show all items to avoid flickering
+      if (isAdminLoading) return true;
+      // After loading, filter based on admin status
       if (item.adminOnly) return isAdmin;
       return true;
     });
