@@ -28,6 +28,8 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { recipientEmail, recipientName, letterType, letterHTML, subject }: SendLetterRequest = await req.json();
 
+    console.log("Sending email to:", recipientEmail, "Subject:", subject);
+
     const emailResponse = await resend.emails.send({
       from: "Roriri Software Solutions <onboarding@resend.dev>",
       to: [recipientEmail],
@@ -35,9 +37,21 @@ const handler = async (req: Request): Promise<Response> => {
       html: letterHTML,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Resend API response:", JSON.stringify(emailResponse));
 
-    return new Response(JSON.stringify(emailResponse), {
+    // Check if there's an error in the response
+    if (emailResponse.error) {
+      console.error("Resend API error:", emailResponse.error);
+      return new Response(
+        JSON.stringify({ error: emailResponse.error.message || "Failed to send email" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    return new Response(JSON.stringify({ success: true, data: emailResponse.data }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
