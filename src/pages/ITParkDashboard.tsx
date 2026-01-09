@@ -90,6 +90,19 @@ export default function ITParkDashboard() {
     queryFn: async () => {
       if (!user) return false;
 
+      // First check localStorage for role (most reliable immediately after login)
+      const storedSession = localStorage.getItem('userSession');
+      if (storedSession) {
+        try {
+          const sessionData = JSON.parse(storedSession);
+          if (sessionData.role === 'super_admin' || sessionData.role === 'admin') {
+            return true;
+          }
+        } catch (e) {
+          console.error('Error parsing session:', e);
+        }
+      }
+
       // Check if this is a custom login user (from our user_login system)
       const customUser = user as any;
       if (customUser.role) {
