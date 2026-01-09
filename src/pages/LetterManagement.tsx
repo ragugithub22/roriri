@@ -85,6 +85,10 @@ export default function LetterManagement() {
         },
       });
       if (error) throw error;
+      // Check if the response contains an error from Resend API
+      if (data?.error) {
+        throw new Error(data.error);
+      }
       return data;
     },
     onSuccess: () => {
