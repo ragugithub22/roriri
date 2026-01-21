@@ -373,7 +373,7 @@ export default function IndustrialVisitRegistration() {
             <div className="flex justify-center mb-4">
               <img src={roririLogo} alt="Roriri IT Park" className="h-16 object-contain" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Visitor Registration</h1>
+            <h1 className="text-2xl font-bold mb-2">Registration Form</h1>
             <p className="text-sm text-muted-foreground">
               Please fill in your details to register your visit
             </p>
