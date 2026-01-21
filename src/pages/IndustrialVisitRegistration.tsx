@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CheckCircle } from "lucide-react";
+import roririLogo from "@/assets/roriri-logo.png";
 
 type VisitType = "normal_visit" | "industrial_visit" | "interview" | "others" | "";
 
@@ -123,6 +124,12 @@ export default function IndustrialVisitRegistration() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleMobileChange = (value: string) => {
+    // Only allow digits
+    const numericValue = value.replace(/\D/g, "");
+    setFormData((prev) => ({ ...prev, mobile: numericValue }));
+  };
+
   const renderTypeSpecificFields = () => {
     switch (formData.visit_type) {
       case "normal_visit":
@@ -199,8 +206,10 @@ export default function IndustrialVisitRegistration() {
                 <Input
                   id="mobile"
                   type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={formData.mobile}
-                  onChange={(e) => handleChange("mobile", e.target.value)}
+                  onChange={(e) => handleMobileChange(e.target.value)}
                   required
                 />
               </div>
@@ -258,8 +267,10 @@ export default function IndustrialVisitRegistration() {
                 <Input
                   id="mobile"
                   type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={formData.mobile}
-                  onChange={(e) => handleChange("mobile", e.target.value)}
+                  onChange={(e) => handleMobileChange(e.target.value)}
                   required
                 />
               </div>
@@ -304,8 +315,10 @@ export default function IndustrialVisitRegistration() {
               <Input
                 id="mobile"
                 type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.mobile}
-                onChange={(e) => handleChange("mobile", e.target.value)}
+                onChange={(e) => handleMobileChange(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -357,6 +370,9 @@ export default function IndustrialVisitRegistration() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-card rounded-lg shadow-lg p-6">
           <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <img src={roririLogo} alt="Roriri IT Park" className="h-16 object-contain" />
+            </div>
             <h1 className="text-2xl font-bold mb-2">Visitor Registration</h1>
             <p className="text-sm text-muted-foreground">
               Please fill in your details to register your visit
