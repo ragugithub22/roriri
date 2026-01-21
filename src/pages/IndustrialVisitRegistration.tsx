@@ -401,7 +401,7 @@ export default function IndustrialVisitRegistration() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="normal_visit">Normal Visit</SelectItem>
-                    <SelectItem value="industrial_visit">Industrial Visit</SelectItem>
+                    <SelectItem value="industrial_visit">Industrial Visit / Educational Tour</SelectItem>
                     <SelectItem value="interview">Interview</SelectItem>
                     <SelectItem value="others">Others</SelectItem>
                   </SelectContent>
