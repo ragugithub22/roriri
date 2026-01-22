@@ -401,8 +401,8 @@ export default function IndustrialVisitRegistration() {
                   id="date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => handleChange("date", e.target.value)}
-                  required
+                  readOnly
+                  className="bg-muted cursor-not-allowed"
                 />
               </div>
 
