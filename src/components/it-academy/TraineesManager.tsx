@@ -24,6 +24,12 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const getStringField = (formData: FormData, key: string) => {
+    const val = formData.get(key);
+    if (typeof val !== "string") return "";
+    return val.trim();
+  };
+
   const { data: trainees = [] } = useQuery({
     queryKey: ["trainees"],
     queryFn: async () => {
@@ -198,18 +204,25 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
       imageUrl = publicUrl;
     }
     
+    const email = getStringField(formData, "email");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     const traineeData: any = {
-      student_code: formData.get("student_code"),
-      full_name: formData.get("full_name"),
-      gender: formData.get("gender"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      date_of_birth: formData.get("date_of_birth") || null,
-      address: formData.get("address"),
-      password: formData.get("password"),
-      enrollment_date: formData.get("enrollment_date"),
-      status: formData.get("status"),
-      residence_type: formData.get("residence_type"),
+      student_code: getStringField(formData, "student_code"),
+      full_name: getStringField(formData, "full_name"),
+      gender: getStringField(formData, "gender") || null,
+      email,
+      phone: getStringField(formData, "phone") || null,
+      date_of_birth: getStringField(formData, "date_of_birth") || null,
+      address: getStringField(formData, "address") || null,
+      password: getStringField(formData, "password"),
+      enrollment_date: getStringField(formData, "enrollment_date"),
+      status: getStringField(formData, "status") || "active",
+      residence_type: getStringField(formData, "residence_type") || null,
       // Note: incharge_person_id and image_url removed as they don't exist in students table
     };
     
