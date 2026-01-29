@@ -267,12 +267,13 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
                     <Input
                       id="email"
                       name="email"
                       type="email"
                       defaultValue={editingTrainee?.email}
+                      required
                     />
                   </div>
                   <div>
