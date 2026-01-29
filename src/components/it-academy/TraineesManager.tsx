@@ -128,8 +128,15 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
           },
         });
 
-        if (userError || userData?.error) {
-          throw new Error(userData?.error || userError?.message || 'Failed to create user');
+        // Handle edge function errors properly
+        if (userError) {
+          console.error('Edge function error:', userError);
+          throw new Error(userError.message || 'Failed to create user');
+        }
+        
+        if (userData?.error) {
+          console.error('User creation error:', userData.error);
+          throw new Error(userData.error);
         }
         
         // Now insert trainee record
