@@ -8,6 +8,8 @@ interface CertificateProps {
     traineeName: string;
     courseName: string;
     issue_date: string;
+    start_date?: string;
+    end_date?: string;
   };
 }
 
@@ -134,11 +136,11 @@ export function Certificate({ certificateData }: CertificateProps) {
               
               <p>
                 <span className="border-b-2 border-dotted border-gray-400 px-2 font-semibold">
-                  {certificateData.issue_date}
+                  {new Date(certificateData.start_date || certificateData.issue_date).toLocaleDateString()}
                 </span>{" "}
                 to{" "}
                 <span className="border-b-2 border-dotted border-gray-400 px-2 font-semibold">
-                  {certificateData.issue_date}
+                  {new Date(certificateData.end_date || certificateData.issue_date).toLocaleDateString()}
                 </span>{" "}
                 at Roriri Software Solutions
               </p>
