@@ -90,7 +90,7 @@ export default function CertificatesManager() {
           ? supabase.from("courses").select("id, name").in("id", courseIds)
           : Promise.resolve({ data: [] as any[] }),
         batchIds.length > 0
-          ? supabase.from("batches" as any).select("id, batch_name, status").in("id", batchIds)
+          ? supabase.from("batches" as any).select("id, batch_name, status, start_date, end_date").in("id", batchIds)
           : Promise.resolve({ data: [] as any[] })
       ]);
 
@@ -267,6 +267,8 @@ export default function CertificatesManager() {
                         traineeName: cert.trainee?.full_name || "N/A",
                         courseName: cert.course?.name || "N/A",
                         issue_date: cert.issue_date,
+                        start_date: cert.batch?.start_date || cert.issue_date,
+                        end_date: cert.batch?.end_date || cert.issue_date,
                       };
                       localStorage.setItem('certificateData', JSON.stringify(certificateInfo));
                       window.open('/certificate', '_blank');
