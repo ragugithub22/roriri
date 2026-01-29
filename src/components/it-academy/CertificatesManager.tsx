@@ -84,7 +84,7 @@ export default function CertificatesManager() {
 
       const [traineesData, coursesData, batchesData] = await Promise.all([
         traineeIds.length > 0
-          ? supabase.from("students").select("id, full_name, student_code").in("id", traineeIds)
+          ? supabase.from("students").select("id, full_name, student_code, enrollment_date").in("id", traineeIds)
           : Promise.resolve({ data: [] as any[] }),
         courseIds.length > 0
           ? supabase.from("courses").select("id, name").in("id", courseIds)
@@ -267,8 +267,7 @@ export default function CertificatesManager() {
                         traineeName: cert.trainee?.full_name || "N/A",
                         courseName: cert.course?.name || "N/A",
                         issue_date: cert.issue_date,
-                        start_date: cert.batch?.start_date || cert.issue_date,
-                        end_date: cert.batch?.end_date || cert.issue_date,
+                        enrollment_date: cert.trainee?.enrollment_date || cert.batch?.start_date || cert.issue_date,
                       };
                       localStorage.setItem('certificateData', JSON.stringify(certificateInfo));
                       window.open('/certificate', '_blank');
