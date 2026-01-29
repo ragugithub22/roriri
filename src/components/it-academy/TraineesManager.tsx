@@ -295,7 +295,6 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
                       id="student_code"
                       name="student_code"
                       defaultValue={editingTrainee?.student_code}
-                      required
                     />
                   </div>
                 </div>
@@ -326,7 +325,6 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
                       name="password"
                       type="password"
                       defaultValue={editingTrainee?.password}
-                      required={!editingTrainee}
                     />
                   </div>
                   <div>
