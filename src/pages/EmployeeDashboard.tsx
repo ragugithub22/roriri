@@ -10,6 +10,7 @@ import EmployeeDailyUpdate from '@/components/employee/EmployeeDailyUpdate';
 import EmployeeComplaint from '@/components/employee/EmployeeComplaint';
 import EmployeePayrollHistory from '@/components/employee/EmployeePayrollHistory';
 import TraineeChatBox from '@/components/chat/TraineeChatBox';
+import TraineeDetail from '@/pages/TraineeDetail';
 import { 
   LayoutDashboard, 
   User, 
@@ -98,6 +99,7 @@ const roleInfo: Record<string, { description: string; responsibilities: string[]
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
+  const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
   const { signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [employeeData, setEmployeeData] = useState<EmployeeData | null>(null);
@@ -444,7 +446,19 @@ export default function EmployeeDashboard() {
         );
 
       case 'trainees':
-        return <TraineesManager />;
+        if (selectedTraineeId) {
+          return (
+            <TraineeDetail 
+              traineeId={selectedTraineeId} 
+              onBack={() => setSelectedTraineeId(null)} 
+            />
+          );
+        }
+        return (
+          <TraineesManager 
+            onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)} 
+          />
+        );
 
       case 'intern':
         return (
