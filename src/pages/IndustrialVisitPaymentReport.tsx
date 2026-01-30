@@ -10,20 +10,22 @@ interface IndustrialVisitPaymentReportProps {
 }
 
 const IndustrialVisitPaymentReport = ({ onNavigate }: IndustrialVisitPaymentReportProps) => {
-  const { data: visitors = [], isLoading } = useQuery({
+  const { data: payments = [], isLoading } = useQuery({
     queryKey: ["industrial-visit-payments"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("industrial_visit_visitors")
+        .from("industrial_visit_registrations")
         .select("*")
-        .order("date", { ascending: false });
+        .eq("visitor_type", "industrial_visit")
+        .gt("payment_amount", 0)
+        .order("created_at", { ascending: false });
       
       if (error) throw error;
       return data;
     },
   });
 
-  const totalAmount = visitors.reduce((sum, visitor) => sum + ((visitor as any).amount || 0), 0);
+  const totalAmount = payments.reduce((sum, payment) => sum + (payment.payment_amount || 0), 0);
 
   const handleBack = () => {
     if (onNavigate) {
@@ -63,7 +65,7 @@ const IndustrialVisitPaymentReport = ({ onNavigate }: IndustrialVisitPaymentRepo
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Visits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{visitors.length}</div>
+            <div className="text-2xl font-bold">{payments.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -72,7 +74,7 @@ const IndustrialVisitPaymentReport = ({ onNavigate }: IndustrialVisitPaymentRepo
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ₹{visitors.length > 0 ? Math.round(totalAmount / visitors.length).toLocaleString() : 0}
+              ₹{payments.length > 0 ? Math.round(totalAmount / payments.length).toLocaleString() : 0}
             </div>
           </CardContent>
         </Card>
@@ -90,7 +92,7 @@ const IndustrialVisitPaymentReport = ({ onNavigate }: IndustrialVisitPaymentRepo
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Loading...</p>
-          ) : visitors.length === 0 ? (
+          ) : payments.length === 0 ? (
             <p className="text-muted-foreground">No payment records found.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -101,17 +103,17 @@ const IndustrialVisitPaymentReport = ({ onNavigate }: IndustrialVisitPaymentRepo
                     <TableHead>College Name</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
+                    <TableHead>Amount Paid</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visitors.map((visitor, index) => (
-                    <TableRow key={visitor.id}>
+                  {payments.map((payment, index) => (
+                    <TableRow key={payment.id}>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">{visitor.college_name}</TableCell>
-                      <TableCell>{visitor.department}</TableCell>
-                      <TableCell>{new Date(visitor.date).toLocaleDateString()}</TableCell>
-                      <TableCell>₹{((visitor as any).amount || 0).toLocaleString()}</TableCell>
+                      <TableCell className="font-medium">{payment.college_name || 'N/A'}</TableCell>
+                      <TableCell>{payment.department || 'N/A'}</TableCell>
+                      <TableCell>{payment.created_at ? new Date(payment.created_at).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell className="font-semibold text-green-600">₹{(payment.payment_amount || 0).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
