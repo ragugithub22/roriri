@@ -423,7 +423,6 @@ export default function TraineesManager({ onViewTrainee, readOnly = false }: Tra
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -433,11 +432,6 @@ export default function TraineesManager({ onViewTrainee, readOnly = false }: Tra
                 <TableCell>{trainee.full_name}</TableCell>
                 <TableCell>{trainee.email || "-"}</TableCell>
                 <TableCell>{trainee.phone || "-"}</TableCell>
-                <TableCell>
-                  <Badge variant={trainee.status === "active" ? "default" : "secondary"}>
-                    {trainee.status}
-                  </Badge>
-                </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
