@@ -167,10 +167,10 @@ export default function AssignedTasksView({ userId, userType }: AssignedTasksVie
                     </span>
                   </TableCell>
                   <TableCell>
-                    {task.file_name ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {task.file_name || task.status === 'completed' ? (
+                      <div className="flex items-center gap-2 text-sm text-green-600">
                         <FileText className="h-4 w-4" />
-                        <span className="truncate max-w-[100px]">{task.file_name}</span>
+                        <span className="truncate max-w-[100px]">{task.file_name || 'Submitted'}</span>
                       </div>
                     ) : (
                       <div className="relative">
