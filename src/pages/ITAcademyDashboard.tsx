@@ -18,7 +18,8 @@ import {
   MessageSquareWarning,
   Home,
   UserCheck,
-  Briefcase
+  Briefcase,
+  DollarSign
 } from "lucide-react";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
@@ -216,9 +217,32 @@ const ITAcademyDashboard = () => {
     },
   });
 
-  // Simplified dashboard view: removed quick actions and tables for now
+  // Fetch monthly revenue from academy payments (only paid status)
+  const { data: monthlyRevenue = 0 } = useQuery({
+    queryKey: ["it-academy-monthly-revenue"],
+    queryFn: async () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString()
+        .split("T")[0];
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+        .toISOString()
+        .split("T")[0];
 
-  // Enrollment data removed in simplified view
+      const { data, error } = await supabase
+        .from("academy_payments")
+        .select("amount")
+        .eq("status", "paid")
+        .gte("payment_date", startOfMonth)
+        .lt("payment_date", startOfNextMonth);
+      
+      if (error) return 0;
+
+      return data?.reduce(
+        (sum, payment) => sum + (Number(payment.amount) || 0), 0
+      ) || 0;
+    },
+  });
 
   const totalCourses = courses.length;
   const totalTrainers = trainers.length;
@@ -235,7 +259,7 @@ const ITAcademyDashboard = () => {
     >
       <div className="space-y-6">
         {activeTab === "dashboard" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <KPICard
               title="Total IT Courses"
               value={totalCourses}
@@ -263,6 +287,13 @@ const ITAcademyDashboard = () => {
               subtitle="Courses with certification"
               icon={Award}
               color="from-orange-500 to-amber-600"
+            />
+            <KPICard
+              title="Revenue This Month"
+              value={`₹${monthlyRevenue.toLocaleString()}`}
+              subtitle="Trainee fees paid"
+              icon={DollarSign}
+              color="from-cyan-500 to-blue-500"
             />
           </div>
         )}

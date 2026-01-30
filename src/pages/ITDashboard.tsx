@@ -284,7 +284,7 @@ const DashboardContent: React.FC = () => {
   });
 
   const { data: monthlyRevenue = 0 } = useQuery({
-    queryKey: ["monthly-it-revenue"],
+    queryKey: ["monthly-internship-revenue"],
     queryFn: async () => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -294,31 +294,18 @@ const DashboardContent: React.FC = () => {
         .toISOString()
         .split("T")[0];
 
+      // Only internship payments for Software Solution entity
       const { data, error } = await supabase
-        .from("academy_payments")
-        .select("amount")
+        .from("internship_payments")
+        .select("paid_amount")
         .gte("payment_date", startOfMonth)
         .lt("payment_date", startOfNextMonth);
+      
       if (error) return 0;
 
-      const academyRevenue =
-        data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
-
-      // Also count donations
-      const { data: donationsData, error: donationsError } = await supabase
-        .from("donations")
-        .select("amount")
-        .gte("donation_date", startOfMonth)
-        .lt("donation_date", startOfNextMonth);
-      if (donationsError) return academyRevenue;
-
-      const donationsRevenue =
-        donationsData?.reduce(
-          (sum, donation) => sum + Number(donation.amount || 0),
-          0
-        ) || 0;
-
-      return academyRevenue + donationsRevenue;
+      return data?.reduce(
+        (sum, payment) => sum + (Number(payment.paid_amount) || 0), 0
+      ) || 0;
     },
   });
 
