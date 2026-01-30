@@ -63,23 +63,26 @@ export default function IndustrialVisitVisitors({ onNavigate, onViewGroup }: Ind
     queryFn: async () => {
       const { data, error } = await supabase
         .from("industrial_visit_registrations")
-        .select("*")
+        .select("id, full_name, mobile, email, college_name, department, address, visitor_type, purpose_of_visit, created_at, payment_amount")
         .eq("visitor_type", "industrial_visit")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return (data || []) as IndustrialVisitRegistration[];
+      return (data || []) as unknown as IndustrialVisitRegistration[];
     },
   });
 
   const updatePaymentMutation = useMutation({
     mutationFn: async ({ ids, amount }: { ids: string[]; amount: number }) => {
-      const { error } = await supabase
-        .from("industrial_visit_registrations")
-        .update({ payment_amount: amount } as any)
-        .in("id", ids);
-      
-      if (error) throw error;
+      // Update each record individually to ensure proper update
+      for (const id of ids) {
+        const { error } = await supabase
+          .from("industrial_visit_registrations")
+          .update({ payment_amount: amount } as Record<string, unknown>)
+          .eq("id", id);
+        
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["industrial-visit-registrations-only"] });
