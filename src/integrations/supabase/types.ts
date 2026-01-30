@@ -4535,6 +4535,7 @@ export type Database = {
         }[]
       }
       get_intern_original_id: { Args: { _user_id: string }; Returns: string }
+      get_user_original_id: { Args: never; Returns: string }
       has_entity_access: {
         Args: { _entity_id: string; _user_id: string }
         Returns: boolean
