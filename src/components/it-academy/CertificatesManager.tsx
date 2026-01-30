@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Award, Plus, Download } from "lucide-react";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 export default function CertificatesManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -234,54 +236,78 @@ export default function CertificatesManager() {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Certificate No.</TableHead>
-              <TableHead>Trainee</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Issue Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {(certificates as any[]).map((cert) => (
-              <TableRow key={cert.id}>
-                <TableCell className="font-mono">{cert.certificate_number}</TableCell>
-                <TableCell>{cert.trainee?.full_name || "-"}</TableCell>
-                <TableCell>{cert.course?.name || "-"}</TableCell>
-                <TableCell>{new Date(cert.issue_date).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge variant={cert.status === "active" ? "default" : "secondary"}>
-                    {cert.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const certificateInfo = {
-                        certificate_number: cert.certificate_number,
-                        traineeName: cert.trainee?.full_name || "N/A",
-                        courseName: cert.course?.name || "N/A",
-                        issue_date: cert.issue_date,
-                        enrollment_date: cert.trainee?.enrollment_date || cert.batch?.start_date || cert.issue_date,
-                      };
-                      localStorage.setItem('certificateData', JSON.stringify(certificateInfo));
-                      window.open('/certificate', '_blank');
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <CertificatesTable certificates={certificates as any[]} />
       </CardContent>
     </Card>
+  );
+}
+
+function CertificatesTable({ certificates }: { certificates: any[] }) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: certificates, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Certificate No.</TableHead>
+            <TableHead>Trainee</TableHead>
+            <TableHead>Course</TableHead>
+            <TableHead>Issue Date</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((cert) => (
+            <TableRow key={cert.id}>
+              <TableCell className="font-mono">{cert.certificate_number}</TableCell>
+              <TableCell>{cert.trainee?.full_name || "-"}</TableCell>
+              <TableCell>{cert.course?.name || "-"}</TableCell>
+              <TableCell>{new Date(cert.issue_date).toLocaleDateString()}</TableCell>
+              <TableCell>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const certificateInfo = {
+                      certificate_number: cert.certificate_number,
+                      traineeName: cert.trainee?.full_name || "N/A",
+                      courseName: cert.course?.name || "N/A",
+                      issue_date: cert.issue_date,
+                      enrollment_date: cert.trainee?.enrollment_date || cert.batch?.start_date || cert.issue_date,
+                    };
+                    localStorage.setItem('certificateData', JSON.stringify(certificateInfo));
+                    window.open('/certificate', '_blank');
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

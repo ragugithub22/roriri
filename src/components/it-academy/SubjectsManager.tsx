@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 interface SubjectsManagerProps {
   onViewSyllabus?: (subjectId: string) => void;
@@ -228,73 +230,116 @@ export default function SubjectsManager({ onViewSyllabus }: SubjectsManagerProps
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Hours</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>View</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {subjects.map((subject: any) => (
-              <>
-                <TableRow key={subject.id}>
-                  <TableCell>{subject.subject_code}</TableCell>
-                  <TableCell>{subject.subject_name}</TableCell>
-                  <TableCell>{subject.course?.name || "-"}</TableCell>
-                  <TableCell>{subject.hours || "-"}</TableCell>
-                  <TableCell>
-                    <Badge variant={subject.status === "active" ? "default" : "secondary"}>
-                      {subject.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (onViewSyllabus) {
-                          onViewSyllabus(subject.id);
-                        } else {
-                          navigate(`/syllabus/${subject.id}`);
-                        }
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingSubject(subject);
-                          setIsOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(subject.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </>
-            ))}
-          </TableBody>
-        </Table>
+        <SubjectsTable 
+          subjects={subjects}
+          onViewSyllabus={onViewSyllabus}
+          navigate={navigate}
+          setEditingSubject={setEditingSubject}
+          setIsOpen={setIsOpen}
+          deleteMutation={deleteMutation}
+        />
       </CardContent>
     </Card>
+  );
+}
+
+function SubjectsTable({ 
+  subjects, 
+  onViewSyllabus, 
+  navigate,
+  setEditingSubject,
+  setIsOpen,
+  deleteMutation
+}: { 
+  subjects: any[];
+  onViewSyllabus?: (subjectId: string) => void;
+  navigate: any;
+  setEditingSubject: (subject: any) => void;
+  setIsOpen: (open: boolean) => void;
+  deleteMutation: any;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: subjects, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Code</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Course</TableHead>
+            <TableHead>Hours</TableHead>
+            <TableHead>View</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((subject: any) => (
+            <TableRow key={subject.id}>
+              <TableCell>{subject.subject_code}</TableCell>
+              <TableCell>{subject.subject_name}</TableCell>
+              <TableCell>{subject.course?.name || "-"}</TableCell>
+              <TableCell>{subject.hours || "-"}</TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (onViewSyllabus) {
+                      onViewSyllabus(subject.id);
+                    } else {
+                      navigate(`/syllabus/${subject.id}`);
+                    }
+                  }}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingSubject(subject);
+                      setIsOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteMutation.mutate(subject.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

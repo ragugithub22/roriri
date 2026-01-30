@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { UserPlus, Pencil, Trash2, Eye, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 interface TraineesManagerProps {
   onViewTrainee?: (traineeId: string) => void;
@@ -417,64 +419,118 @@ export default function TraineesManager({ onViewTrainee, readOnly = false }: Tra
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {trainees.map((trainee) => (
-              <TableRow key={trainee.id}>
-                <TableCell>{trainee.full_name}</TableCell>
-                <TableCell>{trainee.email || "-"}</TableCell>
-                <TableCell>{trainee.phone || "-"}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (onViewTrainee) {
-                          onViewTrainee(trainee.id);
-                        } else {
-                          navigate(`/trainees/${trainee.id}`);
-                        }
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    {!readOnly && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingTrainee(trainee);
-                            setIsOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteMutation.mutate(trainee.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TraineesTable 
+          trainees={trainees} 
+          onViewTrainee={onViewTrainee} 
+          readOnly={readOnly}
+          setEditingTrainee={setEditingTrainee}
+          setIsOpen={setIsOpen}
+          deleteMutation={deleteMutation}
+          navigate={navigate}
+        />
       </CardContent>
     </Card>
+  );
+}
+
+function TraineesTable({ 
+  trainees, 
+  onViewTrainee, 
+  readOnly, 
+  setEditingTrainee, 
+  setIsOpen, 
+  deleteMutation,
+  navigate
+}: {
+  trainees: any[];
+  onViewTrainee?: (traineeId: string) => void;
+  readOnly: boolean;
+  setEditingTrainee: (trainee: any) => void;
+  setIsOpen: (open: boolean) => void;
+  deleteMutation: any;
+  navigate: any;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: trainees, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((trainee) => (
+            <TableRow key={trainee.id}>
+              <TableCell>{trainee.full_name}</TableCell>
+              <TableCell>{trainee.email || "-"}</TableCell>
+              <TableCell>{trainee.phone || "-"}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (onViewTrainee) {
+                        onViewTrainee(trainee.id);
+                      } else {
+                        navigate(`/trainees/${trainee.id}`);
+                      }
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {!readOnly && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingTrainee(trainee);
+                          setIsOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteMutation.mutate(trainee.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

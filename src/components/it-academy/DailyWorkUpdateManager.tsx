@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 interface TraineeDailyUpdate {
   id: string;
@@ -90,33 +92,69 @@ export default function DailyWorkUpdateManager() {
               No trainee work updates found.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Trainee</TableHead>
-                  <TableHead>Work Description</TableHead>
-                  <TableHead>Hours</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workUpdates.map((update) => (
-                  <TableRow key={update.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(update.date), "dd MMM yyyy")}
-                    </TableCell>
-                    <TableCell>{update.trainee_name}</TableCell>
-                    <TableCell className="max-w-xs truncate">{update.work_description}</TableCell>
-                    <TableCell>{update.hours_spent}h</TableCell>
-                    <TableCell>{getStatusBadge(update.status)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DailyUpdatesTable workUpdates={workUpdates} getStatusBadge={getStatusBadge} />
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function DailyUpdatesTable({ 
+  workUpdates, 
+  getStatusBadge 
+}: { 
+  workUpdates: TraineeDailyUpdate[]; 
+  getStatusBadge: (status: string) => JSX.Element;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: workUpdates, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Trainee</TableHead>
+            <TableHead>Work Description</TableHead>
+            <TableHead>Hours</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((update) => (
+            <TableRow key={update.id}>
+              <TableCell className="font-medium">
+                {format(new Date(update.date), "dd MMM yyyy")}
+              </TableCell>
+              <TableCell>{update.trainee_name}</TableCell>
+              <TableCell className="max-w-xs truncate">{update.work_description}</TableCell>
+              <TableCell>{update.hours_spent}h</TableCell>
+              <TableCell>{getStatusBadge(update.status)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

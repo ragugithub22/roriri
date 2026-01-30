@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Search } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/ui/table-pagination';
 
 interface EmployeesManagerProps {
   onViewEmployee: (employeeId: string) => void;
@@ -106,43 +107,73 @@ export default function EmployeesManager({ onViewEmployee }: EmployeesManagerPro
               <p className="text-muted-foreground">No employees found</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>S. No</TableHead>
-                  <TableHead>Employee Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEmployees.map((employee: any, index: number) => (
-                  <TableRow key={employee.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell className="font-medium">{employee.employee_code}</TableCell>
-                    <TableCell>{employee.profiles?.full_name || '-'}</TableCell>
-                    <TableCell>{employee.profiles?.email || '-'}</TableCell>
-                    <TableCell>{employee.departments?.name || '-'}</TableCell>
-                    <TableCell>{employee.user_role || '-'}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewEmployee(employee.id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <EmployeesTable employees={filteredEmployees} onViewEmployee={onViewEmployee} />
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function EmployeesTable({ employees, onViewEmployee }: { employees: any[]; onViewEmployee: (id: string) => void }) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: employees, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>S. No</TableHead>
+            <TableHead>Employee Code</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Department</TableHead>
+            <TableHead>Position</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((employee: any, index: number) => (
+            <TableRow key={employee.id}>
+              <TableCell>{startIndex + index}</TableCell>
+              <TableCell className="font-medium">{employee.employee_code}</TableCell>
+              <TableCell>{employee.profiles?.full_name || '-'}</TableCell>
+              <TableCell>{employee.profiles?.email || '-'}</TableCell>
+              <TableCell>{employee.departments?.name || '-'}</TableCell>
+              <TableCell>{employee.user_role || '-'}</TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onViewEmployee(employee.id)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

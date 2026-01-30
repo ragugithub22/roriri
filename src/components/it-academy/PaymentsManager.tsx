@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 export default function PaymentsManager() {
 
@@ -41,50 +43,80 @@ export default function PaymentsManager() {
           <CardDescription>View trainee fee payments</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Trainee</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-            {(payments as any[]).length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  No payment records found
-                </TableCell>
-              </TableRow>
-            ) : (
-              (payments as any[]).map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.trainee?.full_name || "-"}</TableCell>
-                  <TableCell className="font-semibold">₹{Number(payment.amount).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
-                  <TableCell className="capitalize">{payment.payment_method || "-"}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        payment.status === "completed" || payment.status === "paid"
-                          ? "default"
-                          : payment.status === "pending"
-                          ? "secondary"
-                          : "destructive"
-                      }
-                    >
-                      {payment.status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-            </TableBody>
-          </Table>
+          <PaymentsTable payments={payments} />
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function PaymentsTable({ payments }: { payments: any[] }) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: payments, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Trainee</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Method</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                No payment records found
+              </TableCell>
+            </TableRow>
+          ) : (
+            paginatedData.map((payment: any) => (
+              <TableRow key={payment.id}>
+                <TableCell>{payment.trainee?.full_name || "-"}</TableCell>
+                <TableCell className="font-semibold">₹{Number(payment.amount).toLocaleString()}</TableCell>
+                <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
+                <TableCell className="capitalize">{payment.payment_method || "-"}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      payment.status === "completed" || payment.status === "paid"
+                        ? "default"
+                        : payment.status === "pending"
+                        ? "secondary"
+                        : "destructive"
+                    }
+                  >
+                    {payment.status}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }
