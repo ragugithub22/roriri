@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Building2 } from 'lucide-react';
+import roririLogo from '@/assets/roriri-round-logo.png';
 import { useQuery } from '@tanstack/react-query';
 const authSchema = z.object({
   email: z.string().trim().min(1, {
@@ -204,9 +204,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-8 w-8 text-primary-foreground " />
-            </div>
+            <img src={roririLogo} alt="RORIRI Logo" className="h-16 w-16 rounded-full" />
           </div>
           <CardTitle className="text-2xl">RORIRI ERP System</CardTitle>
           <CardDescription>
