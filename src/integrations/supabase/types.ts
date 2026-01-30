@@ -4216,6 +4216,53 @@ export type Database = {
         }
         Relationships: []
       }
+      trainer_task_assignments: {
+        Row: {
+          assignee_id: string
+          assignee_type: string
+          created_at: string
+          end_date: string
+          id: string
+          start_date: string
+          status: string
+          task_description: string
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id: string
+          assignee_type: string
+          created_at?: string
+          end_date: string
+          id?: string
+          start_date: string
+          status?: string
+          task_description: string
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string
+          assignee_type?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: string
+          task_description?: string
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_task_assignments_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string
