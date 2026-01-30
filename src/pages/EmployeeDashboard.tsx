@@ -348,56 +348,6 @@ export default function EmployeeDashboard() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Primary Role Card - matching IT Park EmployeeDetail */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Primary Role & Responsibilities
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {employeeData?.user_roles && employeeData.user_roles.length > 0 ? (
-                  <div className="space-y-4">
-                    {employeeData.user_roles.map((role: any) => {
-                      const info = roleInfo[role.role] || { description: "Standard system role", responsibilities: [] };
-                      return (
-                        <div key={role.id} className="border rounded-lg p-4 space-y-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="px-3 py-1 text-sm font-medium bg-primary text-primary-foreground rounded-full uppercase">
-                              {role.role}
-                            </span>
-                            {role.entities ? (
-                              <span className="px-3 py-1 text-sm font-medium bg-muted text-muted-foreground rounded-full">
-                                {role.entities.name}
-                              </span>
-                            ) : (
-                              <span className="px-3 py-1 text-sm font-medium bg-muted text-muted-foreground rounded-full">
-                                All Entities
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{info.description}</p>
-                          {info.responsibilities.length > 0 && (
-                            <div>
-                              <p className="text-sm font-medium mb-2">Key Responsibilities:</p>
-                              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                                {info.responsibilities.map((resp, idx) => (
-                                  <li key={idx}>{resp}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">No roles assigned</p>
-                )}
-              </CardContent>
-            </Card>
           </div>
         );
 
