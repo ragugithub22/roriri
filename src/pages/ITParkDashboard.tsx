@@ -438,7 +438,7 @@ const DashboardContent = () => {
   });
 
   const { data: monthlyRevenue = 0 } = useQuery({
-    queryKey: ["monthly-revenue"],
+    queryKey: ["monthly-revenue-all-entities"],
     queryFn: async () => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -448,34 +448,54 @@ const DashboardContent = () => {
         .toISOString()
         .split("T")[0];
 
-      const { data, error } = await supabase
+      // IT Academy payments (status = paid)
+      const { data: academyData } = await supabase
         .from("academy_payments")
         .select("amount")
+        .eq("status", "paid")
         .gte("payment_date", startOfMonth)
         .lt("payment_date", startOfNextMonth);
-      if (error) throw error;
 
-      const academyRevenue =
-        (data as any)?.reduce(
-          (sum: number, payment: any) => sum + (payment.amount || 0),
-          0
-        ) || 0;
+      const academyRevenue = academyData?.reduce(
+        (sum, payment) => sum + (Number(payment.amount) || 0), 0
+      ) || 0;
 
-      // Add revenue from other entities if needed
-      const { data: foundationData, error: foundationError } = await supabase
+      // Internship payments (Software Solution)
+      const { data: internshipData } = await supabase
+        .from("internship_payments")
+        .select("paid_amount")
+        .gte("payment_date", startOfMonth)
+        .lt("payment_date", startOfNextMonth);
+
+      const internshipRevenue = internshipData?.reduce(
+        (sum, payment) => sum + (Number(payment.paid_amount) || 0), 0
+      ) || 0;
+
+      // Foundation donations
+      const { data: donationsData } = await supabase
         .from("donations")
         .select("amount")
         .gte("donation_date", startOfMonth)
         .lt("donation_date", startOfNextMonth);
-      if (foundationError) throw foundationError;
 
-      const foundationRevenue =
-        (foundationData as any)?.reduce(
-          (sum: number, donation: any) => sum + (donation.amount || 0),
-          0
-        ) || 0;
+      const donationsRevenue = donationsData?.reduce(
+        (sum, donation) => sum + (Number(donation.amount) || 0), 0
+      ) || 0;
 
-      return academyRevenue + foundationRevenue;
+      // Industrial Visit payments
+      const { data: visitData } = await supabase
+        .from("industrial_visit_registrations")
+        .select("payment_amount")
+        .eq("visitor_type", "industrial_visit")
+        .gt("payment_amount", 0)
+        .gte("created_at", startOfMonth)
+        .lt("created_at", startOfNextMonth);
+
+      const visitRevenue = visitData?.reduce(
+        (sum, visit) => sum + (Number(visit.payment_amount) || 0), 0
+      ) || 0;
+
+      return academyRevenue + internshipRevenue + donationsRevenue + visitRevenue;
     },
   });
 
