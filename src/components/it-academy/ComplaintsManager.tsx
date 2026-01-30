@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MessageSquareReply, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 interface Complaint {
   id: string;
@@ -162,73 +164,12 @@ export default function ComplaintsManager() {
           <CardDescription>View and respond to complaints from trainees</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>S. No</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Trainee Name</TableHead>
-                <TableHead>Complaint To</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    Loading complaints...
-                  </TableCell>
-                </TableRow>
-              ) : complaints.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No complaints from trainees found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                complaints.map((complaint, index) => (
-                  <TableRow key={complaint.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{new Date(complaint.date).toLocaleDateString()}</TableCell>
-                    <TableCell className="font-medium">{complaint.trainee_name}</TableCell>
-                    <TableCell>{complaint.recipient_name}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        complaint.status === 'resolved' 
-                          ? 'bg-green-100 text-green-800'
-                          : complaint.status === 'in_progress'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {complaint.status || 'Pending'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          title="View Details"
-                          onClick={() => handleOpenViewDialog(complaint)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          title="Reply"
-                          onClick={() => handleOpenReplyDialog(complaint)}
-                        >
-                          <MessageSquareReply className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <ComplaintsTable 
+            complaints={complaints}
+            isLoading={isLoading}
+            handleOpenViewDialog={handleOpenViewDialog}
+            handleOpenReplyDialog={handleOpenReplyDialog}
+          />
         </CardContent>
       </Card>
 
@@ -308,5 +249,95 @@ export default function ComplaintsManager() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ComplaintsTable({ 
+  complaints, 
+  isLoading,
+  handleOpenViewDialog, 
+  handleOpenReplyDialog 
+}: { 
+  complaints: Complaint[];
+  isLoading: boolean;
+  handleOpenViewDialog: (c: Complaint) => void;
+  handleOpenReplyDialog: (c: Complaint) => void;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: complaints, itemsPerPage: 10 });
+
+  if (isLoading) {
+    return (
+      <Table>
+        <TableHeader><TableRow><TableHead>S. No</TableHead><TableHead>Date</TableHead><TableHead>Trainee Name</TableHead><TableHead>Complaint To</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+        <TableBody><TableRow><TableCell colSpan={6} className="text-center py-8">Loading...</TableCell></TableRow></TableBody>
+      </Table>
+    );
+  }
+
+  if (complaints.length === 0) {
+    return (
+      <Table>
+        <TableHeader><TableRow><TableHead>S. No</TableHead><TableHead>Date</TableHead><TableHead>Trainee Name</TableHead><TableHead>Complaint To</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
+        <TableBody><TableRow><TableCell colSpan={6} className="text-center py-8">No complaints found</TableCell></TableRow></TableBody>
+      </Table>
+    );
+  }
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>S. No</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Trainee Name</TableHead>
+            <TableHead>Complaint To</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((complaint, index) => (
+            <TableRow key={complaint.id}>
+              <TableCell>{startIndex + index}</TableCell>
+              <TableCell>{new Date(complaint.date).toLocaleDateString()}</TableCell>
+              <TableCell className="font-medium">{complaint.trainee_name}</TableCell>
+              <TableCell>{complaint.recipient_name}</TableCell>
+              <TableCell>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${complaint.status === 'resolved' ? 'bg-green-100 text-green-800' : complaint.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                  {complaint.status || 'Pending'}
+                </span>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Button size="icon" variant="ghost" onClick={() => handleOpenViewDialog(complaint)}><Eye className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => handleOpenReplyDialog(complaint)}><MessageSquareReply className="h-4 w-4" /></Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 export default function ApplicationsManager() {
   const queryClient = useQueryClient();
@@ -216,53 +218,11 @@ export default function ApplicationsManager() {
             </Button>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Course Name</TableHead>
-                <TableHead>Application Name</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {applications.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No applications found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                applications.map((application: any) => (
-                  <TableRow key={application.id}>
-                    <TableCell>{application.course_name}</TableCell>
-                    <TableCell>{application.application_name}</TableCell>
-                    <TableCell>{application.duration}</TableCell>
-                    <TableCell>{application.description}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleOpenDialog(application)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleDelete(application.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <ApplicationsTable 
+            applications={applications}
+            handleOpenDialog={handleOpenDialog}
+            handleDelete={handleDelete}
+          />
         </CardContent>
       </Card>
 
@@ -346,5 +306,96 @@ export default function ApplicationsManager() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ApplicationsTable({ 
+  applications, 
+  handleOpenDialog, 
+  handleDelete 
+}: { 
+  applications: any[];
+  handleOpenDialog: (app?: any) => void;
+  handleDelete: (id: string) => void;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: applications, itemsPerPage: 10 });
+
+  if (applications.length === 0) {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Course Name</TableHead>
+            <TableHead>Application Name</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+              No applications found
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+  }
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Course Name</TableHead>
+            <TableHead>Application Name</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((application: any) => (
+            <TableRow key={application.id}>
+              <TableCell>{application.course_name}</TableCell>
+              <TableCell>{application.application_name}</TableCell>
+              <TableCell>{application.duration}</TableCell>
+              <TableCell>{application.description}</TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button size="icon" variant="ghost" onClick={() => handleOpenDialog(application)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => handleDelete(application.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

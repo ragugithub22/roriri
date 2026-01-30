@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 interface Candidate {
   id: string;
@@ -323,66 +325,13 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
       </div>
 
       <Card className="p-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>S. No</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">Loading...</TableCell>
-              </TableRow>
-            ) : candidates.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">No candidates found</TableCell>
-              </TableRow>
-            ) : (
-              candidates.map((candidate, index) => (
-                <TableRow key={candidate.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium">{candidate.name}</TableCell>
-                  <TableCell>{candidate.email || "N/A"}</TableCell>
-                  <TableCell>{candidate.phone || "N/A"}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewCandidate ? onViewCandidate(candidate.id) : null}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(candidate)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm("Are you sure you want to delete this candidate?")) {
-                            deleteMutation.mutate(candidate.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+        <CandidatesTable 
+          candidates={candidates}
+          isLoading={isLoading}
+          onViewCandidate={onViewCandidate}
+          handleEdit={handleEdit}
+          deleteMutation={deleteMutation}
+        />
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -601,5 +550,138 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function CandidatesTable({ 
+  candidates, 
+  isLoading,
+  onViewCandidate, 
+  handleEdit, 
+  deleteMutation 
+}: { 
+  candidates: Candidate[];
+  isLoading: boolean;
+  onViewCandidate?: (id: string) => void;
+  handleEdit: (candidate: Candidate) => void;
+  deleteMutation: any;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: candidates, itemsPerPage: 10 });
+
+  if (isLoading) {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>S. No</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={5} className="text-center">Loading...</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+  }
+
+  if (candidates.length === 0) {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>S. No</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell colSpan={5} className="text-center">No candidates found</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+  }
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>S. No</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((candidate, index) => (
+            <TableRow key={candidate.id}>
+              <TableCell>{startIndex + index}</TableCell>
+              <TableCell className="font-medium">{candidate.name}</TableCell>
+              <TableCell>{candidate.email || "N/A"}</TableCell>
+              <TableCell>{candidate.phone || "N/A"}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onViewCandidate ? onViewCandidate(candidate.id) : null}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(candidate)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete this candidate?")) {
+                        deleteMutation.mutate(candidate.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }

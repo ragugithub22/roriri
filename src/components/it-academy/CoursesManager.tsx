@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 export default function CoursesManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -243,63 +245,108 @@ export default function CoursesManager() {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Subjects</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Fees</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {courses.map((course: any) => (
-              <TableRow key={course.id}>
-                <TableCell>{course.course_code}</TableCell>
-                <TableCell>{course.name}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {course.subjects && course.subjects.length > 0 ? (
-                      course.subjects.map((subject: any) => (
-                        <Badge key={subject.id} variant="outline" className="text-xs">
-                          {subject.subject_name}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground text-sm">No subjects</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{course.duration_weeks} months</TableCell>
-                <TableCell>₹{course.fees?.toLocaleString()}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingCourse(course);
-                        setIsOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate(course.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <CoursesTable 
+          courses={courses}
+          setEditingCourse={setEditingCourse}
+          setIsOpen={setIsOpen}
+          deleteMutation={deleteMutation}
+        />
       </CardContent>
     </Card>
+  );
+}
+
+function CoursesTable({ 
+  courses, 
+  setEditingCourse, 
+  setIsOpen, 
+  deleteMutation 
+}: { 
+  courses: any[]; 
+  setEditingCourse: (course: any) => void;
+  setIsOpen: (open: boolean) => void;
+  deleteMutation: any;
+}) {
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination({ data: courses, itemsPerPage: 10 });
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Code</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Subjects</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead>Fees</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map((course: any) => (
+            <TableRow key={course.id}>
+              <TableCell>{course.course_code}</TableCell>
+              <TableCell>{course.name}</TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {course.subjects && course.subjects.length > 0 ? (
+                    course.subjects.map((subject: any) => (
+                      <Badge key={subject.id} variant="outline" className="text-xs">
+                        {subject.subject_name}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No subjects</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{course.duration_weeks} months</TableCell>
+              <TableCell>₹{course.fees?.toLocaleString()}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingCourse(course);
+                      setIsOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteMutation.mutate(course.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalItems}
+        onPrevPage={prevPage}
+        onNextPage={nextPage}
+        onGoToPage={goToPage}
+      />
+    </>
   );
 }
