@@ -12,6 +12,7 @@ import EmployeePayrollHistory from '@/components/employee/EmployeePayrollHistory
 import TraineeChatBox from '@/components/chat/TraineeChatBox';
 import TraineeDetail from '@/pages/TraineeDetail';
 import InternManager from '@/components/employee/InternManager';
+import OtherComplaintsManager from '@/components/employee/OtherComplaintsManager';
 import InternDetails from '@/pages/internship/InternDetails';
 import { 
   LayoutDashboard, 
@@ -28,7 +29,8 @@ import {
   MapPin,
   GraduationCap,
   Users,
-  ClipboardList
+  ClipboardList,
+  MessageSquare
 } from 'lucide-react';
 import TraineesManager from '@/components/it-academy/TraineesManager';
 import TaskAssignManager from '@/components/employee/TaskAssignManager';
@@ -210,6 +212,7 @@ export default function EmployeeDashboard() {
     { id: 'payroll', label: 'Payroll', icon: Wallet },
     { id: 'daily-update', label: 'Daily Update', icon: Calendar },
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
+    { id: 'other-complaints', label: 'Other Complaints', icon: MessageSquare },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
     // Conditionally add Trainees, Intern and Task Assign for trainer role
     ...(isTrainer ? [
@@ -423,6 +426,17 @@ export default function EmployeeDashboard() {
       case 'complaint':
         return employeeData?.profile_id ? (
           <EmployeeComplaint userId={employeeData.profile_id} />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load complaints. Employee data not found.</p>
+            </CardContent>
+          </Card>
+        );
+
+      case 'other-complaints':
+        return employeeData?.id ? (
+          <OtherComplaintsManager employeeId={employeeData.id} />
         ) : (
           <Card>
             <CardContent className="pt-6">
