@@ -1955,6 +1955,7 @@ export type Database = {
           full_name: string
           id: string
           mobile: string
+          payment_amount: number | null
           purpose_of_visit: string
           reason: string | null
           updated_at: string | null
@@ -1971,6 +1972,7 @@ export type Database = {
           full_name: string
           id?: string
           mobile: string
+          payment_amount?: number | null
           purpose_of_visit: string
           reason?: string | null
           updated_at?: string | null
@@ -1987,6 +1989,7 @@ export type Database = {
           full_name?: string
           id?: string
           mobile?: string
+          payment_amount?: number | null
           purpose_of_visit?: string
           reason?: string | null
           updated_at?: string | null
