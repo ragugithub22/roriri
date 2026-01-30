@@ -138,7 +138,7 @@ export default function EmployeeDashboard() {
                   <CardTitle className="text-sm font-medium text-muted-foreground">Position</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold">{employeeData?.positions?.title || 'Not Assigned'}</p>
+                  <p className="text-2xl font-bold capitalize">{employeeData?.user_role || employeeData?.positions?.title || 'Not Assigned'}</p>
                 </CardContent>
               </Card>
               <Card>
@@ -219,7 +219,7 @@ export default function EmployeeDashboard() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-primary">Position</p>
-                      <p className="font-medium capitalize">{employeeData?.user_role || 'Not Assigned'}</p>
+                      <p className="font-medium capitalize">{employeeData?.user_role || employeeData?.positions?.title || 'Not Assigned'}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm text-primary">Hire Date</p>
@@ -360,7 +360,7 @@ export default function EmployeeDashboard() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">{employeeData?.profiles?.full_name || 'Employee Portal'}</h1>
-                  <p className="text-sm opacity-90">{employeeData?.positions?.title || 'Dashboard & Work Management'}</p>
+                  <p className="text-sm opacity-90 capitalize">{employeeData?.user_role || employeeData?.positions?.title || 'Dashboard & Work Management'}</p>
                 </div>
               </div>
 
