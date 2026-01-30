@@ -253,7 +253,7 @@ export default function ITParkDashboard() {
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => navigate("/it-park", { state: { showEntities: true } })}
+                    onClick={() => navigate("/auth")}
                     className="text-primary-foreground hover:bg-primary-foreground/20"
                   >
                     <ArrowLeft className="h-5 w-5" />

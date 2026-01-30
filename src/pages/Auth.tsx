@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { ArrowLeft } from 'lucide-react';
 import roririLogo from '@/assets/roriri-round-logo.png';
 import { useQuery } from '@tanstack/react-query';
 const authSchema = z.object({
@@ -200,7 +201,15 @@ export default function Auth() {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center auth-background p-4">
+  return <div className="min-h-screen flex items-center justify-center auth-background p-4 relative">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 text-foreground hover:bg-white/20"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
