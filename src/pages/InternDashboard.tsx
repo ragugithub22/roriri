@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PaymentReceipt } from '@/components/it-academy/PaymentReceipt';
 import { toast } from '@/hooks/use-toast';
 import TraineeChatBox from '@/components/chat/TraineeChatBox';
+import AssignedTasksView from '@/components/shared/AssignedTasksView';
 import { 
   LayoutDashboard, 
   User, 
@@ -25,7 +26,8 @@ import {
   LogOut,
   Users,
   Plus,
-  FileIcon
+  FileIcon,
+  ClipboardList
 } from 'lucide-react';
 
 interface InternData {
@@ -347,6 +349,7 @@ export default function InternDashboard() {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'application', label: 'Application', icon: FileText },
     { id: 'daily-update', label: 'Daily Update', icon: Calendar },
+    { id: 'assigned-tasks', label: 'Assigned Task', icon: ClipboardList },
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
   ];
@@ -723,6 +726,17 @@ export default function InternDashboard() {
                   No daily updates found. Click "Update" to add your first entry.
                 </p>
               )}
+            </CardContent>
+          </Card>
+        );
+
+      case 'assigned-tasks':
+        return userId ? (
+          <AssignedTasksView userId={userId} userType="intern" />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load assigned tasks.</p>
             </CardContent>
           </Card>
         );

@@ -16,6 +16,7 @@ import { PaymentReceipt } from '@/components/it-academy/PaymentReceipt';
 import { toast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import TraineeChatBox from '@/components/chat/TraineeChatBox';
+import AssignedTasksView from '@/components/shared/AssignedTasksView';
 import { 
   LayoutDashboard, 
   User, 
@@ -30,7 +31,8 @@ import {
   Phone,
   Clock,
   FileIcon,
-  Eye
+  Eye,
+  ClipboardList
 } from 'lucide-react';
 
 interface TraineeData {
@@ -407,6 +409,7 @@ export default function TraineeDashboard() {
     { id: 'subject', label: 'Subject', icon: BookOpen },
     { id: 'application', label: 'Application', icon: FileText },
     { id: 'daily-update', label: 'Daily Update', icon: Calendar },
+    { id: 'assigned-tasks', label: 'Assigned Task', icon: ClipboardList },
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
   ];
@@ -977,6 +980,17 @@ export default function TraineeDashboard() {
                   No daily updates found. Click "Update" to add your first entry.
                 </p>
               )}
+            </CardContent>
+          </Card>
+        );
+
+      case 'assigned-tasks':
+        return userId ? (
+          <AssignedTasksView userId={userId} userType="trainee" />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load assigned tasks.</p>
             </CardContent>
           </Card>
         );
