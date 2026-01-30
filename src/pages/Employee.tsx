@@ -104,7 +104,6 @@ const Employee = ({ onViewEmployee, onViewPayroll }: EmployeeProps) => {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Department</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -120,11 +119,6 @@ const Employee = ({ onViewEmployee, onViewPayroll }: EmployeeProps) => {
                   <TableCell>{employee.profiles?.email || 'N/A'}</TableCell>
                   <TableCell>{employee.profiles?.phone || 'N/A'}</TableCell>
                   <TableCell>{employee.departments?.name || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge variant={employee.status === 'active' ? 'default' : 'secondary'}>
-                      {employee.status}
-                    </Badge>
-                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Tooltip>

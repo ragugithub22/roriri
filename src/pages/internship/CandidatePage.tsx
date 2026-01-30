@@ -330,18 +330,17 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">Loading...</TableCell>
+                <TableCell colSpan={5} className="text-center">Loading...</TableCell>
               </TableRow>
             ) : candidates.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">No candidates found</TableCell>
+                <TableCell colSpan={5} className="text-center">No candidates found</TableCell>
               </TableRow>
             ) : (
               candidates.map((candidate, index) => (
@@ -350,11 +349,6 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
                   <TableCell className="font-medium">{candidate.name}</TableCell>
                   <TableCell>{candidate.email || "N/A"}</TableCell>
                   <TableCell>{candidate.phone || "N/A"}</TableCell>
-                  <TableCell>
-                    <Badge variant={candidate.status === "active" ? "default" : "secondary"}>
-                      {candidate.status}
-                    </Badge>
-                  </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button

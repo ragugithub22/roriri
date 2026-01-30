@@ -115,7 +115,6 @@ export default function EmployeesManager({ onViewEmployee }: EmployeesManagerPro
                   <TableHead>Email</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Position</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -128,13 +127,6 @@ export default function EmployeesManager({ onViewEmployee }: EmployeesManagerPro
                     <TableCell>{employee.profiles?.email || '-'}</TableCell>
                     <TableCell>{employee.departments?.name || '-'}</TableCell>
                     <TableCell>{employee.user_role || '-'}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={employee.status === 'active' ? 'default' : 'secondary'}
-                      >
-                        {employee.status}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
