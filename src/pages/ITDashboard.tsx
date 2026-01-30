@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Laptop, Users, Code, TrendingUp, Shield, Building2, DollarSign, FileText, UserCheck, Calendar, Briefcase, User, MessageSquare, Settings, Target, Handshake, Clock, CheckCircle, LayoutDashboard, BookOpen, CreditCard, MessageCircle, LogOut, AlertCircle, ClipboardList } from "lucide-react";
+import roririLogo from "@/assets/roriri-round-logo.png";
 import ITComplaintsManager from "@/components/it-company/ITComplaintsManager";
 import ITDailyWorkUpdateManager from "@/components/it-company/ITDailyWorkUpdateManager";
 import { useNavigate } from "react-router-dom";
@@ -150,7 +151,7 @@ const ITDashboardContent = ({
       <Sidebar collapsible="icon" className="border-r">
         <SidebarHeader className="h-[73px] border-b bg-gradient-to-b from-cyan-600 to-teal-600 flex items-center px-4">
           <div className="flex items-center gap-2">
-            <Laptop className="h-6 w-6 text-white shrink-0" />
+            <img src={roririLogo} alt="RORIRI Logo" className="h-8 w-8 rounded-full shrink-0" />
             {sidebar.open && <h1 className="text-lg font-bold text-white">IT Company</h1>}
           </div>
         </SidebarHeader>

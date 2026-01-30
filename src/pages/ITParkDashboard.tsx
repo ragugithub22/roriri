@@ -32,6 +32,7 @@ import UserModulesPage from "@/pages/UserModulesPage";
 import KPICard from "@/components/dashboard/KPICard";
 import { Users, Shield, DollarSign, Building2, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import roririLogo from "@/assets/roriri-round-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -194,7 +195,7 @@ export default function ITParkDashboard() {
         <Sidebar collapsible="icon" className="border-r">
           <SidebarHeader className="h-[73px] border-b bg-gradient-to-b from-cyan-600 to-teal-600 flex items-center px-4">
             <div className="flex items-center gap-2">
-              <Building2 className="h-6 w-6 text-white" />
+              <img src={roririLogo} alt="RORIRI Logo" className="h-8 w-8 rounded-full" />
               <h1 className="text-lg font-bold text-white">RORIRI IT PARK</h1>
             </div>
           </SidebarHeader>
@@ -259,9 +260,7 @@ export default function ITParkDashboard() {
                   </Button>
                   
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary-foreground/20">
-                      <Building2 className="h-8 w-8" />
-                    </div>
+                    <img src={roririLogo} alt="RORIRI Logo" className="h-10 w-10 rounded-full" />
                     <div>
                       <h1 className="text-2xl font-bold">RORIRI IT Park</h1>
                       <p className="text-sm opacity-90">Dashboard & Analytics</p>
