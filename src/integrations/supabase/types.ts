@@ -4222,36 +4222,45 @@ export type Database = {
           assignee_type: string
           created_at: string
           end_date: string
+          file_name: string | null
+          file_url: string | null
           id: string
           start_date: string
           status: string
           task_description: string
           trainer_id: string
           updated_at: string
+          uploaded_at: string | null
         }
         Insert: {
           assignee_id: string
           assignee_type: string
           created_at?: string
           end_date: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           start_date: string
           status?: string
           task_description: string
           trainer_id: string
           updated_at?: string
+          uploaded_at?: string | null
         }
         Update: {
           assignee_id?: string
           assignee_type?: string
           created_at?: string
           end_date?: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           start_date?: string
           status?: string
           task_description?: string
           trainer_id?: string
           updated_at?: string
+          uploaded_at?: string | null
         }
         Relationships: [
           {
