@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +17,8 @@ import {
   Clipboard,
   MessageSquareWarning,
   Home,
-  UserCheck
+  UserCheck,
+  Briefcase
 } from "lucide-react";
 import CoursesManager from "@/components/it-academy/CoursesManager";
 import SubjectsManager from "@/components/it-academy/SubjectsManager";
@@ -31,18 +32,24 @@ import EmployeesManager from "../components/it-academy/EmployeesManager";
 import EmployeeDetail from "../components/it-academy/EmployeeDetail";
 import SyllabusDetails from "./SyllabusDetails";
 import TraineeDetail from "./TraineeDetail";
+import CandidatePage from "./internship/CandidatePage";
 
-const navItems: SidebarNavItem[] = [
+const baseNavItems: SidebarNavItem[] = [
   { label: "Dashboard", value: "dashboard", icon: Home },
   { label: "Courses", value: "courses", icon: BookOpen },
   { label: "Subjects", value: "subjects", icon: FileText },
-  { label: "Trainees", value: "trainees", icon: Users },
   { label: "Employees", value: "employees", icon: UserCheck },
   { label: "Payments", value: "payments", icon: CreditCard },
   { label: "Certificates", value: "certificates", icon: Certificate },
   { label: "Applications", value: "applications", icon: FileCheck },
   { label: "Daily Work Update", value: "daily-work-update", icon: Clipboard },
   { label: "Complaints", value: "complaints", icon: MessageSquareWarning },
+];
+
+// Additional menu items for Trainer role
+const trainerNavItems: SidebarNavItem[] = [
+  { label: "Trainees", value: "trainees", icon: Users },
+  { label: "Intern", value: "intern", icon: Briefcase },
 ];
 
 const ITAcademyDashboard = () => {
@@ -52,16 +59,44 @@ const ITAcademyDashboard = () => {
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
+  // Get user role from localStorage
+  const userRole = useMemo(() => {
+    try {
+      const session = localStorage.getItem('userSession');
+      if (session) {
+        const parsed = JSON.parse(session);
+        return parsed.role?.toLowerCase() || '';
+      }
+    } catch {
+      return '';
+    }
+    return '';
+  }, []);
+
+  // Build nav items based on role
+  const navItems = useMemo(() => {
+    const items = [...baseNavItems];
+    // Add Trainees and Intern menu items for Trainer role
+    if (userRole === 'trainer') {
+      // Insert after Subjects (index 2) for better UX
+      items.splice(3, 0, ...trainerNavItems);
+    }
+    return items;
+  }, [userRole]);
+
+  // Valid tab values for URL hash navigation
+  const validTabs = useMemo(() => navItems.map(item => item.value), [navItems]);
+
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    if (hash && ['dashboard', 'courses', 'subjects', 'trainees', 'employees', 'payments', 'certificates', 'applications', 'daily-work-update', 'complaints'].includes(hash)) {
+    if (hash && validTabs.includes(hash)) {
       setActiveTab(hash);
       // Reset detail views when changing tabs
       setSelectedSubjectId(null);
       setSelectedTraineeId(null);
       setSelectedEmployeeId(null);
     }
-  }, [location.hash]);
+  }, [location.hash, validTabs]);
 
   // Fetch IT courses
   const { data: courses = [] } = useQuery({
@@ -263,6 +298,7 @@ const ITAcademyDashboard = () => {
         {activeTab === "applications" && <ApplicationsManager />}
         {activeTab === "daily-work-update" && <DailyWorkUpdateManager />}
         {activeTab === "complaints" && <ComplaintsManager />}
+        {activeTab === "intern" && <CandidatePage />}
       </div>
     </EntitySidebarLayout>
   );
