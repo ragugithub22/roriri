@@ -15,9 +15,10 @@ import { useNavigate } from "react-router-dom";
 
 interface TraineesManagerProps {
   onViewTrainee?: (traineeId: string) => void;
+  readOnly?: boolean;
 }
 
-export default function TraineesManager({ onViewTrainee }: TraineesManagerProps) {
+export default function TraineesManager({ onViewTrainee, readOnly = false }: TraineesManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingTrainee, setEditingTrainee] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -242,12 +243,13 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
             <CardTitle>Trainees Management</CardTitle>
             <CardDescription>Manage trainee registrations and records</CardDescription>
           </div>
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingTrainee(null)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Register Trainee
-              </Button>
+          {!readOnly && (
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setEditingTrainee(null)}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Register Trainee
+                </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -411,6 +413,7 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
               </form>
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -450,23 +453,27 @@ export default function TraineesManager({ onViewTrainee }: TraineesManagerProps)
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingTrainee(trainee);
-                        setIsOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate(trainee.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {!readOnly && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingTrainee(trainee);
+                            setIsOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteMutation.mutate(trainee.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

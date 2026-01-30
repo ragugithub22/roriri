@@ -478,7 +478,8 @@ export default function EmployeeDashboard() {
         }
         return (
           <TraineesManager 
-            onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)} 
+            onViewTrainee={(traineeId) => setSelectedTraineeId(traineeId)}
+            readOnly={true}
           />
         );
 
