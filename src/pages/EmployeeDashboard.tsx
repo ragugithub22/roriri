@@ -76,7 +76,7 @@ export default function EmployeeDashboard() {
           *,
           profiles(full_name, email, phone, address, dob, username, password),
           departments(name),
-          positions(title)
+          positions:position_id(title)
         `)
         .eq('profile_id', originalId)
         .single();
