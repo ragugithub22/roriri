@@ -25,9 +25,11 @@ import {
   Phone,
   MapPin,
   GraduationCap,
-  Users
+  Users,
+  ClipboardList
 } from 'lucide-react';
 import TraineesManager from '@/components/it-academy/TraineesManager';
+import TaskAssignManager from '@/components/employee/TaskAssignManager';
 
 interface EmployeeData {
   id: string;
@@ -204,10 +206,11 @@ export default function EmployeeDashboard() {
     { id: 'daily-update', label: 'Daily Update', icon: Calendar },
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
-    // Conditionally add Trainees and Intern for trainer role
+    // Conditionally add Trainees, Intern and Task Assign for trainer role
     ...(isTrainer ? [
       { id: 'trainees', label: 'Trainees', icon: GraduationCap },
       { id: 'intern', label: 'Intern', icon: Users },
+      { id: 'task-assign', label: 'Task Assign', icon: ClipboardList },
     ] : []),
   ];
 
@@ -470,6 +473,17 @@ export default function EmployeeDashboard() {
               <p className="text-muted-foreground">
                 View and manage intern details, progress, and assignments.
               </p>
+            </CardContent>
+          </Card>
+        );
+
+      case 'task-assign':
+        return employeeData?.profile_id ? (
+          <TaskAssignManager trainerId={employeeData.profile_id} />
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Unable to load task assignment. Please try again.</p>
             </CardContent>
           </Card>
         );
