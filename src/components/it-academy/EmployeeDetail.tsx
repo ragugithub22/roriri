@@ -30,6 +30,9 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
           departments:department_id(
             name
           ),
+          positions:position_id(
+            title
+          ),
           primary_entity:entities!entity_id(
             name
           )
@@ -179,7 +182,7 @@ export default function EmployeeDetail({ employeeId, onBack }: EmployeeDetailPro
               <Briefcase className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Position</p>
-                <p className="font-medium">{employee.user_role || '-'}</p>
+                <p className="font-medium">{employee.positions?.title || 'Not Assigned'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
