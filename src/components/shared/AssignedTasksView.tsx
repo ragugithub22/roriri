@@ -77,7 +77,8 @@ export default function AssignedTasksView({ userId, userType }: AssignedTasksVie
         .update({
           file_url: filePath,
           file_name: file.name,
-          uploaded_at: new Date().toISOString()
+          uploaded_at: new Date().toISOString(),
+          status: 'completed'
         })
         .eq("id", taskId);
 
