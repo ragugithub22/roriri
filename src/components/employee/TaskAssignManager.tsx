@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ClipboardList, Plus, Trash2 } from "lucide-react";
+import { ClipboardList, Plus, Trash2, Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 interface TaskAssignManagerProps {
@@ -177,6 +177,27 @@ export default function TaskAssignManager({ trainerId }: TaskAssignManagerProps)
     }
   };
 
+  const handleDownload = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('task-files')
+        .download(filePath);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast.error(`Download failed: ${error.message}`);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -309,6 +330,7 @@ export default function TaskAssignManager({ trainerId }: TaskAssignManagerProps)
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>File</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -327,6 +349,24 @@ export default function TaskAssignManager({ trainerId }: TaskAssignManagerProps)
                   <TableCell>{new Date(task.start_date).toLocaleDateString()}</TableCell>
                   <TableCell>{new Date(task.end_date).toLocaleDateString()}</TableCell>
                   <TableCell>{getStatusBadge(task.status)}</TableCell>
+                  <TableCell>
+                    {task.file_url && task.file_name ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(task.file_url, task.file_name)}
+                        className="text-primary"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        <span className="truncate max-w-[80px]">{task.file_name}</span>
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground text-sm flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        No file
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
