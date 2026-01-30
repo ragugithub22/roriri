@@ -161,10 +161,12 @@ export default function EmployeeDashboard() {
           console.warn('Direct user_roles select blocked:', rolesError);
         }
 
-        // If direct select returns nothing OR is blocked, fall back to edge function derived from auth JWT
+        // If direct select returns nothing OR is blocked, fall back to edge function with profile_id
         if (!resolvedRoles || resolvedRoles.length === 0 || !!rolesError) {
           try {
-            const { data: roleData, error: roleFnErr } = await supabase.functions.invoke('get-my-primary-role');
+            const { data: roleData, error: roleFnErr } = await supabase.functions.invoke('get-my-primary-role', {
+              body: { profile_id: originalId }
+            });
             if (!roleFnErr && roleData?.success) {
               primaryRole = roleData.primaryRole ?? null;
             }
