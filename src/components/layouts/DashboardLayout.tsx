@@ -4,6 +4,7 @@ import { LucideIcon, ArrowLeft, Home, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import roririLogo from "@/assets/roriri-round-logo.png";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,9 +44,7 @@ export default function DashboardLayout({
               </Button>
               
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-white/20">
-                  <Icon className="h-8 w-8" />
-                </div>
+                <img src={roririLogo} alt="RORIRI Logo" className="h-10 w-10 rounded-full" />
                 <div>
                   <h1 className="text-2xl font-bold">{entityName}</h1>
                   <p className="text-sm opacity-90">Dashboard & Analytics</p>

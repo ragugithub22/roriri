@@ -1,9 +1,9 @@
-import { Building2, ArrowRight, BarChart3, Users, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EntityFlowDiagram from "@/components/dashboard/EntityFlowDiagram";
-
+import roririLogo from "@/assets/roriri-round-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -23,7 +23,7 @@ const Index = () => {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
+            <img src={roririLogo} alt="RORIRI Logo" className="h-8 w-8 rounded-full" />
             <h1 className="text-xl font-bold">RORIRI ERP</h1>
           </div>
           <Button onClick={handleLoginClick} className="bg-primary hover:bg-primary/90">
@@ -37,7 +37,7 @@ const Index = () => {
 
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="flex items-center gap-3 mb-6 animate-fade-in">
-            <Building2 className="h-12 w-12" />
+            <img src={roririLogo} alt="RORIRI Logo" className="h-12 w-12 rounded-full" />
             <h1 className="text-5xl font-bold">RORIRI ERP</h1>
           </div>
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LucideIcon, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import roririLogo from "@/assets/roriri-round-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -54,7 +55,7 @@ export default function EntitySidebarLayout({
         <Sidebar collapsible="icon" className="border-r">
           <SidebarHeader className="h-[73px] border-b border-white/10 bg-gradient-to-b from-cyan-600 to-teal-600 flex items-center">
             <div className="flex items-center gap-2 px-4">
-              <EntityIcon className="h-6 w-6 text-white" />
+              <img src={roririLogo} alt="RORIRI Logo" className="h-8 w-8 rounded-full" />
               <h1 className="text-lg font-bold text-white">{entityName}</h1>
             </div>
           </SidebarHeader>
