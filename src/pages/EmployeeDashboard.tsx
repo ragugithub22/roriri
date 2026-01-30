@@ -132,7 +132,9 @@ export default function EmployeeDashboard() {
         console.error('Error fetching employee data:', error);
       } else {
         // Fetch all user roles with entity information (matching IT Park EmployeeDetail)
-        const { data: userRolesData } = await supabase
+        // NOTE: Some RLS setups may block direct client SELECT on user_roles for employees.
+        // We attempt direct select first; if empty, we fall back to a secure edge function.
+        const { data: userRolesData, error: rolesError } = await supabase
           .from('user_roles')
           .select(`
             id,
@@ -142,18 +144,35 @@ export default function EmployeeDashboard() {
           `)
           .eq('user_id', originalId);
 
-        // Get the primary role (first one or matching entity)
-        let primaryRole = null;
-        if (userRolesData && userRolesData.length > 0) {
-          // Try to find role matching employee's entity first
-          const entityRole = userRolesData.find(r => r.entity_id === data.entity_id);
-          primaryRole = entityRole?.role || userRolesData[0]?.role;
+        let resolvedRoles = userRolesData || [];
+        let primaryRole: string | null = null;
+
+        if (rolesError) {
+          console.warn('Direct user_roles select blocked:', rolesError);
+        }
+
+        // If direct select returns nothing OR is blocked, fall back to edge function derived from auth JWT
+        if (!resolvedRoles || resolvedRoles.length === 0 || !!rolesError) {
+          try {
+            const { data: roleData, error: roleFnErr } = await supabase.functions.invoke('get-my-primary-role');
+            if (!roleFnErr && roleData?.success) {
+              primaryRole = roleData.primaryRole ?? null;
+            }
+          } catch (e) {
+            console.warn('Role edge function fallback failed:', e);
+          }
+        }
+
+        // Prefer primary role derived from direct roles when available
+        if (!primaryRole && resolvedRoles && resolvedRoles.length > 0) {
+          const entityRole = resolvedRoles.find((r) => r.entity_id === data.entity_id);
+          primaryRole = (entityRole?.role || resolvedRoles[0]?.role || null) as string | null;
         }
 
         setEmployeeData({ 
           ...data, 
           user_role: primaryRole,
-          user_roles: userRolesData || []
+          user_roles: resolvedRoles || []
         });
       }
     } catch (error) {
