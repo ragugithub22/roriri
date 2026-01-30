@@ -84,12 +84,31 @@ export default function EmployeeDashboard() {
       if (error) {
         console.error('Error fetching employee data:', error);
       } else {
-        // Fetch user role
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', originalId)
-          .maybeSingle();
+        // Fetch user role - first try to get role for the employee's entity, 
+        // otherwise get any role assigned to this user
+        let roleData = null;
+        
+        // Try fetching role for employee's entity first
+        if (data.entity_id) {
+          const { data: entityRoleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', originalId)
+            .eq('entity_id', data.entity_id)
+            .maybeSingle();
+          roleData = entityRoleData;
+        }
+        
+        // If no role found for entity, get any role for this user
+        if (!roleData) {
+          const { data: anyRoleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', originalId)
+            .limit(1)
+            .maybeSingle();
+          roleData = anyRoleData;
+        }
 
         setEmployeeData({ ...data, user_role: roleData?.role || null });
       }
