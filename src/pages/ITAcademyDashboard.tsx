@@ -38,6 +38,7 @@ const baseNavItems: SidebarNavItem[] = [
   { label: "Dashboard", value: "dashboard", icon: Home },
   { label: "Courses", value: "courses", icon: BookOpen },
   { label: "Subjects", value: "subjects", icon: FileText },
+  { label: "Trainees", value: "trainees", icon: Users },
   { label: "Employees", value: "employees", icon: UserCheck },
   { label: "Payments", value: "payments", icon: CreditCard },
   { label: "Certificates", value: "certificates", icon: Certificate },
@@ -48,7 +49,6 @@ const baseNavItems: SidebarNavItem[] = [
 
 // Additional menu items for Trainer role
 const trainerNavItems: SidebarNavItem[] = [
-  { label: "Trainees", value: "trainees", icon: Users },
   { label: "Intern", value: "intern", icon: Briefcase },
 ];
 
