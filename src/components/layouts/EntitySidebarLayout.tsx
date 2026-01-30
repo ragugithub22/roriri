@@ -104,9 +104,7 @@ export default function EntitySidebarLayout({
                   </Button>
                   
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white/20">
-                      <EntityIcon className="h-8 w-8" />
-                    </div>
+                    <img src={roririLogo} alt="RORIRI Logo" className="h-10 w-10 rounded-full" />
                     <div>
                       <h1 className="text-2xl font-bold">{entityName}</h1>
                       <p className="text-sm opacity-90">Dashboard & Analytics</p>
