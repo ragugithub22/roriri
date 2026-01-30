@@ -22,8 +22,11 @@ import {
   Briefcase,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  GraduationCap,
+  Users
 } from 'lucide-react';
+import TraineesManager from '@/components/it-academy/TraineesManager';
 
 interface EmployeeData {
   id: string;
@@ -187,6 +190,10 @@ export default function EmployeeDashboard() {
     navigate('/auth');
   };
 
+  // Check if user has trainer role
+  const isTrainer = employeeData?.user_role?.toLowerCase() === 'trainer' || 
+    employeeData?.user_roles?.some(r => r.role?.toLowerCase() === 'trainer');
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'profile', label: 'Profile', icon: User },
@@ -195,6 +202,11 @@ export default function EmployeeDashboard() {
     { id: 'daily-update', label: 'Daily Update', icon: Calendar },
     { id: 'complaint', label: 'Complaint', icon: AlertCircle },
     { id: 'chat-box', label: 'Chat Box', icon: MessageCircle },
+    // Conditionally add Trainees and Intern for trainer role
+    ...(isTrainer ? [
+      { id: 'trainees', label: 'Trainees', icon: GraduationCap },
+      { id: 'intern', label: 'Intern', icon: Users },
+    ] : []),
   ];
 
   const renderContent = () => {
@@ -427,6 +439,23 @@ export default function EmployeeDashboard() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">Unable to load payroll. Employee data not found.</p>
+            </CardContent>
+          </Card>
+        );
+
+      case 'trainees':
+        return <TraineesManager />;
+
+      case 'intern':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Intern Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                View and manage intern details, progress, and assignments.
+              </p>
             </CardContent>
           </Card>
         );
