@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EntityFlowDiagram from "@/components/dashboard/EntityFlowDiagram";
-import DailyUpdateCard from "@/components/dashboard/DailyUpdateCard";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -78,12 +78,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Daily Update Card */}
-      <section className="py-12 px-6 border-b bg-muted/20">
-        <div className="container mx-auto max-w-7xl">
-          <DailyUpdateCard />
-        </div>
-      </section>
 
       {/* Entity Flow Diagram */}
       <section className="py-16 px-6 bg-muted/30">
