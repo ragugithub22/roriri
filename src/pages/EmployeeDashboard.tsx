@@ -32,6 +32,7 @@ interface EmployeeData {
   status: string;
   residence_type: string;
   profile_id: string;
+  entity_id: string;
   profiles?: {
     full_name: string;
     email: string;
@@ -44,7 +45,53 @@ interface EmployeeData {
   departments?: { name: string } | null;
   positions?: { title: string } | null;
   user_role?: string | null;
+  user_roles?: Array<{
+    id: string;
+    role: string;
+    entity_id: string;
+    entities?: { name: string } | null;
+  }>;
 }
+
+// Role info matching IT Park EmployeeDetail
+const roleInfo: Record<string, { description: string; responsibilities: string[] }> = {
+  admin: {
+    description: "Full system access with ability to manage all entities and users",
+    responsibilities: ["Manage users and permissions", "Configure system settings", "Access all modules", "Generate reports", "Oversee all operations"]
+  },
+  manager: {
+    description: "Supervisory role with team and project management capabilities",
+    responsibilities: ["Manage team members", "Approve requests and expenses", "Monitor project progress", "Review work updates", "Make strategic decisions"]
+  },
+  staff: {
+    description: "Standard employee with access to assigned modules and tasks",
+    responsibilities: ["Complete assigned tasks", "Submit daily work updates", "Collaborate with team", "Follow standard procedures", "Report to manager"]
+  },
+  developer: {
+    description: "Technical role focused on software development and maintenance",
+    responsibilities: ["Write and maintain code", "Debug and fix issues", "Participate in code reviews", "Develop new features", "Document technical work"]
+  },
+  hr: {
+    description: "Human resources role managing employee lifecycle and welfare",
+    responsibilities: ["Recruit and onboard employees", "Manage employee records", "Handle attendance and leave", "Conduct performance reviews", "Address employee concerns"]
+  },
+  trainer: {
+    description: "Educational role responsible for teaching and mentoring",
+    responsibilities: ["Conduct training sessions", "Develop course materials", "Assess student progress", "Provide mentorship", "Update curriculum"]
+  },
+  trainee: {
+    description: "Learning role with supervised access to training materials",
+    responsibilities: ["Attend training sessions", "Complete assignments", "Learn required skills", "Follow trainer guidance", "Track learning progress"]
+  },
+  employee: {
+    description: "Standard employee with access to assigned modules and tasks",
+    responsibilities: ["Complete assigned tasks", "Submit daily work updates", "Collaborate with team", "Follow standard procedures", "Report to manager"]
+  },
+  viewer: {
+    description: "Read-only access for monitoring and reporting purposes",
+    responsibilities: ["View reports and data", "Monitor system activity", "Generate read-only reports", "No modification rights"]
+  }
+};
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
@@ -84,33 +131,30 @@ export default function EmployeeDashboard() {
       if (error) {
         console.error('Error fetching employee data:', error);
       } else {
-        // Fetch user role - first try to get role for the employee's entity, 
-        // otherwise get any role assigned to this user
-        let roleData = null;
-        
-        // Try fetching role for employee's entity first
-        if (data.entity_id) {
-          const { data: entityRoleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', originalId)
-            .eq('entity_id', data.entity_id)
-            .maybeSingle();
-          roleData = entityRoleData;
-        }
-        
-        // If no role found for entity, get any role for this user
-        if (!roleData) {
-          const { data: anyRoleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', originalId)
-            .limit(1)
-            .maybeSingle();
-          roleData = anyRoleData;
+        // Fetch all user roles with entity information (matching IT Park EmployeeDetail)
+        const { data: userRolesData } = await supabase
+          .from('user_roles')
+          .select(`
+            id,
+            role,
+            entity_id,
+            entities:entity_id(name)
+          `)
+          .eq('user_id', originalId);
+
+        // Get the primary role (first one or matching entity)
+        let primaryRole = null;
+        if (userRolesData && userRolesData.length > 0) {
+          // Try to find role matching employee's entity first
+          const entityRole = userRolesData.find(r => r.entity_id === data.entity_id);
+          primaryRole = entityRole?.role || userRolesData[0]?.role;
         }
 
-        setEmployeeData({ ...data, user_role: roleData?.role || null });
+        setEmployeeData({ 
+          ...data, 
+          user_role: primaryRole,
+          user_roles: userRolesData || []
+        });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -258,6 +302,56 @@ export default function EmployeeDashboard() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Primary Role Card - matching IT Park EmployeeDetail */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Primary Role & Responsibilities
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {employeeData?.user_roles && employeeData.user_roles.length > 0 ? (
+                  <div className="space-y-4">
+                    {employeeData.user_roles.map((role: any) => {
+                      const info = roleInfo[role.role] || { description: "Standard system role", responsibilities: [] };
+                      return (
+                        <div key={role.id} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-3 py-1 text-sm font-medium bg-primary text-primary-foreground rounded-full uppercase">
+                              {role.role}
+                            </span>
+                            {role.entities ? (
+                              <span className="px-3 py-1 text-sm font-medium bg-muted text-muted-foreground rounded-full">
+                                {role.entities.name}
+                              </span>
+                            ) : (
+                              <span className="px-3 py-1 text-sm font-medium bg-muted text-muted-foreground rounded-full">
+                                All Entities
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{info.description}</p>
+                          {info.responsibilities.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium mb-2">Key Responsibilities:</p>
+                              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                                {info.responsibilities.map((resp, idx) => (
+                                  <li key={idx}>{resp}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">No roles assigned</p>
+                )}
               </CardContent>
             </Card>
           </div>
