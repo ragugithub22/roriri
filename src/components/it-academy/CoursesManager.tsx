@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { validateForm, getFormString, getFormNumber, getFormInt } from "@/lib/validation";
 
 export default function CoursesManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,15 +118,31 @@ export default function CoursesManager() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const courseCode = getFormString(formData, "course_code");
+    const name = getFormString(formData, "name");
+    const durationWeeks = getFormInt(formData, "duration_weeks");
+    const fees = getFormNumber(formData, "fees");
+
+    // Validate form fields
+    const isValid = validateForm([
+      { value: courseCode, fieldName: "Course Code", rules: ["required", { minLength: 2 }, { maxLength: 20 }] },
+      { value: name, fieldName: "Course Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: durationWeeks, fieldName: "Duration", rules: ["required", "positiveNumber"] },
+      { value: fees, fieldName: "Fees", rules: ["required", "positiveNumber"] },
+    ]);
+
+    if (!isValid) return;
+
     const courseData = {
-      course_code: formData.get("course_code"),
-      name: formData.get("name"),
-      description: formData.get("description"),
-      course_level: formData.get("course_level"),
-      duration_weeks: parseInt(formData.get("duration_weeks") as string),
-      fees: parseFloat(formData.get("fees") as string),
+      course_code: courseCode,
+      name: name,
+      description: getFormString(formData, "description"),
+      course_level: getFormString(formData, "course_level") || "Beginner",
+      duration_weeks: durationWeeks,
+      fees: fees,
       certification_available: formData.get("certification_available") === "on",
-      status: formData.get("status"),
+      status: getFormString(formData, "status") || "active",
     };
     saveMutation.mutate(courseData);
   };

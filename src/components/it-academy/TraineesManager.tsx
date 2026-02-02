@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { validateForm, getFormString } from "@/lib/validation";
 
 interface TraineesManagerProps {
   onViewTrainee?: (traineeId: string) => void;
@@ -185,6 +186,23 @@ export default function TraineesManager({ onViewTrainee, readOnly = false }: Tra
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
+    const fullName = getFormString(formData, "full_name");
+    const email = getFormString(formData, "email");
+    const phone = getFormString(formData, "phone");
+    const enrollmentDate = getFormString(formData, "enrollment_date");
+    const password = getFormString(formData, "password");
+
+    // Validate form fields
+    const isValid = validateForm([
+      { value: fullName, fieldName: "Full Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: email, fieldName: "Email", rules: ["required", "email"] },
+      { value: phone, fieldName: "Phone", rules: ["phone"] },
+      { value: enrollmentDate, fieldName: "Enrollment Date", rules: ["required", "date"] },
+      { value: password, fieldName: "Password", rules: ["password"] },
+    ]);
+
+    if (!isValid) return;
+    
     let imageUrl = editingTrainee?.image_url || null;
     
     // Upload image if provided
@@ -206,27 +224,19 @@ export default function TraineesManager({ onViewTrainee, readOnly = false }: Tra
       
       imageUrl = publicUrl;
     }
-    
-    const email = getStringField(formData, "email");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
 
     const traineeData: any = {
-      student_code: getStringField(formData, "student_code"),
-      full_name: getStringField(formData, "full_name"),
-      gender: getStringField(formData, "gender") || null,
+      student_code: getFormString(formData, "student_code"),
+      full_name: fullName,
+      gender: getFormString(formData, "gender") || null,
       email,
-      phone: getStringField(formData, "phone") || null,
-      date_of_birth: getStringField(formData, "date_of_birth") || null,
-      address: getStringField(formData, "address") || null,
-      password: getStringField(formData, "password"),
-      enrollment_date: getStringField(formData, "enrollment_date"),
-      status: getStringField(formData, "status") || "active",
-      residence_type: getStringField(formData, "residence_type") || null,
-      // Note: incharge_person_id and image_url removed as they don't exist in students table
+      phone: phone || null,
+      date_of_birth: getFormString(formData, "date_of_birth") || null,
+      address: getFormString(formData, "address") || null,
+      password,
+      enrollment_date: enrollmentDate,
+      status: getFormString(formData, "status") || "active",
+      residence_type: getFormString(formData, "residence_type") || null,
     };
     
     // Only include image_url if it was uploaded and if we're adding it to the table

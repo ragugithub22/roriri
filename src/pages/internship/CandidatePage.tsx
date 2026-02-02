@@ -14,6 +14,7 @@ import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { validateForm } from "@/lib/validation";
 
 interface Candidate {
   id: string;
@@ -269,6 +270,17 @@ export default function CandidatePage({ onViewCandidate }: CandidatePageProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.name, fieldName: "Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: formData.email, fieldName: "Email", rules: ["email"] },
+      { value: formData.phone, fieldName: "Phone", rules: ["phone"] },
+      { value: formData.fees, fieldName: "Fees", rules: ["positiveNumber"] },
+    ]);
+
+    if (!isValid) return;
+
     if (editingCandidate) {
       updateMutation.mutate({ id: editingCandidate.id, data: formData });
     } else {

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, User, Phone, Mail, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
+import { validateForm } from "@/lib/validation";
 
 const supabaseClient = supabase as any;
 
@@ -124,6 +125,16 @@ const ClientsManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.client_name, fieldName: "Client Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: formData.phone, fieldName: "Phone", rules: ["required", "phone"] },
+      { value: formData.email, fieldName: "Email", rules: ["email"] },
+      { value: formData.client_type, fieldName: "Client Type", rules: ["required"] },
+    ]);
+
+    if (!isValid) return;
 
     if (editingClient) {
       updateClientMutation.mutate({ id: editingClient.id, ...formData });

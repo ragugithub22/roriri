@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Users, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { validateForm } from "@/lib/validation";
 
 interface User {
   id: string;
@@ -211,10 +212,17 @@ export default function UsersManager({ onViewUser }: UsersManagerProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.user_type || !formData.username || !formData.password) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.user_type, fieldName: "User Type", rules: ["required"] },
+      { value: formData.name, fieldName: "Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: formData.email, fieldName: "Email", rules: ["email"] },
+      { value: formData.mobile_number, fieldName: "Mobile Number", rules: ["phone"] },
+      { value: formData.username, fieldName: "Username", rules: ["required", { minLength: 3 }, { maxLength: 50 }] },
+      { value: formData.password, fieldName: "Password", rules: ["required", "password"] },
+    ]);
+
+    if (!isValid) return;
 
     if (editingUser) {
       updateUserMutation.mutate({ id: editingUser.id, data: formData });

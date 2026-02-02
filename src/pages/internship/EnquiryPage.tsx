@@ -40,6 +40,7 @@ import {
 import { generateOfferLetterHTML, OfferLetter } from "@/components/internship/OfferLetter";
 import { generateBonafideLetterHTML, BonafideLetter } from "@/components/internship/BonafideLetter";
 import { DialogFooter } from "@/components/ui/dialog";
+import { validateForm } from "@/lib/validation";
 
 interface InternshipEnquiry {
   id: string;
@@ -169,6 +170,17 @@ export default function EnquiryPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.name, fieldName: "Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: formData.phone, fieldName: "Phone", rules: ["required", "phone"] },
+      { value: formData.email, fieldName: "Email", rules: ["email"] },
+      { value: formData.enquiry_date, fieldName: "Enquiry Date", rules: ["required", "date"] },
+    ]);
+
+    if (!isValid) return;
+    
     saveMutation.mutate(formData);
   };
 

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DataTable, Badge } from "@/components/dashboard/DataTable";
 import { Plus, Edit, Trash2, Calendar, Users, Clock, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { validateForm } from "@/lib/validation";
 
 interface FarmBooking {
   id: string;
@@ -137,6 +138,21 @@ const FarmBookingsManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.customer_name, fieldName: "Customer Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: formData.customer_email, fieldName: "Email", rules: ["required", "email"] },
+      { value: formData.customer_phone, fieldName: "Phone", rules: ["required", "phone"] },
+      { value: formData.booking_date, fieldName: "Booking Date", rules: ["required", "date"] },
+      { value: formData.booking_time, fieldName: "Booking Time", rules: ["required"] },
+      { value: formData.number_of_guests, fieldName: "Number of Guests", rules: ["required", "positiveNumber"] },
+      { value: formData.ticket_type, fieldName: "Ticket Type", rules: ["required"] },
+      { value: formData.total_amount, fieldName: "Total Amount", rules: ["required", "positiveNumber"] },
+    ]);
+
+    if (!isValid) return;
+
     if (editingBooking) {
       updateMutation.mutate({ id: editingBooking.id, data: formData });
     } else {
