@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DataTable, Badge } from "@/components/dashboard/DataTable";
 import { Plus, Edit, Trash2, Users, DollarSign, Phone, Mail, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { validateForm } from "@/lib/validation";
 
 interface Donor {
   id: string;
@@ -125,6 +126,18 @@ const DonorsManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.donor_code, fieldName: "Donor Code", rules: ["required", { minLength: 2 }, { maxLength: 20 }] },
+      { value: formData.full_name, fieldName: "Full Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: formData.donor_type, fieldName: "Donor Type", rules: ["required"] },
+      { value: formData.email, fieldName: "Email", rules: ["email"] },
+      { value: formData.phone, fieldName: "Phone", rules: ["phone"] },
+    ]);
+
+    if (!isValid) return;
+
     if (editingDonor) {
       updateMutation.mutate({ id: editingDonor.id, data: formData });
     } else {

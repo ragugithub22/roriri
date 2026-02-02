@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DataTable, Badge } from "@/components/dashboard/DataTable";
 import { Plus, Edit, Trash2, User, Phone, Mail, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { validateForm } from "@/lib/validation";
 
 interface Candidate {
   id: string;
@@ -144,6 +145,18 @@ const CandidatesManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
+    const isValid = validateForm([
+      { value: formData.first_name, fieldName: "First Name", rules: ["required", { minLength: 2 }, { maxLength: 50 }] },
+      { value: formData.last_name, fieldName: "Last Name", rules: ["required", { minLength: 2 }, { maxLength: 50 }] },
+      { value: formData.email, fieldName: "Email", rules: ["required", "email"] },
+      { value: formData.phone, fieldName: "Phone", rules: ["phone"] },
+      { value: formData.experience_years, fieldName: "Experience", rules: ["positiveNumber"] },
+    ]);
+
+    if (!isValid) return;
+
     if (editingCandidate) {
       updateMutation.mutate({ id: editingCandidate.id, data: formData });
     } else {

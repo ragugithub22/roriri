@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
+import { validateForm, getFormString } from "@/lib/validation";
 
 export default function CustomersManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,23 +73,39 @@ export default function CustomersManager() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const customerCode = getFormString(formData, "customer_code");
+    const fullName = getFormString(formData, "full_name");
+    const phone = getFormString(formData, "phone");
+    const email = getFormString(formData, "email");
+
+    // Validate form fields
+    const isValid = validateForm([
+      { value: customerCode, fieldName: "Customer Code", rules: ["required", { minLength: 2 }] },
+      { value: fullName, fieldName: "Full Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: phone, fieldName: "Phone", rules: ["required", "phone"] },
+      { value: email, fieldName: "Email", rules: ["email"] },
+    ]);
+
+    if (!isValid) return;
+
     const customerData = {
-      customer_code: formData.get("customer_code"),
-      full_name: formData.get("full_name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      alternate_phone: formData.get("alternate_phone"),
-      address: formData.get("address"),
-      city: formData.get("city"),
-      state: formData.get("state"),
-      pincode: formData.get("pincode"),
-      date_of_birth: formData.get("date_of_birth") || null,
-      gender: formData.get("gender"),
-      id_proof_type: formData.get("id_proof_type"),
-      id_proof_number: formData.get("id_proof_number"),
-      emergency_contact_name: formData.get("emergency_contact_name"),
-      emergency_contact_phone: formData.get("emergency_contact_phone"),
-      status: formData.get("status"),
+      customer_code: customerCode,
+      full_name: fullName,
+      email: email || null,
+      phone: phone,
+      alternate_phone: getFormString(formData, "alternate_phone") || null,
+      address: getFormString(formData, "address") || null,
+      city: getFormString(formData, "city") || null,
+      state: getFormString(formData, "state") || null,
+      pincode: getFormString(formData, "pincode") || null,
+      date_of_birth: getFormString(formData, "date_of_birth") || null,
+      gender: getFormString(formData, "gender") || null,
+      id_proof_type: getFormString(formData, "id_proof_type") || null,
+      id_proof_number: getFormString(formData, "id_proof_number") || null,
+      emergency_contact_name: getFormString(formData, "emergency_contact_name") || null,
+      emergency_contact_phone: getFormString(formData, "emergency_contact_phone") || null,
+      status: getFormString(formData, "status") || "active",
     };
     saveMutation.mutate(customerData);
   };

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Calendar, Users, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/dashboard/DataTable";
+import { validateForm, getFormString, getFormNumber, getFormInt } from "@/lib/validation";
 
 export default function BookingsManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -115,22 +116,40 @@ export default function BookingsManager() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const bookingCode = getFormString(formData, "booking_code");
+    const customerId = getFormString(formData, "customer_id");
+    const packageId = getFormString(formData, "package_id");
+    const travelDate = getFormString(formData, "travel_date");
+    const totalAmount = getFormNumber(formData, "total_amount");
+
+    // Validate form fields
+    const isValid = validateForm([
+      { value: bookingCode, fieldName: "Booking Code", rules: ["required", { minLength: 2 }] },
+      { value: customerId, fieldName: "Customer", rules: ["required"] },
+      { value: packageId, fieldName: "Tour Package", rules: ["required"] },
+      { value: travelDate, fieldName: "Travel Date", rules: ["required", "date"] },
+      { value: totalAmount, fieldName: "Total Amount", rules: ["required", "positiveNumber"] },
+    ]);
+
+    if (!isValid) return;
+
     const bookingData = {
-      booking_code: formData.get("booking_code"),
-      customer_id: formData.get("customer_id"),
-      package_id: formData.get("package_id"),
-      enquiry_id: formData.get("enquiry_id") || null,
-      booking_date: formData.get("booking_date"),
-      travel_date: formData.get("travel_date"),
-      return_date: formData.get("return_date") || null,
-      no_of_adults: parseInt(formData.get("no_of_adults") as string) || 1,
-      no_of_children: parseInt(formData.get("no_of_children") as string) || 0,
-      total_amount: parseFloat(formData.get("total_amount") as string),
-      advance_amount: parseFloat(formData.get("advance_amount") as string) || 0,
-      balance_amount: parseFloat(formData.get("balance_amount") as string) || 0,
-      payment_status: formData.get("payment_status"),
-      booking_status: formData.get("booking_status"),
-      special_requests: formData.get("special_requests"),
+      booking_code: bookingCode,
+      customer_id: customerId,
+      package_id: packageId,
+      enquiry_id: getFormString(formData, "enquiry_id") || null,
+      booking_date: getFormString(formData, "booking_date") || new Date().toISOString().split('T')[0],
+      travel_date: travelDate,
+      return_date: getFormString(formData, "return_date") || null,
+      no_of_adults: getFormInt(formData, "no_of_adults") || 1,
+      no_of_children: getFormInt(formData, "no_of_children") || 0,
+      total_amount: totalAmount,
+      advance_amount: getFormNumber(formData, "advance_amount") || 0,
+      balance_amount: getFormNumber(formData, "balance_amount") || 0,
+      payment_status: getFormString(formData, "payment_status") || "pending",
+      booking_status: getFormString(formData, "booking_status") || "confirmed",
+      special_requests: getFormString(formData, "special_requests"),
     };
     saveMutation.mutate(bookingData);
   };

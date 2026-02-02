@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { validateForm, getFormString, getFormInt } from "@/lib/validation";
 
 export default function BatchesManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -133,16 +134,32 @@ export default function BatchesManager() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const batchCode = getFormString(formData, "batch_code");
+    const batchName = getFormString(formData, "batch_name");
+    const courseId = getFormString(formData, "course_id");
+    const startDate = getFormString(formData, "start_date");
+
+    // Validate form fields
+    const isValid = validateForm([
+      { value: batchCode, fieldName: "Batch Code", rules: ["required", { minLength: 2 }, { maxLength: 50 }] },
+      { value: batchName, fieldName: "Batch Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+      { value: courseId, fieldName: "Course", rules: ["required"] },
+      { value: startDate, fieldName: "Start Date", rules: ["required", "date"] },
+    ]);
+
+    if (!isValid) return;
+
     const batchData = {
-      batch_code: formData.get("batch_code"),
-      batch_name: formData.get("batch_name"),
-      course_id: formData.get("course_id"),
-      trainer_id: formData.get("trainer_id") || null,
-      start_date: formData.get("start_date"),
-      end_date: formData.get("end_date") || null,
-      schedule: formData.get("schedule"),
-      capacity: parseInt(formData.get("capacity") as string) || null,
-      status: formData.get("status"),
+      batch_code: batchCode,
+      batch_name: batchName,
+      course_id: courseId,
+      trainer_id: getFormString(formData, "trainer_id") || null,
+      start_date: startDate,
+      end_date: getFormString(formData, "end_date") || null,
+      schedule: getFormString(formData, "schedule"),
+      capacity: getFormInt(formData, "capacity"),
+      status: getFormString(formData, "status") || "active",
     };
     saveMutation.mutate(batchData);
   };

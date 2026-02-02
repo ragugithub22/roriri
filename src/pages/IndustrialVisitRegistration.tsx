@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import { CheckCircle } from "lucide-react";
 import roririLogo from "@/assets/roriri-logo.png";
+import { validateForm } from "@/lib/validation";
 
 type VisitType = "normal_visit" | "industrial_visit" | "interview" | "others" | "";
 
@@ -113,10 +114,42 @@ export default function IndustrialVisitRegistration() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.visit_type) {
-      toast.error("Please select a visit type");
-      return;
+    
+    // Build validation rules based on visit type
+    const validationRules: Array<{ value: string; fieldName: string; rules: Array<"required" | "email" | "phone" | { minLength: number } | { maxLength: number }> }> = [
+      { value: formData.visit_type, fieldName: "Visit Type", rules: ["required"] },
+      { value: formData.full_name, fieldName: "Name", rules: ["required", { minLength: 2 }, { maxLength: 100 }] },
+    ];
+
+    // Add type-specific validations
+    if (formData.visit_type === "industrial_visit") {
+      validationRules.push(
+        { value: formData.college_name, fieldName: "College Name", rules: ["required"] },
+        { value: formData.department, fieldName: "Department", rules: ["required"] },
+        { value: formData.mobile, fieldName: "Mobile Number", rules: ["required", "phone"] },
+        { value: formData.email, fieldName: "Email", rules: ["required", "email"] },
+        { value: formData.address, fieldName: "Address", rules: ["required"] }
+      );
+    } else if (formData.visit_type === "interview") {
+      validationRules.push(
+        { value: formData.mobile, fieldName: "Mobile Number", rules: ["required", "phone"] },
+        { value: formData.email, fieldName: "Email", rules: ["required", "email"] },
+        { value: formData.address, fieldName: "Address", rules: ["required"] }
+      );
+    } else if (formData.visit_type === "normal_visit") {
+      validationRules.push(
+        { value: formData.reason, fieldName: "Reason", rules: ["required"] },
+        { value: formData.address, fieldName: "Address", rules: ["required"] }
+      );
+    } else if (formData.visit_type === "others") {
+      validationRules.push(
+        { value: formData.reason, fieldName: "Purpose of Visit", rules: ["required"] }
+      );
     }
+
+    const isValid = validateForm(validationRules);
+    if (!isValid) return;
+
     registerMutation.mutate(formData);
   };
 
