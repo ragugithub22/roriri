@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ArrowRight, BarChart3, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,45 @@ import { useNavigate } from "react-router-dom";
 const Index = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  // Auto-redirect to auth/dashboard
+  useEffect(() => {
+    if (user) {
+      const storedSession = localStorage.getItem('userSession');
+      if (storedSession) {
+        try {
+          const sessionData = JSON.parse(storedSession);
+          switch (sessionData.role) {
+            case 'super_admin':
+            case 'admin':
+              navigate('/it-park', { replace: true });
+              return;
+            case 'trainee':
+              navigate('/trainee-dashboard', { replace: true });
+              return;
+            case 'employee':
+              navigate('/employee-dashboard', { replace: true });
+              return;
+            case 'intern':
+              navigate('/intern-dashboard', { replace: true });
+              return;
+            case 'college':
+              navigate('/institute-dashboard', { replace: true });
+              return;
+            default:
+              navigate('/user-dashboard', { replace: true });
+              return;
+          }
+        } catch {
+          navigate('/user-dashboard', { replace: true });
+          return;
+        }
+      }
+    }
+    // If not logged in, redirect to auth page
+    navigate('/auth', { replace: true });
+  }, [user, navigate]);
+
   const handleLoginClick = async () => {
     if (user) {
       await signOut();
